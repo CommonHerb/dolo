@@ -8,8 +8,8 @@ jobs:
   bootstrap-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
       - name: Run bootstrap tests
@@ -19,15 +19,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out Dolo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python substrate
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
       - name: Check out pinned Herbert
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: CommonHerb/herbert
           ref: e9dff2283113063f60fece453e9ab9eb16e7366a
