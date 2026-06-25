@@ -22,3 +22,6 @@
 - Pushed `foundation/compiler-v0`, observed GitHub Actions `check` success,
   fast-forwarded `main`, pushed `main`, and observed GitHub Actions `check`
   success on `main` at `c485cee2c74dd8f8fa2f4ec623741b7845f79dfa`.
+- Addressed final review by adding record-constructor arity validation, tests
+  for too-few and too-many fields, `!` to `not` lowering, and a CI matrix for
+  Python 3.11 and 3.13.

@@ -73,12 +73,41 @@ class Emitter:
                 i += 3
                 continue
             if token.kind == "IDENT" and token.value in self.records and self._next_value(expr, i, "("):
+                self._validate_constructor(token, expr, i)
                 i += 1
                 continue
-            value = "and" if token.value == "&&" else "or" if token.value == "||" else token.value
+            value = _operator_value(token.value)
             parts.append(value)
             i += 1
         return _format_expr(parts)
+
+    def _validate_constructor(self, token: Token, expr: Expr, index: int) -> None:
+        record = self.records[token.value]
+        got = self._constructor_arg_count(expr, index)
+        want = len(record.fields)
+        if got != want:
+            raise DoloSyntaxError(
+                f"line {token.line}: record {record.name} expects {want} fields, got {got}"
+            )
+
+    def _constructor_arg_count(self, expr: Expr, index: int) -> int:
+        depth = 0
+        count = 0
+        saw_argument = False
+        for token in expr.tokens[index + 2 :]:
+            if token.value == "(":
+                depth += 1
+                saw_argument = True
+            elif token.value == ")":
+                if depth == 0:
+                    return count + 1 if saw_argument else 0
+                depth -= 1
+            elif token.value == "," and depth == 0:
+                count += 1
+            elif token.kind != "NEWLINE":
+                saw_argument = True
+        constructor = expr.tokens[index]
+        raise DoloSyntaxError(f"line {constructor.line}: unterminated {constructor.value} constructor")
 
     def _emit_field_access(self, target: Token, field: Token, env: dict[str, str | None]) -> str:
         record_name = env.get(target.value)
@@ -103,7 +132,7 @@ class Emitter:
 def _format_expr(parts: list[str]) -> str:
     out = ""
     previous = ""
-    operators = {"+", "-", "*", "/", "%", "<", ">", "<=", ">=", "==", "!=", "and", "or", "="}
+    operators = {"+", "-", "*", "/", "%", "<", ">", "<=", ">=", "==", "!=", "and", "or", "not", "="}
     for part in parts:
         if not out:
             out = part
@@ -125,6 +154,16 @@ def _format_expr(parts: list[str]) -> str:
             out += " " + part
         previous = part
     return out
+
+
+def _operator_value(value: str) -> str:
+    if value == "&&":
+        return "and"
+    if value == "||":
+        return "or"
+    if value == "!":
+        return "not"
+    return value
 
 
 def emit_program(program: Program) -> str:

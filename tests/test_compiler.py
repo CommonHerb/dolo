@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from dolo.compiler import compile_source
+from dolo.tokens import DoloSyntaxError
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,6 +68,39 @@ end
         )
 
         self.assertEqual(result.stdout, expected)
+
+    def test_record_constructor_requires_exact_field_count(self):
+        too_few = """record Citizen { name, hunger }
+
+fn bad() {
+  let c = Citizen("Ada")
+  return c.hunger
+}
+"""
+        too_many = """record Citizen { name, hunger }
+
+fn bad() {
+  let c = Citizen("Ada", 3, 99)
+  return c.hunger
+}
+"""
+
+        with self.assertRaisesRegex(DoloSyntaxError, "Citizen expects 2 fields, got 1"):
+            compile_source(too_few)
+        with self.assertRaisesRegex(DoloSyntaxError, "Citizen expects 2 fields, got 3"):
+            compile_source(too_many)
+
+    def test_bang_lowers_to_herbert_not(self):
+        source = """fn ready(flag) {
+  return !flag
+}
+"""
+        expected = """func ready(flag):
+  return not flag
+end
+"""
+
+        self.assertEqual(compile_source(source), expected)
 
 
 if __name__ == "__main__":
