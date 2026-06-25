@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  tests:
+  bootstrap-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,3 +14,30 @@ jobs:
           python-version: "3.13"
       - name: Run bootstrap tests
         run: PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"
+
+  herbert-execution:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Dolo
+        uses: actions/checkout@v4
+
+      - name: Set up Python substrate
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Check out pinned Herbert
+        uses: actions/checkout@v4
+        with:
+          repository: CommonHerb/herbert
+          ref: e9dff2283113063f60fece453e9ab9eb16e7366a
+          path: herbert
+
+      - name: Verify Herbert lock
+        run: |
+          set -euo pipefail
+          source HERBERT.lock
+          test "$(git -C herbert rev-parse HEAD)" = "$HERBERT_COMMIT"
+
+      - name: Run Dolo through pinned Herbert
+        run: scripts/verify_herbert_truth.sh --herbert-dir herbert
