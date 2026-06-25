@@ -10,3 +10,12 @@ func sample_citizen():
     return "steady"
   end
 end
+
+func main():
+  let c = ("Ada", 3, 12)
+  if c.1 > 2:
+    return (c.0, "hungry", c.2)
+  else:
+    return (c.0, "steady", c.2)
+  end
+end

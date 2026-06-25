@@ -11,3 +11,9 @@ func first_amount():
   let e = ("seed", 9)
   return e.1
 end
+
+func main():
+  let e = ("seed", 9)
+  let spare = surplus(e.1, 5)
+  return (e.0, spare, e.1 == 9)
+end

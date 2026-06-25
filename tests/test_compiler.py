@@ -55,6 +55,27 @@ end
             expected = (ROOT / "tests" / "fixtures" / f"{stem}.herb").read_text()
             self.assertEqual(compile_source(source), expected)
 
+    def test_executable_manifest_examples_have_main_and_goldens(self):
+        manifest = ROOT / "tests" / "fixtures" / "executable_manifest.tsv"
+        self.assertTrue(manifest.is_file(), "executable manifest is required")
+        rows = [
+            tuple(line.split("\t"))
+            for line in manifest.read_text().splitlines()
+            if line and not line.startswith("#")
+        ]
+        self.assertGreaterEqual(len(rows), 2)
+
+        for source_rel, herb_rel, stdout_rel in rows:
+            with self.subTest(source=source_rel):
+                source_path = ROOT / source_rel
+                herb_path = ROOT / herb_rel
+                stdout_path = ROOT / stdout_rel
+                source = source_path.read_text()
+
+                self.assertIn("fn main()", source)
+                self.assertEqual(compile_source(source), herb_path.read_text())
+                self.assertTrue(stdout_path.read_text().endswith("\n"))
+
     def test_cli_emits_herbert_to_stdout(self):
         source_path = ROOT / "examples" / "citizen.dolo"
         expected = (ROOT / "tests" / "fixtures" / "citizen.herb").read_text()

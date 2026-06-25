@@ -12,3 +12,12 @@ fn sample_citizen() {
     return "steady"
   }
 }
+
+fn main() {
+  let c = Citizen("Ada", 3, 12)
+  if c.hunger > 2 {
+    return (c.name, "hungry", c.coins)
+  } else {
+    return (c.name, "steady", c.coins)
+  }
+}

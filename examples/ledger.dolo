@@ -13,3 +13,9 @@ fn first_amount() {
   let e = Entry("seed", 9)
   return e.amount
 }
+
+fn main() {
+  let e = Entry("seed", 9)
+  let spare = surplus(e.amount, 5)
+  return (e.label, spare, e.amount == 9)
+}

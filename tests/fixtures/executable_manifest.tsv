@@ -1,0 +1,3 @@
+# source	herbert	stdout
+examples/citizen.dolo	tests/fixtures/citizen.herb	tests/fixtures/citizen.stdout
+examples/ledger.dolo	tests/fixtures/ledger.herb	tests/fixtures/ledger.stdout
