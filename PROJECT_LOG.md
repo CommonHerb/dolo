@@ -19,3 +19,6 @@
   and unit tests.
 - Verified locally with:
   `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`.
+- Pushed `foundation/compiler-v0`, observed GitHub Actions `check` success,
+  fast-forwarded `main`, pushed `main`, and observed GitHub Actions `check`
+  success on `main` at `c485cee2c74dd8f8fa2f4ec623741b7845f79dfa`.

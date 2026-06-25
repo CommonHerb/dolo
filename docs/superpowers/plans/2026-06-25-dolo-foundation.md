@@ -107,7 +107,7 @@ Run: `PYTHONPATH=src python3 -m unittest tests.test_compiler`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add pyproject.toml src tests
@@ -149,7 +149,7 @@ Run: `PYTHONPATH=src python3 -m unittest tests.test_compiler`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add examples src tests
@@ -167,7 +167,7 @@ git commit -m "feat: add dolo examples and cli"
 - Consumes: local Python tests.
 - Produces: repeatable local and GitHub verification commands.
 
-- [ ] **Step 1: Write verification docs**
+- [x] **Step 1: Write verification docs**
 
 Document:
 
@@ -178,7 +178,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"
 State that this proves the bootstrap compiler and emitted Herbert fixtures, not
 native Herbert execution.
 
-- [ ] **Step 2: Add CI**
+- [x] **Step 2: Add CI**
 
 Use GitHub Actions Ubuntu with Python 3 to run:
 
@@ -186,13 +186,13 @@ Use GitHub Actions Ubuntu with Python 3 to run:
 PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"
 ```
 
-- [ ] **Step 3: Verify locally**
+- [x] **Step 3: Verify locally**
 
 Run: `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
 
 Expected: all tests pass.
 
-- [ ] **Step 4: Commit and push**
+- [x] **Step 4: Commit and push**
 
 ```bash
 git add .github VERIFYING.md PROJECT_LOG.md
