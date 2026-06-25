@@ -47,6 +47,11 @@ This proves, for the executable manifest in
 The harness stages a temporary executable copy of Herbert's tracked
 `bootstrap/seed/gen1.seed`; it does not chmod or modify the Herbert checkout.
 
+The same harness also runs raw Herbert migration candidates listed in
+`tests/fixtures/herbert_migration_manifest.tsv`. These are early
+Herbert-family implementation candidates, not completed replacements for Python
+bootstrap code.
+
 This does not prove arbitrary Dolo program correctness, arbitrary Herbert
 compiler correctness, or removal of bootstrap trust debt. It proves only the
 manifested examples reached native execution through the pinned Herbert seed.

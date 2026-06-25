@@ -64,6 +64,33 @@ compiler="$tmp/herbert-gen1"
 cp "$seed" "$compiler"
 chmod +x "$compiler"
 
+run_herbert_source() {
+    local label="$1" herb_source="$2" stdout_expected="$3" run_id="$4"
+    local run_dir="$tmp/$run_id.run"
+    mkdir -p "$run_dir"
+
+    (
+        cd "$run_dir"
+        "$compiler" <"$herb_source" >compile.out 2>compile.err
+    ) || fail "$label failed during Herbert seed compile"
+
+    [[ -f "$run_dir/a.out" ]] || fail "$label produced no a.out: $(head -1 "$run_dir/compile.out" 2>/dev/null) $(head -1 "$run_dir/compile.err" 2>/dev/null)"
+    magic="$(od -An -tx1 -N4 "$run_dir/a.out" | tr -d ' \n')"
+    [[ "$magic" == "7f454c46" ]] || fail "$label produced non-ELF a.out (magic=$magic)"
+    chmod +x "$run_dir/a.out"
+
+    if command -v timeout >/dev/null 2>&1; then
+        timeout 60s "$run_dir/a.out" >"$run_dir/stdout" 2>"$run_dir/stderr"
+    else
+        "$run_dir/a.out" >"$run_dir/stdout" 2>"$run_dir/stderr"
+    fi
+    [[ ! -s "$run_dir/stderr" ]] || fail "$label wrote stderr: $(head -1 "$run_dir/stderr")"
+    if ! cmp -s "$run_dir/stdout" "$stdout_expected"; then
+        diff -u "$stdout_expected" "$run_dir/stdout" >&2 || true
+        fail "$label native stdout differed from expected output"
+    fi
+}
+
 case_count=0
 while IFS=$'\t' read -r source_rel herb_rel stdout_rel extra; do
     [[ -z "${source_rel:-}" || "${source_rel:0:1}" == "#" ]] && continue
@@ -79,8 +106,6 @@ while IFS=$'\t' read -r source_rel herb_rel stdout_rel extra; do
     case_count=$((case_count + 1))
     stem="$(basename "${source_rel%.dolo}")"
     generated="$tmp/$stem.herb"
-    run_dir="$tmp/$stem.run"
-    mkdir -p "$run_dir"
 
     PYTHONPATH="$ROOT/src" python3 -m dolo.cli "$source_path" >"$generated"
     if ! cmp -s "$generated" "$herb_golden"; then
@@ -88,29 +113,31 @@ while IFS=$'\t' read -r source_rel herb_rel stdout_rel extra; do
         fail "$source_rel no longer matches committed Herbert golden"
     fi
 
-    (
-        cd "$run_dir"
-        "$compiler" <"$generated" >compile.out 2>compile.err
-    ) || fail "$source_rel failed during Herbert seed compile"
-
-    [[ -f "$run_dir/a.out" ]] || fail "$source_rel produced no a.out: $(head -1 "$run_dir/compile.out" 2>/dev/null) $(head -1 "$run_dir/compile.err" 2>/dev/null)"
-    magic="$(od -An -tx1 -N4 "$run_dir/a.out" | tr -d ' \n')"
-    [[ "$magic" == "7f454c46" ]] || fail "$source_rel produced non-ELF a.out (magic=$magic)"
-    chmod +x "$run_dir/a.out"
-
-    if command -v timeout >/dev/null 2>&1; then
-        timeout 60s "$run_dir/a.out" >"$run_dir/stdout" 2>"$run_dir/stderr"
-    else
-        "$run_dir/a.out" >"$run_dir/stdout" 2>"$run_dir/stderr"
-    fi
-    [[ ! -s "$run_dir/stderr" ]] || fail "$source_rel wrote stderr: $(head -1 "$run_dir/stderr")"
-    if ! cmp -s "$run_dir/stdout" "$stdout_expected"; then
-        diff -u "$stdout_expected" "$run_dir/stdout" >&2 || true
-        fail "$source_rel native stdout differed from expected output"
-    fi
-
+    run_herbert_source "$source_rel" "$generated" "$stdout_expected" "dolo-$case_count-$stem"
     note "PASS: $source_rel -> Herbert -> native stdout matched $stdout_rel"
 done <"$manifest"
 
 [[ "$case_count" -gt 0 ]] || fail "manifest contained no executable examples"
 note "PASS: $case_count Dolo executable example(s) ran through pinned Herbert $HERBERT_COMMIT"
+
+migration_manifest="$ROOT/tests/fixtures/herbert_migration_manifest.tsv"
+[[ -f "$migration_manifest" ]] || fail "migration manifest missing at $migration_manifest"
+
+migration_count=0
+while IFS=$'\t' read -r source_rel stdout_rel extra; do
+    [[ -z "${source_rel:-}" || "${source_rel:0:1}" == "#" ]] && continue
+    [[ -z "${extra:-}" ]] || fail "migration manifest row has too many fields: $source_rel"
+
+    source_path="$ROOT/$source_rel"
+    stdout_expected="$ROOT/$stdout_rel"
+    [[ -f "$source_path" ]] || fail "migration source missing: $source_rel"
+    [[ -f "$stdout_expected" ]] || fail "migration stdout golden missing: $stdout_rel"
+
+    migration_count=$((migration_count + 1))
+    stem="$(basename "${source_rel%.herb}")"
+    run_herbert_source "$source_rel" "$source_path" "$stdout_expected" "migration-$migration_count-$stem"
+    note "PASS: migration candidate $source_rel -> native stdout matched $stdout_rel"
+done <"$migration_manifest"
+
+[[ "$migration_count" -gt 0 ]] || fail "migration manifest contained no Herbert candidates"
+note "PASS: $migration_count Herbert migration candidate(s) ran through pinned Herbert $HERBERT_COMMIT"

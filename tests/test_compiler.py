@@ -151,6 +151,30 @@ end
         self.assertIn('chmod +x "$compiler"', harness_text)
         self.assertNotIn('"$seed" <"$generated"', harness_text)
 
+    def test_first_herbert_migration_candidate_is_manifested(self):
+        manifest = ROOT / "tests" / "fixtures" / "herbert_migration_manifest.tsv"
+        self.assertTrue(manifest.is_file(), "Herbert migration manifest is required")
+        rows = [
+            tuple(line.split("\t"))
+            for line in manifest.read_text().splitlines()
+            if line and not line.startswith("#")
+        ]
+        self.assertGreaterEqual(len(rows), 1)
+
+        for source_rel, stdout_rel in rows:
+            with self.subTest(source=source_rel):
+                source_path = ROOT / source_rel
+                stdout_path = ROOT / stdout_rel
+
+                self.assertEqual(source_path.suffix, ".herb")
+                self.assertIn("func main()", source_path.read_text())
+                self.assertTrue(stdout_path.read_text().endswith("\n"))
+
+    def test_herbert_truth_harness_runs_migration_candidates(self):
+        harness = ROOT / "scripts" / "verify_herbert_truth.sh"
+
+        self.assertIn("herbert_migration_manifest.tsv", harness.read_text())
+
 
 if __name__ == "__main__":
     unittest.main()

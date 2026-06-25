@@ -41,3 +41,10 @@
   and runs the executable truth loop on Ubuntu.
 - Added `docs/language-reference.md` for the implemented v0.1 surface and
   `docs/trust-debt.md` for borrowed substrate.
+- Updated the workflow to current `actions/checkout@v7` and
+  `actions/setup-python@v6` after GitHub reported Node 20 deprecation
+  annotations on the older actions.
+- Added the first tiny Herbert-family migration candidate,
+  `experiments/herbert/record_field_index_candidate.herb`, plus
+  `docs/migration-candidates/0001-record-field-index.md` and a CI manifest so
+  the candidate runs through the same pinned Herbert seed.

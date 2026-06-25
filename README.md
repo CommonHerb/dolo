@@ -39,6 +39,9 @@ The current pinned Herbert target is:
   Herbert on Linux/x86_64.
 - `docs/language-reference.md` records the exact implemented Dolo v0.1 surface.
 - `docs/trust-debt.md` names borrowed substrate.
+- `docs/migration-candidates/` records tiny Herbert-family implementation
+  candidates before they replace bootstrap code.
+- `experiments/herbert/` contains raw Herbert candidate programs run by CI.
 - `docs/foundation/herbert-target-subset.md` records what Dolo may emit today.
 - `ROADMAP.md` is the living direction map.
 - `PROJECT_LOG.md` records decisions and verified state by date.

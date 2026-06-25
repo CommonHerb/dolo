@@ -14,6 +14,9 @@ This roadmap is a living map. It separates what is proven from what is intended.
 - `scripts/verify_herbert_truth.sh` proves manifested examples by compiling
   `.dolo -> .herb -> ELF` through the pinned Herbert seed on Linux/x86_64 and
   comparing native stdout.
+- The first Herbert-family migration candidate,
+  `experiments/herbert/record_field_index_candidate.herb`, runs through the same
+  pinned Herbert seed and is tracked as candidate 0001.
 
 ## First Foundation
 
@@ -34,6 +37,8 @@ This roadmap is a living map. It separates what is proven from what is intended.
 - Add list literals or typed list builders if they can lower honestly to Herbert
   arrays.
 - Grow the executable manifest one behavior at a time.
+- Turn migration candidate 0001 into a real replacement only after the Dolo
+  compiler behavior it mirrors has stronger diagnostic and type boundaries.
 - Replace bootstrap pieces with Herbert-family implementations when they become
   small and well-specified enough.
 
