@@ -2,7 +2,7 @@
 name = "dolo"
 version = "0.0.0"
 description = "The first Herbert-family application language."
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = []
 
 [tool.dolo]
