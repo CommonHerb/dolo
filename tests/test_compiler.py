@@ -123,6 +123,34 @@ end
 
         self.assertEqual(compile_source(source), expected)
 
+    def test_herbert_truth_harness_is_pinned(self):
+        lock = ROOT / "HERBERT.lock"
+        harness = ROOT / "scripts" / "verify_herbert_truth.sh"
+
+        self.assertTrue(lock.is_file(), "Herbert target lock is required")
+        lock_text = lock.read_text()
+        self.assertIn(
+            "HERBERT_COMMIT=e9dff2283113063f60fece453e9ab9eb16e7366a",
+            lock_text,
+        )
+        self.assertIn(
+            "HERBERT_SEED_SHA256=8a9be3012cd3a132d2da5eb25df0b083671ff352725fdfb10504f1e7a939ce50",
+            lock_text,
+        )
+
+        self.assertTrue(harness.is_file(), "Herbert truth harness is required")
+        harness_text = harness.read_text()
+        for required in ("a.out", "sha256", "x86_64"):
+            self.assertIn(required, harness_text)
+
+    def test_herbert_truth_harness_stages_seed_copy(self):
+        harness = ROOT / "scripts" / "verify_herbert_truth.sh"
+        harness_text = harness.read_text()
+
+        self.assertIn('cp "$seed" "$compiler"', harness_text)
+        self.assertIn('chmod +x "$compiler"', harness_text)
+        self.assertNotIn('"$seed" <"$generated"', harness_text)
+
 
 if __name__ == "__main__":
     unittest.main()
