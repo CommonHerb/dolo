@@ -28,7 +28,7 @@ VM, hidden runtime, or foreign ABI.
 The first slice supports:
 
 - `record Name { field, field }` declarations
-- `fn name(params) { ... }` functions
+- `fn name(params) { body }` functions
 - `let name = expr`
 - assignment
 - `return expr`
@@ -38,8 +38,8 @@ The first slice supports:
 - user calls and selected Herbert built-in calls
 - named record field access lowered to Herbert tuple positions
 
-Lists are desirable but may stay documented as target design unless they can be
-implemented honestly without widening the compiler too far.
+Lists are desirable but deferred from this compiler slice. They should be added
+only when they can lower honestly to Herbert arrays with tests.
 
 ## Examples
 
@@ -69,9 +69,9 @@ that local verification proves compiler output, not native Herbert execution.
 
 ## Trust Debt
 
-Python, `pytest` or `unittest`, shell, GitHub, GitHub Actions, macOS, Linux, and
-Herbert's committed seed are all trust debt or temporary substrate. The initial
-implementation should prefer the Python standard library so the debt is small,
+Python, `unittest`, shell, GitHub, GitHub Actions, macOS, Linux, and Herbert's
+committed seed are all trust debt or temporary substrate. The initial
+implementation uses only the Python standard library so the debt is small,
 obvious, and replaceable.
 
 ## Scope Boundaries

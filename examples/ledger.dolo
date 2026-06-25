@@ -1,0 +1,15 @@
+record Entry { label, amount }
+
+fn surplus(stock, need) {
+  let spare = stock - need
+  if spare > 0 {
+    return spare
+  } else {
+    return 0
+  }
+}
+
+fn first_amount() {
+  let e = Entry("seed", 9)
+  return e.amount
+}

@@ -1,0 +1,14 @@
+record Citizen { name, hunger, coins }
+
+fn hunger_of(c: Citizen) {
+  return c.hunger
+}
+
+fn sample_citizen() {
+  let c = Citizen("Ada", 3, 12)
+  if c.hunger > 2 {
+    return c.name
+  } else {
+    return "steady"
+  }
+}

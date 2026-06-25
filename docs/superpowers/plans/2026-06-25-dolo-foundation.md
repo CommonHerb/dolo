@@ -39,7 +39,7 @@
 
 Use the current Herbert evidence and pin the observed commit.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add README.md COVENANT.md ROADMAP.md PROJECT_LOG.md docs
@@ -65,40 +65,45 @@ git push -u origin main
 **Interfaces:**
 - Produces: `dolo.compiler.compile_source(source: str) -> str`.
 
-- [ ] **Step 1: Write the failing compiler test**
+- [x] **Step 1: Write the failing compiler test**
 
 ```python
+import unittest
+
 from dolo.compiler import compile_source
 
 
-def test_citizen_record_lowers_to_readable_herbert():
-    source = """record Citizen { name, hunger }
+class CompilerTests(unittest.TestCase):
+    def test_citizen_record_lowers_to_readable_herbert(self):
+        source = """record Citizen { name, hunger }
 
-fn hunger(c) {
+fn hunger(c: Citizen) {
   return c.hunger
 }
 """
-    expected = """func hunger(c):
+        expected = """func hunger(c):
   return c.1
 end
 """
-    assert compile_source(source) == expected
+
+        self.assertEqual(compile_source(source), expected)
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
-Run: `python3 -m unittest tests.test_compiler`
+Run: `PYTHONPATH=src python3 -m unittest tests.test_compiler`
 
 Expected: FAIL because `dolo` is not implemented.
 
-- [ ] **Step 3: Implement the minimal package**
+- [x] **Step 3: Implement the minimal package**
 
-Implement tokenization, parsing, record-field lowering, and Herbert emission for
-the tested slice only.
+Create `src/dolo/tokens.py`, `src/dolo/ast.py`, `src/dolo/parser.py`,
+`src/dolo/emitter.py`, and `src/dolo/compiler.py`. Implement tokenization,
+parsing, record-field lowering, and Herbert emission for the tested slice.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
-Run: `python3 -m unittest tests.test_compiler`
+Run: `PYTHONPATH=src python3 -m unittest tests.test_compiler`
 
 Expected: PASS.
 
@@ -121,25 +126,26 @@ git commit -m "feat: add first dolo compiler slice"
 - Consumes: `compile_source(source: str) -> str`.
 - Produces: CLI command `python3 -m dolo.cli input.dolo`.
 
-- [ ] **Step 1: Write failing CLI and example tests**
+- [x] **Step 1: Write failing CLI and example tests**
 
-Test that `examples/citizen.dolo` compiles to expected Herbert and the CLI emits
-the same bytes to stdout.
+Test that `examples/citizen.dolo` and `examples/ledger.dolo` compile to
+committed Herbert fixtures and that the CLI emits the same bytes to stdout.
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
-Run: `python3 -m unittest tests.test_compiler`
+Run: `PYTHONPATH=src python3 -m unittest tests.test_compiler`
 
 Expected: FAIL until examples and CLI behavior exist.
 
-- [ ] **Step 3: Implement examples and CLI**
+- [x] **Step 3: Implement examples and CLI**
 
-Add example programs and a CLI that reads one input path and writes Herbert to
-stdout.
+Add `examples/citizen.dolo`, `examples/ledger.dolo`,
+`tests/fixtures/citizen.herb`, `tests/fixtures/ledger.herb`, and a CLI that
+reads one input path and writes Herbert to stdout.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
-Run: `python3 -m unittest tests.test_compiler`
+Run: `PYTHONPATH=src python3 -m unittest tests.test_compiler`
 
 Expected: PASS.
 
@@ -166,7 +172,7 @@ git commit -m "feat: add dolo examples and cli"
 Document:
 
 ```bash
-python3 -m unittest
+PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"
 ```
 
 State that this proves the bootstrap compiler and emitted Herbert fixtures, not
@@ -177,12 +183,12 @@ native Herbert execution.
 Use GitHub Actions Ubuntu with Python 3 to run:
 
 ```bash
-python3 -m unittest
+PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"
 ```
 
 - [ ] **Step 3: Verify locally**
 
-Run: `python3 -m unittest`
+Run: `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
 
 Expected: all tests pass.
 
@@ -191,5 +197,5 @@ Expected: all tests pass.
 ```bash
 git add .github VERIFYING.md PROJECT_LOG.md
 git commit -m "ci: verify dolo bootstrap compiler"
-git push
+git push -u origin foundation/compiler-v0
 ```

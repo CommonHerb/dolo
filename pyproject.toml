@@ -1,0 +1,9 @@
+[project]
+name = "dolo"
+version = "0.0.0"
+description = "The first Herbert-family application language."
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.dolo]
+substrate = "python-standard-library"

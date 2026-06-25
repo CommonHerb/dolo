@@ -56,8 +56,8 @@ This is an honest v0 representation, not a permanent ABI.
 ## Lists
 
 The first Dolo list lowering may use Herbert arrays when element type is obvious
-from annotation or literal context. If that is too much for the first compiler
-slice, list support should be deferred rather than faked.
+from annotation or literal context. List support is deferred from the current
+compiler slice rather than faked.
 
 ## Out Of Scope
 

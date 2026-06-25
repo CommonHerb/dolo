@@ -16,7 +16,7 @@ current computers, but they do not define Dolo's semantics or authority.
 The first slice is deliberately small:
 
 - a tiny `.dolo` source language for functions, values, calls, records, simple
-  control flow, strings, and lists
+  control flow, and strings
 - a bootstrap compiler that emits a documented Herbert target subset
 - examples that show why Dolo is nicer for application code than raw Herbert
 - tests that prove emitted Herbert text for the current subset
@@ -33,6 +33,7 @@ The current observed Herbert target is:
 - `docs/foundation/herbert-target-subset.md` records what Dolo may emit today.
 - `ROADMAP.md` is the living direction map.
 - `PROJECT_LOG.md` records decisions and verified state by date.
+- `VERIFYING.md` records current proof commands and what they do not prove.
 - `docs/superpowers/specs/` contains design specs.
 - `docs/superpowers/plans/` contains implementation plans.
 

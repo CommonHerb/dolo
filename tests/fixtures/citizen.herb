@@ -1,0 +1,12 @@
+func hunger_of(c):
+  return c.1
+end
+
+func sample_citizen():
+  let c = ("Ada", 3, 12)
+  if c.1 > 2:
+    return c.0
+  else:
+    return "steady"
+  end
+end

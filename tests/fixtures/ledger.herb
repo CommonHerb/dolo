@@ -1,0 +1,13 @@
+func surplus(stock, need):
+  let spare = stock - need
+  if spare > 0:
+    return spare
+  else:
+    return 0
+  end
+end
+
+func first_amount():
+  let e = ("seed", 9)
+  return e.1
+end

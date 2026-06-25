@@ -12,3 +12,10 @@
 - Noted local substrate boundary: this machine is Apple Silicon macOS; Herbert's
   committed production seed is an x86-64 Linux ELF, so generated Herbert
   execution needs Linux/x86-64, CI, or emulation.
+- Added the first Python-standard-library bootstrap compiler slice on branch
+  `foundation/compiler-v0`: records, record constructors, annotated record
+  parameters, field access lowering, functions, `let`, assignment, `return`,
+  `if` / `else`, expressions preserved into readable Herbert, examples, CLI,
+  and unit tests.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`.
