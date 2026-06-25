@@ -9,6 +9,11 @@ This roadmap is a living map. It separates what is proven from what is intended.
   host tools as temporary substrate.
 - The first observed Herbert target is pinned to
   `e9dff2283113063f60fece453e9ab9eb16e7366a`.
+- Dolo has executable examples with `fn main()` and committed Herbert/stdout
+  fixtures.
+- `scripts/verify_herbert_truth.sh` proves manifested examples by compiling
+  `.dolo -> .herb -> ELF` through the pinned Herbert seed on Linux/x86_64 and
+  comparing native stdout.
 
 ## First Foundation
 
@@ -17,8 +22,9 @@ This roadmap is a living map. It separates what is proven from what is intended.
 - Emit a documented Herbert source subset.
 - Add examples that are nicer than raw Herbert for application-shaped code.
 - Test the compiler with RED-first fixtures.
-- Add CI that runs bootstrap tests and, where practical, validates emitted
-  Herbert against a pinned Herbert checkout on Linux.
+- Add CI that runs bootstrap tests and validates manifested examples through
+  pinned Herbert native execution on Linux/x86_64.
+- Keep the Dolo v0.1 language reference and trust-debt ledger current.
 
 ## Next Slices
 
@@ -27,7 +33,7 @@ This roadmap is a living map. It separates what is proven from what is intended.
 - Add record constructors and named-field access with explicit tuple lowering.
 - Add list literals or typed list builders if they can lower honestly to Herbert
   arrays.
-- Add a Dolo language reference once the v0 grammar stops shifting daily.
+- Grow the executable manifest one behavior at a time.
 - Replace bootstrap pieces with Herbert-family implementations when they become
   small and well-specified enough.
 

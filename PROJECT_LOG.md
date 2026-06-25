@@ -26,3 +26,18 @@
   for too-few and too-many fields, and `!` to `not` lowering.
 - Declared the bootstrap's current Python substrate as Python 3.13 because that
   is the locally verified interpreter and CI lane for this first slice.
+- Started branch `foundation/executable-truth-loop` from
+  `a01dd9fe493d6aba5d05723563ef58265dad5b1a`.
+- Added executable `main` examples for `citizen` and `ledger`, committed
+  Herbert goldens, committed native stdout keys, and a manifest in
+  `tests/fixtures/executable_manifest.tsv`.
+- Added `HERBERT.lock` pinning `CommonHerb/herbert` at
+  `e9dff2283113063f60fece453e9ab9eb16e7366a` with gen-1 seed sha256
+  `8a9be3012cd3a132d2da5eb25df0b083671ff352725fdfb10504f1e7a939ce50`.
+- Added `scripts/verify_herbert_truth.sh`, which requires Linux/x86_64, checks
+  the Herbert checkout and seed hash, stages a temporary executable seed copy,
+  compiles generated Herbert to ELF, runs the ELF, and compares native stdout.
+- Added a GitHub Actions `herbert-execution` job that checks out pinned Herbert
+  and runs the executable truth loop on Ubuntu.
+- Added `docs/language-reference.md` for the implemented v0.1 surface and
+  `docs/trust-debt.md` for borrowed substrate.

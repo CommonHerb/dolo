@@ -20,16 +20,25 @@ The first slice is deliberately small:
 - a bootstrap compiler that emits a documented Herbert target subset
 - examples that show why Dolo is nicer for application code than raw Herbert
 - tests that prove emitted Herbert text for the current subset
+- an executable truth loop that runs manifest examples through pinned Herbert
+  on Linux/x86_64 CI and compares native stdout
 
-The current observed Herbert target is:
+The current pinned Herbert target is:
 
 - repository: `CommonHerb/herbert`
 - commit: `e9dff2283113063f60fece453e9ab9eb16e7366a`
+- seed sha256:
+  `8a9be3012cd3a132d2da5eb25df0b083671ff352725fdfb10504f1e7a939ce50`
 - checkout observed beside this repo at: `../herbert`
 
 ## Repository Map
 
 - `COVENANT.md` is the founding covenant.
+- `HERBERT.lock` pins the Herbert target used by the executable truth loop.
+- `scripts/verify_herbert_truth.sh` runs manifested examples through pinned
+  Herbert on Linux/x86_64.
+- `docs/language-reference.md` records the exact implemented Dolo v0.1 surface.
+- `docs/trust-debt.md` names borrowed substrate.
 - `docs/foundation/herbert-target-subset.md` records what Dolo may emit today.
 - `ROADMAP.md` is the living direction map.
 - `PROJECT_LOG.md` records decisions and verified state by date.

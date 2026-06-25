@@ -6,6 +6,8 @@ Observed Herbert checkout:
 
 - repo: `CommonHerb/herbert`
 - commit: `e9dff2283113063f60fece453e9ab9eb16e7366a`
+- seed sha256:
+  `8a9be3012cd3a132d2da5eb25df0b083671ff352725fdfb10504f1e7a939ce50`
 - local evidence: `../herbert` on branch `main`, matching `origin/main` when
   first inspected for Dolo's foundation
 
@@ -25,6 +27,8 @@ Dolo v0 may emit Herbert source using:
 - calls to user functions
 - calls to observed Herbert built-ins such as `length`, `index`, `equal`,
   `new_buffer`, `append`, `freeze`, `new_array`, `add`, `get`, and `count`
+- no-argument `func main()` returning a value that Herbert's native renderer can
+  print on Linux/x86_64
 
 The initial compiler should generate conservative, readable Herbert text. It is
 better to emit boring Herbert that can be inspected than clever Herbert that
@@ -79,3 +83,8 @@ ELF. Local Dolo tests can verify emitted Herbert text and compiler behavior, but
 running the generated Herbert through the native Herbert toolchain requires
 Linux/x86-64 or equivalent borrowed substrate such as CI or emulation. That
 boundary must stay visible.
+
+The executable truth loop is `scripts/verify_herbert_truth.sh`. It verifies the
+Herbert checkout and seed pin, stages a temporary executable seed copy, compiles
+manifested Dolo examples to Herbert, compiles that Herbert to ELF, runs the ELF,
+and compares native stdout to committed `.stdout` files.
