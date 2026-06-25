@@ -241,4 +241,3 @@ gh run watch --repo CommonHerb/dolo <run-id> --exit-status
 ```
 
 Expected: the branch workflow completes with both jobs green.
-

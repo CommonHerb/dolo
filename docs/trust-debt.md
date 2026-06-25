@@ -28,4 +28,3 @@ ledger names the borrowed substrate used by the current repository.
 - New dependencies must not become semantic authority for Dolo.
 - Every borrowed substrate must be documented where it is used.
 - Replacing trust debt is better than hiding it behind nicer tooling.
-

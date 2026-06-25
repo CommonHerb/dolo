@@ -138,4 +138,3 @@ Diagnostics are intentionally small:
 - record constructor arity mismatches report expected and actual field counts
 
 Stable diagnostic codes are future work.
-

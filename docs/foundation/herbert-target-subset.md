@@ -19,7 +19,7 @@ Dolo v0 may emit Herbert source using:
 - `let name = expr`
 - `name = expr`
 - `return expr`
-- `if` / `elif` / `else` / `end`
+- `if` / `else` / `end`
 - integer, boolean, string, and character literals
 - arithmetic and comparison operators already present in Herbert examples
 - boolean `and`, `or`, and `not`

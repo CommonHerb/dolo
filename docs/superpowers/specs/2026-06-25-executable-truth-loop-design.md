@@ -79,4 +79,3 @@ proof run today, but they are not Dolo's language identity.
 macOS/Apple Silicon local runs can verify the bootstrap compiler and emitted
 Herbert goldens. They cannot execute the pinned Herbert x86-64 seed natively and
 must not be presented as native Herbert execution.
-
