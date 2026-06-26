@@ -508,7 +508,11 @@ def _extract_array_mutation_shape(text: str) -> list[str]:
 
 
 def _extract_builtin_arity_candidate_map(text: str) -> dict[str, int]:
-    return _extract_equal_return_map(text)
+    return _extract_equal_return_map(
+        text,
+        candidate_label="builtin arity candidate",
+        manifest_name="herbert_migration_manifest.tsv",
+    )
 
 
 def _require_record_field_index_candidate_matches_dolo_record(
@@ -546,7 +550,11 @@ def _require_record_field_index_candidate_matches_dolo_record(
             f"must define record {RECORD_FIELD_INDEX_RECORD}"
         )
 
-    actual = _extract_equal_return_map((root / source_rel).read_text())
+    actual = _extract_equal_return_map(
+        (root / source_rel).read_text(),
+        candidate_label="record field index candidate",
+        manifest_name="herbert_migration_manifest.tsv",
+    )
     expected = {field: index for index, field in enumerate(record.fields)}
     if actual == expected:
         return
@@ -578,7 +586,12 @@ def _require_record_field_index_candidate_matches_dolo_record(
     )
 
 
-def _extract_equal_return_map(text: str) -> dict[str, int]:
+def _extract_equal_return_map(
+    text: str,
+    *,
+    candidate_label: str,
+    manifest_name: str,
+) -> dict[str, int]:
     found: dict[str, int] = {}
     lines = text.splitlines()
     prefix = 'if equal(name, "'
@@ -593,6 +606,11 @@ def _extract_equal_return_map(text: str) -> dict[str, int]:
             continue
         arity_text = return_line.removeprefix("return ").strip()
         if arity_text.isdigit():
+            if name in found:
+                raise ManifestError(
+                    f"{manifest_name}: {candidate_label} has duplicate "
+                    f"lookup name {name}"
+                )
             found[name] = int(arity_text)
     return dict(sorted(found.items()))
 

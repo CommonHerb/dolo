@@ -72,6 +72,9 @@ This proves:
   `Citizen` field names and tuple indexes parsed from `examples/citizen.dolo`,
   so the first record-field migration candidate is compared against the Dolo
   record metadata it intends to replace
+- table-shaped Herbert migration candidates reject duplicate lookup names before
+  their extracted maps are compared with Dolo/Python bootstrap owners, so a
+  repeated branch cannot silently overwrite an earlier entry during validation
 - `experiments/herbert/array_mutation_candidate.herb` preserves the same
   array/buffer mutation and read shape as `tests/fixtures/array_mutation.herb`,
   ignoring only the candidate's marker tag in its returned tuple
@@ -155,7 +158,9 @@ its Herbert lookup table must mirror the parsed `Citizen` fields in
 `examples/citizen.dolo`. The array mutation candidate has one extra local
 check: its mutation/read shape must mirror `tests/fixtures/array_mutation.herb`.
 The built-in arity candidate has one extra local check: its Herbert lookup
-table must mirror Python-owned `HERBERT_BUILTIN_ARITIES`.
+table must mirror Python-owned `HERBERT_BUILTIN_ARITIES`. Table-shaped
+candidate checks also reject duplicate lookup names before comparing the final
+map, so duplicate branches cannot be hidden by extraction order.
 
 This does not prove arbitrary Dolo program correctness, arbitrary Herbert
 compiler correctness, or removal of bootstrap trust debt. It proves only the

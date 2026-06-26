@@ -39,6 +39,9 @@ replacement path that says how the executable proof could eventually displace
 that owner. It must also state the authority boundary that keeps
 executable/comparison proof distinct from compiler authority. A candidate
 without all four is not precise enough to count as a trust-debt repayment path.
+Table-shaped lookup candidates must also use unique lookup names before their
+final maps are compared with the Python/Dolo owner, so duplicate Herbert
+branches cannot be hidden by dictionary-style collapse during validation.
 
 Comparison against a Dolo/Python bootstrap owner is evidence, not authority
 transfer. The Dolo compiler still uses Python-owned bootstrap code until a
