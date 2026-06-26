@@ -15,6 +15,7 @@ This proves:
 - the bootstrap parser accepts the v0 examples
 - record constructors lower to Herbert tuples
 - record field access lowers to tuple indexes
+- record type knowledge propagates through simple identifier bindings
 - `if` / `else`, `let`, assignment, `return`, calls, strings, booleans, and
   arithmetic-like expressions emit readable Herbert source
 - duplicate declarations, record annotation errors, unbound variables,

@@ -59,14 +59,14 @@ class Emitter:
                     )
                 lines.append(f"{prefix}let {stmt.name} = {self._emit_expr(stmt.expr, context)}")
                 context.bindings.add(stmt.name)
-                context.record_types[stmt.name] = self._record_from_constructor(stmt.expr)
+                context.record_types[stmt.name] = self._record_from_expr(stmt.expr, context)
             elif isinstance(stmt, AssignStmt):
                 if stmt.name not in context.bindings and stmt.name_token is not None:
                     raise DoloSyntaxError(
                         f"{_location(stmt.name_token)}: assignment target {stmt.name!r} is not bound"
                     )
                 lines.append(f"{prefix}{stmt.name} = {self._emit_expr(stmt.expr, context)}")
-                context.record_types[stmt.name] = self._record_from_constructor(stmt.expr)
+                context.record_types[stmt.name] = self._record_from_expr(stmt.expr, context)
             elif isinstance(stmt, ReturnStmt):
                 lines.append(f"{prefix}return {self._emit_expr(stmt.expr, context)}")
             elif isinstance(stmt, IfStmt):
@@ -79,10 +79,12 @@ class Emitter:
             else:
                 raise TypeError(f"unknown statement {stmt!r}")
 
-    def _record_from_constructor(self, expr: Expr) -> str | None:
+    def _record_from_expr(self, expr: Expr, context: EmitContext) -> str | None:
         tokens = expr.tokens
         if len(tokens) >= 2 and tokens[0].value in self.records and tokens[1].value == "(":
             return tokens[0].value
+        if len(tokens) == 1 and tokens[0].kind == "IDENT":
+            return context.record_types.get(tokens[0].value)
         return None
 
     def _emit_expr(self, expr: Expr, context: EmitContext) -> str:

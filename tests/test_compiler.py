@@ -26,6 +26,27 @@ end
 
         self.assertEqual(compile_source(source), expected)
 
+    def test_record_type_propagates_through_identifier_binding(self):
+        source = """record Citizen { name, hunger }
+
+fn hunger_of(c: Citizen) {
+  let alias = c
+  return alias.hunger
+}
+"""
+        expected = """func hunger_of(c):
+  let alias = c
+  return alias.1
+end
+"""
+
+        try:
+            emitted = compile_source(source)
+        except DoloSyntaxError as exc:
+            self.fail(f"record type should propagate through identifier binding: {exc}")
+
+        self.assertEqual(emitted, expected)
+
     def test_record_declaration_rejects_duplicate_field_names(self):
         source = """record Citizen { name, hunger, name }
 

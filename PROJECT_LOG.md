@@ -171,3 +171,15 @@
   current diagnostic and binding checks, CLI plain-error checks, and Herbert
   harness pin/staging coverage instead of describing only the earliest example
   compiler behavior.
+- Added narrow record type propagation through simple identifier bindings:
+  a `let` or assignment from a single identifier with known record type now
+  carries that type knowledge forward, so aliases can use record field access
+  without a full Dolo type system.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 32 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 3 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).
