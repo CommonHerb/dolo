@@ -23,6 +23,15 @@ Herbert function for the `Citizen` example's field names:
 The sentinel `999` is not a final diagnostic contract. It is only a visible
 placeholder for this candidate program's first executable shape.
 
+## Replacement Path
+
+This candidate can only replace Python emitter behavior after record metadata,
+field-name lookup, and diagnostic policy have Herbert-family representation.
+The first wiring step should compare this executable lookup shape against the
+Python emitter's record-field lowering for pinned examples before any compiler
+authority moves. Until then, the candidate is executable repayment evidence,
+not Dolo's semantic authority.
+
 ## Verification
 
 The candidate is listed in `tests/fixtures/herbert_migration_manifest.tsv`.

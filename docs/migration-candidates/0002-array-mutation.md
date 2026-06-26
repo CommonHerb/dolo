@@ -26,6 +26,17 @@ adds two values, builds a buffer-backed label, and returns a tagged tuple:
 The candidate intentionally mirrors a pinned compiler output pattern rather
 than introducing new Dolo syntax.
 
+## Replacement Path
+
+This candidate can only replace Python bootstrap behavior after Dolo has
+Herbert-family ownership of the observed built-in surface validation and
+lowering path for `new_array(...)`, `do add(...)`, `do append(...)`,
+`count(...)`, `get(...)`, and `freeze(...)`. The first wiring step should
+compare this executable Herbert pattern against the emitted Herbert fixtures
+that already prove Dolo's array mutation boundary. Until then, the Python
+emitter remains the compiler authority and this candidate remains migration
+evidence.
+
 ## Verification
 
 The candidate is listed in `tests/fixtures/herbert_migration_manifest.tsv`.

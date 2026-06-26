@@ -25,6 +25,15 @@ lookup for the observed built-ins Dolo can emit today:
 The sentinel `999` is not a final diagnostic contract. It is only a visible
 placeholder for this candidate program's first executable shape.
 
+## Replacement Path
+
+The lowest-risk replacement path is to mirror, then replace, the Python
+`HERBERT_BUILTIN_ARITIES` table with a Herbert-family arity table that can be
+executed and compared against the current Python-owned table before compiler
+wiring changes. Until that comparison exists and passes for every observed
+built-in Dolo can emit, `src/dolo/herbert_surface.py` remains the compiler
+authority and this candidate remains executable migration evidence.
+
 ## Verification
 
 The candidate is listed in `tests/fixtures/herbert_migration_manifest.tsv`.

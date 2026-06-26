@@ -357,6 +357,11 @@ def _require_migration_candidate_note(
             "herbert_migration_manifest.tsv: migration candidate note must name "
             f"the current Python/bootstrap owner for {source_rel}"
         )
+    if not any(_names_replacement_path(note.read_text()) for note in stdout_notes):
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: migration candidate note must include "
+            f"a replacement path for {source_rel}"
+        )
 
 
 def _require_migration_candidate_notes_are_manifested(
@@ -392,6 +397,10 @@ def _names_python_owner(text: str) -> bool:
         "Python-owned",
     )
     return any(phrase in text for phrase in owner_phrases)
+
+
+def _names_replacement_path(text: str) -> bool:
+    return "## Replacement Path" in text or "## Wiring Path" in text
 
 
 def _require_file(root: Path, relative_path: str, *, label: str) -> None:

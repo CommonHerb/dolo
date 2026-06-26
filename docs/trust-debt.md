@@ -29,8 +29,9 @@ They run through pinned Herbert in CI. They are not yet wired into the Dolo
 compiler, so they are repayment candidates, not paid debt.
 
 Each migration candidate note must name the current Python/bootstrap owner it
-mirrors. A candidate without that owner is not precise enough to count as a
-trust-debt repayment path.
+mirrors and include a replacement path that says how the executable proof could
+eventually displace that owner. A candidate without both is not precise enough
+to count as a trust-debt repayment path.
 
 ## Current Pin
 
