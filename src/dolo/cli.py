@@ -19,6 +19,10 @@ def main(argv: list[str] | None = None) -> int:
     except DoloSyntaxError as exc:
         print(f"dolo: {exc}", file=sys.stderr)
         return 1
+    except OSError as exc:
+        detail = exc.strerror or str(exc)
+        print(f"dolo: {args.source}: {detail}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

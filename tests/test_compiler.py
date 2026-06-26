@@ -174,6 +174,25 @@ end
         self.assertEqual(result.stdout, "")
         self.assertNotIn("Traceback", result.stderr)
 
+    def test_cli_reports_missing_source_without_python_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source_path = Path(tmp) / "missing.dolo"
+
+            result = subprocess.run(
+                [sys.executable, "-m", "dolo.cli", str(source_path)],
+                env={"PYTHONPATH": str(ROOT / "src")},
+                capture_output=True,
+                text=True,
+            )
+
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(
+            result.stderr,
+            f"dolo: {source_path}: No such file or directory\n",
+        )
+        self.assertEqual(result.stdout, "")
+        self.assertNotIn("Traceback", result.stderr)
+
     def test_record_constructor_requires_exact_field_count(self):
         too_few = """record Citizen { name, hunger }
 

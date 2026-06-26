@@ -148,7 +148,7 @@ Diagnostics are intentionally small:
 - unknown record fields report the record name, missing field, and field column
 - record constructor arity mismatches report expected and actual field counts
   at the constructor column
-- the bootstrap CLI prints `DoloSyntaxError` messages as `dolo: ...` on stderr
-  and exits with status 1, without a Python traceback
+- the bootstrap CLI prints `DoloSyntaxError` and source-file read failures as
+  `dolo: ...` on stderr and exits with status 1, without a Python traceback
 
 Stable diagnostic codes are future work.

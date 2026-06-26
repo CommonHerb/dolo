@@ -92,3 +92,9 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 3 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Extended the bootstrap CLI's plain-error boundary to source-file read
+  failures, so missing input files report `dolo: PATH: No such file or
+  directory` without a Python traceback.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 24 tests`, `OK`).
