@@ -2,6 +2,27 @@
 
 ## 2026-06-26
 
+- Tightened Dolo's assignment boundary so `=` remains statement syntax only.
+  Expressions such as `return x = 1`, `let y = x = 1`, and `if flag = true`
+  now fail with a Dolo diagnostic instead of emitting Herbert assignment-shaped
+  text that does not belong in the expression surface.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_assignment_operator_is_not_allowed_inside_expressions`
+  (first observed failures: three bad expression forms did not raise
+  `DoloSyntaxError`; after the emitter change: `Ran 1 test`, `OK`).
+- Verified neighboring assignment/example behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_assignment_operator_is_not_allowed_inside_expressions tests.test_compiler.CompilerTests.test_assignment_target_must_already_be_bound tests.test_compiler.CompilerTests.test_examples_compile_to_committed_herbert`
+  (`Ran 3 tests`, `OK`).
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 77 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Added conservative return-completeness validation for Dolo functions: a
   function must reach a direct `return`, or an `if` with an `else` where both
   arms guarantee a return, before Dolo emits Herbert. This matches the pinned

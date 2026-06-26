@@ -122,7 +122,8 @@ Implemented statements are:
 `let` introduces a new local binding. A `let` name must not already name a
 parameter or earlier local binding in the current binding context. Assignment
 updates an existing parameter or local binding; it does not introduce a new
-name.
+name. The assignment operator `=` is statement syntax only; it is not valid
+inside Dolo expressions.
 
 `do` is currently limited to observed no-value Herbert mutation built-ins such
 as `add` and `append`. The call must be the whole statement.
@@ -208,6 +209,7 @@ Diagnostics are intentionally small:
   at the constructor column
 - `let` binding redeclarations report the repeated binding column
 - assignment to an unbound name reports the assignment target column
+- assignment operators inside expressions report the operator column
 - unknown function call targets report the call target column
 - Dolo function call arity mismatches report expected and actual argument
   counts at the call target column

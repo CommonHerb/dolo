@@ -323,6 +323,42 @@ fn bad() {
         ):
             compile_source(source)
 
+    def test_assignment_operator_is_not_allowed_inside_expressions(self):
+        cases = (
+            (
+                """fn bad(x) {
+  return x = 1
+}
+""",
+                r"line 2, column 12: unexpected assignment operator in expression",
+            ),
+            (
+                """fn bad() {
+  let x = 0
+  let y = x = 1
+  return y
+}
+""",
+                r"line 3, column 13: unexpected assignment operator in expression",
+            ),
+            (
+                """fn bad(flag) {
+  if flag = true {
+    return 1
+  } else {
+    return 0
+  }
+}
+""",
+                r"line 2, column 11: unexpected assignment operator in expression",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_observed_herbert_builtin_call_target_is_allowed(self):
         source = """fn same(a, b) {
   return equal(a, b)

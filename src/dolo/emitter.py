@@ -136,6 +136,10 @@ class Emitter:
                 parts.append(self._emit_field_access(token, expr.tokens[i + 2], context.record_types))
                 i += 3
                 continue
+            if token.value == "=":
+                raise DoloSyntaxError(
+                    f"{_location(token)}: unexpected assignment operator in expression"
+                )
             if token.kind == "IDENT" and token.value in self.records and self._next_value(expr, i, "("):
                 self._validate_constructor(token, expr, i)
                 i += 1
