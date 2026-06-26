@@ -407,6 +407,7 @@ class Emitter:
                 continue
             previous = expr.tokens[i - 1] if i > 0 else None
             next_token = expr.tokens[i + 1] if i + 1 < len(expr.tokens) else None
+            next_next_token = expr.tokens[i + 2] if i + 2 < len(expr.tokens) else None
             if token.value in UNSUPPORTED_EXPRESSION_PUNCTUATION:
                 raise DoloSyntaxError(
                     f"{_location(token)}: unexpected {token.value!r} in expression"
@@ -451,6 +452,10 @@ class Emitter:
                 if next_token is None or next_token.kind != "IDENT":
                     raise DoloSyntaxError(
                         f"{_location(token)}: field access requires a field name"
+                    )
+                if next_next_token is not None and next_next_token.value == "(":
+                    raise DoloSyntaxError(
+                        f"{_location(next_next_token)}: field access is not callable"
                     )
             if token.value == "!":
                 if (

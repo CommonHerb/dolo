@@ -165,7 +165,8 @@ Variable references must name a parameter or a local binding introduced earlier
 with `let`.
 
 Field access is currently limited to a simple identifier target and identifier
-field name, such as `citizen.hunger`.
+field name, such as `citizen.hunger`. Callable field or method-like forms such
+as `citizen.hunger()` are not implemented.
 
 Parenthesized expressions must contain an expression. Tuple and call commas
 must have an expression on both sides; trailing commas and empty tuple fields
@@ -238,6 +239,7 @@ Diagnostics are intentionally small:
   unsupported-form diagnostic
 - `else` without a matching `if` reports the `else` column
 - malformed field access reports the dot column
+- callable field access reports the call-opening parenthesis column
 - unresolved record field access reports the target, field, and target column
 - unknown record fields report the record name, missing field, and field column
 - record constructor arity mismatches report expected and actual field counts

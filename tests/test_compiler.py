@@ -127,6 +127,20 @@ fn bad() {
                 with self.assertRaisesRegex(DoloSyntaxError, expected):
                     compile_source(source)
 
+    def test_field_access_is_not_callable(self):
+        source = """record Citizen { name, hunger }
+
+fn bad(c: Citizen) {
+  return c.hunger()
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 4, column 18: field access is not callable",
+        ):
+            compile_source(source)
+
     def test_record_declaration_rejects_duplicate_field_names(self):
         source = """record Citizen { name, hunger, name }
 

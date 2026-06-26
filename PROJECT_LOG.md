@@ -2,6 +2,25 @@
 
 ## 2026-06-26
 
+- Rejected callable field access so method-like forms such as `c.hunger()` no
+  longer leak through the token-preserving emitter as `c.1()`.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_field_access_is_not_callable`
+  (first observed failure: `DoloSyntaxError not raised`; after the emitter
+  shape check: `Ran 1 test`, `OK`).
+- Verified neighboring field/call expression behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_record_field_access_lowers_to_tuple_index tests.test_compiler.CompilerTests.test_record_type_propagates_through_identifier_binding tests.test_compiler.CompilerTests.test_field_access_requires_identifier_target_and_field tests.test_compiler.CompilerTests.test_field_access_is_not_callable tests.test_compiler.CompilerTests.test_function_call_target_must_be_known tests.test_compiler.CompilerTests.test_function_call_requires_declared_arity tests.test_compiler.CompilerTests.test_observed_herbert_builtin_call_target_is_allowed tests.test_compiler.CompilerTests.test_zero_argument_calls_remain_valid_expressions`
+  (`Ran 8 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 107 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 12 Dolo executable example(s)`, `PASS: 3 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Hardened missing statement assignment-marker diagnostics so `let x 1` and
   `x 2` report the missing `=` boundary instead of the generic `expected '='`
   parser fallback.
