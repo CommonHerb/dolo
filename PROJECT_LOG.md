@@ -2,6 +2,27 @@
 
 ## 2026-06-26
 
+- Rejected sources with no top-level Dolo declarations. Empty, whitespace-only,
+  newline-only, and comment-only inputs now fail at EOF with a focused
+  `source must contain at least one top-level record or fn` diagnostic instead
+  of emitting an empty Herbert file.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_source_requires_at_least_one_top_level_declaration`
+  (first observed failures: four no-declaration sources did not raise
+  `DoloSyntaxError`; after the parser change: `Ran 1 test`, `OK`).
+- Verified neighboring top-level declaration diagnostics with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_record_declaration_rejects_duplicate_record_names tests.test_compiler.CompilerTests.test_function_declaration_rejects_duplicate_function_names tests.test_compiler.CompilerTests.test_top_level_declaration_names_must_not_overlap tests.test_compiler.CompilerTests.test_function_declaration_rejects_duplicate_parameter_names`
+  (`Ran 4 tests`, `OK`).
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 88 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Rejected unsupported expression punctuation before Herbert emission. Dolo now
   fails `return :`, `return 1:2`, `return {1}`, and `return ({1}, 2)` instead
   of preserving colon or brace-shaped expression text.

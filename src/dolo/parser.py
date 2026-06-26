@@ -31,6 +31,8 @@ class Parser:
         records: list[RecordDecl] = []
         functions: list[FunctionDecl] = []
         self._skip_newlines()
+        if self._at("EOF"):
+            self._fail("source must contain at least one top-level record or fn")
         while not self._at("EOF"):
             if self._match_value("record"):
                 records.append(self._parse_record_after_keyword())

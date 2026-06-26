@@ -5,7 +5,8 @@ living contract, not a promise about future syntax.
 
 ## Source Shape
 
-A Dolo source file contains top-level record and function declarations:
+A Dolo source file must contain at least one top-level record or function
+declaration:
 
 ```dolo
 record Citizen { name, hunger }
@@ -205,6 +206,8 @@ Diagnostics are intentionally small:
 
 - malformed source reports line and column where the tokenizer or parser
   noticed the issue
+- sources without top-level declarations report the EOF column after leading
+  whitespace, comments, or newlines
 - duplicate top-level record names, top-level function names, record/function
   name overlaps, record fields, and function parameters report the repeated
   name column

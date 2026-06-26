@@ -12,6 +12,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class CompilerTests(unittest.TestCase):
+    def test_source_requires_at_least_one_top_level_declaration(self):
+        cases = (
+            ("", r"line 1, column 1: source must contain at least one top-level record or fn"),
+            ("   ", r"line 1, column 4: source must contain at least one top-level record or fn"),
+            ("\n", r"line 2, column 1: source must contain at least one top-level record or fn"),
+            (
+                "# just a comment\n",
+                r"line 2, column 1: source must contain at least one top-level record or fn",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_record_field_access_lowers_to_tuple_index(self):
         source = """record Citizen { name, hunger }
 
