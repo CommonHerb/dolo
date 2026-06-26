@@ -1,0 +1,20 @@
+func closing_delimiter(name):
+    if equal(name, ")"):
+        return "("
+    else:
+        if equal(name, "}"):
+            return "{"
+        else:
+            return "missing"
+        end
+    end
+end
+
+func main():
+    return (
+        "closing-delimiters-candidate",
+        closing_delimiter(")"),
+        closing_delimiter("}"),
+        closing_delimiter("missing")
+    )
+end
