@@ -6,9 +6,6 @@ import sys
 from pathlib import Path
 
 from .compiler import compile_source
-from .herbert_surface import (
-    HERBERT_TYPE_NAMES,
-)
 from .parser import parse_source
 from .tokens import DoloSyntaxError
 
@@ -27,6 +24,7 @@ RECORD_FIELD_INDEX_CANDIDATE = "experiments/herbert/record_field_index_candidate
 RECORD_FIELD_INDEX_EXAMPLE = "examples/citizen.dolo"
 RECORD_FIELD_INDEX_RECORD = "Citizen"
 TYPE_NAME_CANDIDATE = "experiments/herbert/type_name_candidate.herb"
+TYPE_NAME_PROBE = "tests/oracle/programs/type_probe.dolo"
 ARRAY_RETURN_CALL_PATTERN = re.compile(r"\b(?:count|get|freeze)\([^)]*\)")
 
 
@@ -168,7 +166,7 @@ def validate_repository_manifests(root: Path) -> None:
         _require_builtin_arity_candidate_matches_oracle_golden(root, source_rel)
         _require_builtin_kind_candidate_matches_oracle_golden(root, source_rel)
         _require_record_field_index_candidate_matches_dolo_record(root, source_rel)
-        _require_type_name_candidate_matches_python_table(root, source_rel)
+        _require_type_name_candidate_matches_oracle_probe(root, source_rel)
     _require_migration_candidate_notes_are_manifested(
         root,
         set(migration_rows),
@@ -658,7 +656,7 @@ def _extract_boolean_operator_candidate_map(text: str) -> dict[str, str]:
     )
 
 
-def _require_type_name_candidate_matches_python_table(
+def _require_type_name_candidate_matches_oracle_probe(
     root: Path,
     source_rel: str,
 ) -> None:
@@ -666,7 +664,7 @@ def _require_type_name_candidate_matches_python_table(
         return
 
     actual = _extract_type_name_candidate_map((root / source_rel).read_text())
-    expected = dict(sorted((name, 1) for name in HERBERT_TYPE_NAMES))
+    expected = dict(sorted((name, 1) for name in _read_type_name_probe_names(root)))
     if actual == expected:
         return
 
@@ -691,8 +689,8 @@ def _require_type_name_candidate_matches_python_table(
             )
         )
     raise ManifestError(
-        "herbert_migration_manifest.tsv: type name candidate must mirror "
-        "HERBERT_TYPE_NAMES "
+        "herbert_migration_manifest.tsv: type name candidate must match "
+        f"{TYPE_NAME_PROBE} "
         f"({'; '.join(details)})"
     )
 
@@ -702,6 +700,84 @@ def _extract_type_name_candidate_map(text: str) -> dict[str, int]:
         text,
         candidate_label="type name candidate",
         manifest_name="herbert_migration_manifest.tsv",
+    )
+
+
+def _read_type_name_probe_names(root: Path) -> frozenset[str]:
+    path = root / TYPE_NAME_PROBE
+    if not path.is_file():
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: type name probe missing: "
+            f"{TYPE_NAME_PROBE}"
+        )
+    try:
+        program = parse_source(path.read_text())
+    except DoloSyntaxError as exc:
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: type name probe failed to parse: "
+            f"{exc}"
+        ) from exc
+
+    names: set[str] = set()
+    for function in program.functions:
+        for expr in _iter_statement_exprs(function.body):
+            _collect_new_array_type_names(expr.tokens, names)
+    if not names:
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: type name probe declares no "
+            f"new_array type names: {TYPE_NAME_PROBE}"
+        )
+    return frozenset(names)
+
+
+def _iter_statement_exprs(statements):
+    for stmt in statements:
+        expr = getattr(stmt, "expr", None)
+        if expr is not None:
+            yield expr
+        condition = getattr(stmt, "condition", None)
+        if condition is not None:
+            yield condition
+        then_body = getattr(stmt, "then_body", ())
+        if then_body:
+            yield from _iter_statement_exprs(then_body)
+        else_body = getattr(stmt, "else_body", ())
+        if else_body:
+            yield from _iter_statement_exprs(else_body)
+
+
+def _collect_new_array_type_names(tokens, names: set[str]) -> None:
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if (
+            token.kind == "IDENT"
+            and token.value == "new_array"
+            and index + 1 < len(tokens)
+            and tokens[index + 1].value == "("
+        ):
+            close_index = _call_close_index(tokens, index)
+            for type_token in tokens[index + 2 : close_index]:
+                if type_token.kind == "IDENT" and type_token.value != "array":
+                    names.add(type_token.value)
+            index = close_index + 1
+            continue
+        index += 1
+
+
+def _call_close_index(tokens, index: int) -> int:
+    depth = 0
+    for cursor, token in enumerate(tokens[index + 2 :], start=index + 2):
+        if token.value == "(":
+            depth += 1
+        elif token.value == ")":
+            if depth == 0:
+                return cursor
+            depth -= 1
+    call = tokens[index]
+    raise ManifestError(
+        "herbert_migration_manifest.tsv: type name probe has unterminated "
+        f"{call.value} call"
     )
 
 

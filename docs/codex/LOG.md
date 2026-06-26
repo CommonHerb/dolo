@@ -8,6 +8,8 @@ Format: `YYYY-MM-DD  <GREEN|RED|PROPOSE|NEEDS-SYNC>  <commit-or-—>  <one line>
 
 ---
 
+2026-06-26  SLICE  —  FULL-AUTO queue complete locally: builtin_arity, boolean_operator, and type_name are wired; meter reads 2 with all three new wiring oracles WIRED.
+2026-06-26  SLICE  —  type_name is wired to experiments/herbert/type_name_candidate.herb; emitter new_array type-name validation consults the Herbert-family owner-derived set instead of the Python type-name literal.
 2026-06-26  SLICE  —  boolean_operator is wired to experiments/herbert/boolean_operator_candidate.herb; emitter operator lowering consults the Herbert-family owner-derived lookup instead of the Python lowering literal.
 2026-06-26  SLICE  —  builtin_arity is wired to experiments/herbert/builtin_arity_candidate.herb; emitter arity validation consults the Herbert-family owner-derived lookup instead of the Python arity literal.
 2026-06-26  GREEN  f76d9fa  Orchestrator ACCEPTED + merged builtin_kind. Independently verified: oracle WIRED (poison no-op + owner-blank breaks), meter 6->5, my CHECK-3 perturbation passes (flipping new_array->void in the .herb makes the compiler reject the held-back probe), truth loop green (native Linux/x86_64), CI 112, no test masking. RESIDUAL (a future slice): the .herb owner is Python-PARSED, not yet SEED-EXECUTED — moving the kind COMPUTATION through the pinned seed is the deeper step.
