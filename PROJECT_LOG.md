@@ -429,9 +429,10 @@
   `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
 - Local wrapper execution did not complete the truth loop in this slice:
   `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
-  failed during Colima startup. The wrapper exited instead of hanging, and the
-  profile was verified stopped afterward (`colima list`: `herbert-x86
-  Stopped`); inspect
+  exited `1` during Colima startup with `host agent process has exited:
+  signal: killed`. The wrapper printed the diagnostic log paths, exited instead
+  of hanging, and the profile was verified stopped afterward (`colima list`:
+  `herbert-x86 Stopped`); inspect
   `/Users/ben/.colima/_lima/colima-herbert-x86/ha.stderr.log` and `serial.log`
   for local Colima details. GitHub Actions remains the Linux/x86_64 truth
   source for this checkpoint.
