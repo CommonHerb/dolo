@@ -401,7 +401,10 @@
   `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
   (`Ran 51 tests`, `OK`), plus
   `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
-- Native truth-loop re-verification for this target-constraint slice remains
-  unresolved: the `herbert-x86` Colima host agent stopped during startup or
-  mid-loop (`host agent process has exited: signal: killed`; one retry dropped
-  SSH after 3 executable examples).
+- Verified the executable Herbert truth loop in GitHub Actions on Linux/x86_64:
+  `scripts/verify_herbert_truth.sh --herbert-dir herbert`
+  (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`) for pushed commit `79b1e551`. The local `herbert-x86` Colima
+  profile remained flaky during this slice (`host agent process has exited:
+  signal: killed`; one retry dropped SSH after 3 executable examples), so CI is
+  the current native truth source for this checkpoint.
