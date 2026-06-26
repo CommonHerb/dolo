@@ -15,10 +15,18 @@ This proves:
 - the bootstrap parser accepts the v0 examples
 - record constructors lower to Herbert tuples
 - record field access lowers to tuple indexes
-- `if` / `else`, `let`, `return`, calls, strings, booleans, and arithmetic-like
-  expressions emit readable Herbert source
+- `if` / `else`, `let`, assignment, `return`, calls, strings, booleans, and
+  arithmetic-like expressions emit readable Herbert source
+- duplicate declarations, record annotation errors, unbound variables,
+  unbound assignment targets, duplicate `let` bindings, unknown call targets,
+  and Dolo function arity mismatches fail with focused `DoloSyntaxError`
+  diagnostics
 - the CLI writes Herbert to stdout
+- the CLI reports syntax and source-file read failures without Python
+  tracebacks
 - committed examples match committed Herbert goldens
+- the Herbert truth harness is pinned, stages a temporary seed copy, and
+  includes the migration-candidate manifest
 
 This does not prove:
 

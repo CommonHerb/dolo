@@ -167,3 +167,7 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 3 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Updated `VERIFYING.md` so the local bootstrap-test proof list names the
+  current diagnostic and binding checks, CLI plain-error checks, and Herbert
+  harness pin/staging coverage instead of describing only the earliest example
+  compiler behavior.
