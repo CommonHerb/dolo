@@ -1,6 +1,6 @@
 # source	herbert	stdout
-examples/citizen.dolo	tests/fixtures/citizen.herb	tests/fixtures/citizen.stdout
-examples/ledger.dolo	tests/fixtures/ledger.herb	tests/fixtures/ledger.stdout
 examples/boolean_gate.dolo	tests/fixtures/boolean_gate.herb	tests/fixtures/boolean_gate.stdout
+examples/citizen.dolo	tests/fixtures/citizen.herb	tests/fixtures/citizen.stdout
 examples/citizen_alias.dolo	tests/fixtures/citizen_alias.herb	tests/fixtures/citizen_alias.stdout
+examples/ledger.dolo	tests/fixtures/ledger.herb	tests/fixtures/ledger.stdout
 examples/stock_update.dolo	tests/fixtures/stock_update.herb	tests/fixtures/stock_update.stdout

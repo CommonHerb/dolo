@@ -237,6 +237,7 @@ end
             if line and not line.startswith("#")
         ]
         self.assertGreaterEqual(len(rows), 2)
+        self.assertEqual(rows, sorted(rows), "executable manifest rows must be sorted")
 
         for source_rel, herb_rel, stdout_rel in rows:
             with self.subTest(source=source_rel):
