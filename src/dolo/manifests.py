@@ -10,6 +10,8 @@ from .herbert_surface import (
     DOLO_BOOLEAN_OPERATOR_LOWERINGS,
     HERBERT_BUILTIN_ARITIES,
     HERBERT_TYPE_NAMES,
+    HERBERT_VALUE_BUILTINS,
+    HERBERT_VOID_BUILTINS,
 )
 from .parser import parse_source
 from .tokens import DoloSyntaxError
@@ -23,6 +25,7 @@ ARRAY_MUTATION_CANDIDATE = "experiments/herbert/array_mutation_candidate.herb"
 ARRAY_MUTATION_HERBERT_GOLDEN = "tests/fixtures/array_mutation.herb"
 BOOLEAN_OPERATOR_CANDIDATE = "experiments/herbert/boolean_operator_candidate.herb"
 BUILTIN_ARITY_CANDIDATE = "experiments/herbert/builtin_arity_candidate.herb"
+BUILTIN_KIND_CANDIDATE = "experiments/herbert/builtin_kind_candidate.herb"
 RECORD_FIELD_INDEX_CANDIDATE = "experiments/herbert/record_field_index_candidate.herb"
 RECORD_FIELD_INDEX_EXAMPLE = "examples/citizen.dolo"
 RECORD_FIELD_INDEX_RECORD = "Citizen"
@@ -166,6 +169,7 @@ def validate_repository_manifests(root: Path) -> None:
         _require_array_mutation_candidate_matches_emitted_fixture(root, source_rel)
         _require_boolean_operator_candidate_matches_python_table(root, source_rel)
         _require_builtin_arity_candidate_matches_python_table(root, source_rel)
+        _require_builtin_kind_candidate_matches_python_tables(root, source_rel)
         _require_record_field_index_candidate_matches_dolo_record(root, source_rel)
         _require_type_name_candidate_matches_python_table(root, source_rel)
     _require_migration_candidate_notes_are_manifested(
@@ -519,6 +523,57 @@ def _extract_builtin_arity_candidate_map(text: str) -> dict[str, int]:
     return _extract_equal_return_map(
         text,
         candidate_label="builtin arity candidate",
+        manifest_name="herbert_migration_manifest.tsv",
+    )
+
+
+def _require_builtin_kind_candidate_matches_python_tables(
+    root: Path,
+    source_rel: str,
+) -> None:
+    if source_rel != BUILTIN_KIND_CANDIDATE:
+        return
+
+    actual = _extract_builtin_kind_candidate_map((root / source_rel).read_text())
+    expected = {
+        **{name: "value" for name in HERBERT_VALUE_BUILTINS},
+        **{name: "void" for name in HERBERT_VOID_BUILTINS},
+    }
+    expected = dict(sorted(expected.items()))
+    if actual == expected:
+        return
+
+    missing = sorted(set(expected) - set(actual))
+    unexpected = sorted(set(actual) - set(expected))
+    mismatched = sorted(
+        name
+        for name in set(expected) & set(actual)
+        if expected[name] != actual[name]
+    )
+    details: list[str] = []
+    if missing:
+        details.append(f"missing {', '.join(missing)}")
+    if unexpected:
+        details.append(f"unexpected {', '.join(unexpected)}")
+    if mismatched:
+        details.append(
+            "mismatched "
+            + ", ".join(
+                f"{name} expected {expected[name]} got {actual[name]}"
+                for name in mismatched
+            )
+        )
+    raise ManifestError(
+        "herbert_migration_manifest.tsv: builtin kind candidate must mirror "
+        "HERBERT_VALUE_BUILTINS and HERBERT_VOID_BUILTINS "
+        f"({'; '.join(details)})"
+    )
+
+
+def _extract_builtin_kind_candidate_map(text: str) -> dict[str, str]:
+    return _extract_equal_return_string_map(
+        text,
+        candidate_label="builtin kind candidate",
         manifest_name="herbert_migration_manifest.tsv",
     )
 

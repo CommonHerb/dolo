@@ -29,6 +29,10 @@ candidates. Today they mirror narrow Python bootstrap compiler decisions:
 - `builtin_arity_candidate.herb` mirrors the observed Herbert built-in arity
   table used by Dolo before emission. Local manifest validation compares this
   candidate against Python-owned `HERBERT_BUILTIN_ARITIES`.
+- `builtin_kind_candidate.herb` mirrors the observed Herbert built-in
+  value/no-value split used by Dolo expression and `do` validation. Local
+  manifest validation compares this candidate against Python-owned
+  `HERBERT_VALUE_BUILTINS` and `HERBERT_VOID_BUILTINS`.
 - `boolean_operator_candidate.herb` mirrors the Dolo-to-Herbert boolean
   operator lowering table used by the emitter. Local manifest validation
   compares this candidate against Python-owned

@@ -1,0 +1,54 @@
+func builtin_kind(name):
+    if equal(name, "add"):
+        return "void"
+    else:
+        if equal(name, "append"):
+            return "void"
+        else:
+            if equal(name, "count"):
+                return "value"
+            else:
+                if equal(name, "equal"):
+                    return "value"
+                else:
+                    if equal(name, "freeze"):
+                        return "value"
+                    else:
+                        if equal(name, "get"):
+                            return "value"
+                        else:
+                            if equal(name, "index"):
+                                return "value"
+                            else:
+                                if equal(name, "length"):
+                                    return "value"
+                                else:
+                                    if equal(name, "new_array"):
+                                        return "value"
+                                    else:
+                                        if equal(name, "new_buffer"):
+                                            return "value"
+                                        else:
+                                            return "missing"
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+func main():
+    return (
+        "builtin-kind-candidate",
+        builtin_kind("new_buffer"),
+        builtin_kind("count"),
+        builtin_kind("add"),
+        builtin_kind("append"),
+        builtin_kind("missing")
+    )
+end

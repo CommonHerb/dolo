@@ -2098,6 +2098,70 @@ end
             ):
                 validate_repository_manifests(root)
 
+    def test_manifest_validator_requires_builtin_kind_candidate_to_mirror_python_tables(self):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixtures = root / "tests" / "fixtures"
+            examples = root / "examples"
+            experiments = root / "experiments" / "herbert"
+            notes = root / "docs" / "migration-candidates"
+            fixtures.mkdir(parents=True)
+            examples.mkdir()
+            experiments.mkdir(parents=True)
+            notes.mkdir(parents=True)
+            (examples / "a.dolo").write_text(
+                """fn main() {
+  return 1
+}
+"""
+            )
+            (fixtures / "a.herb").write_text("func main():\n  return 1\nend\n")
+            (fixtures / "a.stdout").write_text("1\n")
+            (experiments / "builtin_kind_candidate.herb").write_text(
+                """func builtin_kind(name):
+    if equal(name, "add"):
+        return "void"
+    else:
+        return "missing"
+    end
+end
+
+func main():
+    return builtin_kind("add")
+end
+"""
+            )
+            (fixtures / "builtin_kind_candidate.stdout").write_text("\"void\"\n")
+            (notes / "0001-builtin-kind.md").write_text(
+                "experiments/herbert/builtin_kind_candidate.herb\n"
+                "tests/fixtures/builtin_kind_candidate.stdout\n"
+                "Current Python behavior lives in HERBERT_VALUE_BUILTINS and "
+                "HERBERT_VOID_BUILTINS.\n"
+                "## Replacement Path\n"
+                "Compare this against HERBERT_VALUE_BUILTINS and "
+                "HERBERT_VOID_BUILTINS before wiring.\n"
+                "## Authority Boundary\n"
+                "This candidate is not compiler authority and not paid debt.\n"
+            )
+            (fixtures / "executable_manifest.tsv").write_text(
+                "examples/a.dolo\ttests/fixtures/a.herb\t"
+                "tests/fixtures/a.stdout\n"
+            )
+            (fixtures / "non_executable_examples.tsv").write_text("")
+            (fixtures / "herbert_migration_manifest.tsv").write_text(
+                "experiments/herbert/builtin_kind_candidate.herb\t"
+                "tests/fixtures/builtin_kind_candidate.stdout\n"
+            )
+
+            with self.assertRaisesRegex(
+                ManifestError,
+                r"herbert_migration_manifest.tsv: builtin kind candidate must mirror "
+                r"HERBERT_VALUE_BUILTINS and HERBERT_VOID_BUILTINS \(missing append",
+            ):
+                validate_repository_manifests(root)
+
     def test_manifest_validator_requires_boolean_operator_candidate_to_mirror_python_table(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
@@ -3109,6 +3173,10 @@ end
                 (
                     "experiments/herbert/builtin_arity_candidate.herb",
                     "tests/fixtures/builtin_arity_candidate.stdout",
+                ),
+                (
+                    "experiments/herbert/builtin_kind_candidate.herb",
+                    "tests/fixtures/builtin_kind_candidate.stdout",
                 ),
                 (
                     "experiments/herbert/boolean_operator_candidate.herb",
