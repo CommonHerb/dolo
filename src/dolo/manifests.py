@@ -352,6 +352,11 @@ def _require_migration_candidate_note(
             "herbert_migration_manifest.tsv: migration candidate note must mention "
             f"{stdout_rel}"
         )
+    if not any(_names_python_owner(note.read_text()) for note in stdout_notes):
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: migration candidate note must name "
+            f"the current Python/bootstrap owner for {source_rel}"
+        )
 
 
 def _require_migration_candidate_notes_are_manifested(
@@ -375,6 +380,18 @@ def _require_migration_candidate_notes_are_manifested(
                 "herbert_migration_manifest.tsv: migration candidate note "
                 f"is not linked to a manifest source: {note_rel}"
             )
+
+
+def _names_python_owner(text: str) -> bool:
+    owner_phrases = (
+        "Current Python behavior lives",
+        "Python behavior lives",
+        "Current bootstrap behavior lives",
+        "Bootstrap behavior lives",
+        "Current Python-owned",
+        "Python-owned",
+    )
+    return any(phrase in text for phrase in owner_phrases)
 
 
 def _require_file(root: Path, relative_path: str, *, label: str) -> None:

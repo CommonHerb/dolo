@@ -9,6 +9,10 @@ boundary Dolo currently depends on: typed array creation, no-value mutation
 through `do add(...)`, buffer mutation through `do append(...)`, and value-level
 reads through `count(...)`, `get(...)`, and `freeze(...)`.
 
+Current Python behavior lives in the emitter's `new_array(...)` type-expression
+handling and `do` statement lowering, with the observed built-in surface named
+in `src/dolo/herbert_surface.py`.
+
 ## Executable Candidate
 
 `experiments/herbert/array_mutation_candidate.herb` constructs an integer array,

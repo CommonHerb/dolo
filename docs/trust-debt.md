@@ -28,6 +28,10 @@ candidates. Today they mirror narrow Python bootstrap compiler decisions:
 They run through pinned Herbert in CI. They are not yet wired into the Dolo
 compiler, so they are repayment candidates, not paid debt.
 
+Each migration candidate note must name the current Python/bootstrap owner it
+mirrors. A candidate without that owner is not precise enough to count as a
+trust-debt repayment path.
+
 ## Current Pin
 
 - Herbert repository: `https://github.com/CommonHerb/herbert.git`

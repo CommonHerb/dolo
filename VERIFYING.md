@@ -59,8 +59,9 @@ This proves:
   `tests/fixtures/*.stdout`
 - migration candidate notes under `docs/migration-candidates/` mention their
   manifested Herbert source and stdout golden, so executable candidates and
-  their documentation cannot silently drift apart; notes under that directory
-  must also link back to at least one manifested Herbert candidate
+  their documentation cannot silently drift apart; each candidate note must
+  also name the current Python/bootstrap owner it mirrors, and notes under that
+  directory must link back to at least one manifested Herbert candidate
 - executable and migration stdout goldens end with a newline, matching the
   shape the truth loop compares after native execution
 - the Herbert truth harness is pinned, stages a temporary seed copy, includes
