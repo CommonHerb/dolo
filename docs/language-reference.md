@@ -167,7 +167,8 @@ must have an expression on both sides; trailing commas and empty tuple fields
 are not implemented.
 
 Binary operators must have operands on both sides. Prefix `!` is the only
-implemented unary operator today.
+implemented unary operator today; it must have an operand and cannot follow an
+expression.
 
 The compiler does not yet own a full Dolo type system, precedence table, module
 system, or runtime.
@@ -224,6 +225,7 @@ Diagnostics are intentionally small:
 - assignment to an unbound name reports the assignment target column
 - assignment operators inside expressions report the operator column
 - binary operators without a left or right operand report the operator column
+- malformed prefix `!` expressions report the operator column
 - empty parenthesized expressions report the opening parenthesis column
 - commas without a preceding or following expression report the comma column
 - unknown function call targets report the call target column

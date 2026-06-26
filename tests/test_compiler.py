@@ -465,6 +465,43 @@ end
 
         self.assertEqual(compile_source(source), expected)
 
+    def test_prefix_not_requires_an_operand(self):
+        cases = (
+            (
+                """fn bad() {
+  return !
+}
+""",
+                r"line 2, column 10: prefix '!' requires an operand",
+            ),
+            (
+                """fn bad() {
+  return (!)
+}
+""",
+                r"line 2, column 11: prefix '!' requires an operand",
+            ),
+            (
+                """fn bad(flag) {
+  return (!, flag)
+}
+""",
+                r"line 2, column 11: prefix '!' requires an operand",
+            ),
+            (
+                """fn bad(flag) {
+  return flag !
+}
+""",
+                r"line 2, column 15: prefix '!' cannot follow an expression",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_parenthesized_expressions_must_not_be_empty(self):
         source = """fn bad() {
   return ()

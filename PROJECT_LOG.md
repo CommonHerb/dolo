@@ -2,6 +2,29 @@
 
 ## 2026-06-26
 
+- Tightened prefix `!` validation so it cannot emit bare or postfix Herbert
+  `not` forms. `return !`, `return (!)`, `return (!, flag)`, and
+  `return flag !` now fail before emission, while valid prefix use still emits
+  Herbert `not`.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_prefix_not_requires_an_operand`
+  (first observed failures: four malformed `!` forms did not raise
+  `DoloSyntaxError`; after the emitter change: `Ran 1 test`, `OK`).
+- Verified neighboring operator behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_prefix_not_requires_an_operand tests.test_compiler.CompilerTests.test_prefix_not_is_allowed_in_expressions tests.test_compiler.CompilerTests.test_binary_operators_require_operands`
+  (`Ran 3 tests`, `OK`).
+- Probed chained and grouped prefix forms after the change: `!!flag` emits
+  `not not flag`, and `!(flag)` emits `not(flag)`.
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 85 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Added dot-shape validation for record field access. Dolo now rejects malformed
   forms such as `x.`, `.x`, `x.(1)`, and constructor-result field access before
   emitting Herbert or drifting into an unrelated unknown-variable diagnostic.

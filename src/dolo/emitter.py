@@ -434,6 +434,23 @@ class Emitter:
                     raise DoloSyntaxError(
                         f"{_location(token)}: field access requires a field name"
                     )
+            if token.value == "!":
+                if (
+                    previous is not None
+                    and previous.value not in INFIX_OPERATORS
+                    and previous.value not in {"(", ",", "!"}
+                ):
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: prefix '!' cannot follow an expression"
+                    )
+                if (
+                    next_token is None
+                    or next_token.value in INFIX_OPERATORS
+                    or next_token.value in {")", ",", ".", "="}
+                ):
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: prefix '!' requires an operand"
+                    )
 
     @staticmethod
     def _validate_variable_reference(token: Token, context: EmitContext) -> None:
