@@ -91,8 +91,8 @@ Value-level calls to observed Herbert built-ins are allowed by name. For the
 built-ins Dolo can emit directly, the compiler validates observed argument
 counts before Herbert emission. For built-in `new_array(...)`, the compiler
 requires exactly one observed Herbert type-expression argument: `int`, `bool`,
-`string`, `buffer`, `array(T)`, and tuple-shaped type expressions such as
-`(int, bool)`.
+`string`, `buffer`, `array(T)`, and tuple type expressions with at least two
+fields such as `(int, bool)`.
 
 Observed Herbert no-value mutation built-ins such as `add` and `append` are not
 valid Dolo expression calls. Use a `do` statement for those calls.

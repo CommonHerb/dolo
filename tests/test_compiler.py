@@ -298,6 +298,19 @@ end
         ):
             compile_source(source)
 
+    def test_new_array_tuple_type_requires_multiple_fields(self):
+        source = """fn bad() {
+  return new_array((int))
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 20: Herbert tuple type in new_array argument "
+            r"requires at least two fields",
+        ):
+            compile_source(source)
+
     def test_new_array_requires_one_herbert_type_argument(self):
         cases = (
             (

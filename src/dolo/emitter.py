@@ -319,14 +319,22 @@ class Emitter:
             raise DoloSyntaxError(
                 f"{_location(token)}: unterminated Herbert tuple type in new_array argument"
             )
+        field_count = 0
         while True:
             next_index = self._consume_herbert_type_expr(tokens, next_index, end)
+            field_count += 1
             if next_index >= end:
                 token = tokens[index]
                 raise DoloSyntaxError(
                     f"{_location(token)}: unterminated Herbert tuple type in new_array argument"
                 )
             if tokens[next_index].value == ")":
+                if field_count < 2:
+                    token = tokens[index]
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: Herbert tuple type in new_array argument "
+                        "requires at least two fields"
+                    )
                 return next_index + 1
             if tokens[next_index].value != ",":
                 token = tokens[next_index]

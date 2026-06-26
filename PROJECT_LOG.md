@@ -2,6 +2,25 @@
 
 ## 2026-06-26
 
+- Tightened `new_array(...)` Herbert type-expression validation so singleton
+  tuple types such as `(int)` fail before Dolo emits Herbert that the pinned
+  Herbert parser rejects.
+- Verified the diagnostic slice with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_new_array_tuple_type_requires_multiple_fields`
+  (first observed failure: no `DoloSyntaxError` was raised for
+  `new_array((int))`; after the emitter change: `Ran 1 test`, `OK`). The
+  neighboring `new_array` type-expression tests then ran as `Ran 3 tests`,
+  `OK`.
+- Verified the full gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 70 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 8 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Hardened the bootstrap migration-candidate test so it explicitly keeps both
   current Herbert candidates manifested: record field indexing and array
   mutation.
