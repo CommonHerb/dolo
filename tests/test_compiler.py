@@ -210,6 +210,43 @@ end
 
         self.assertEqual(emitted, expected)
 
+    def test_observed_herbert_builtin_call_requires_observed_arity(self):
+        cases = (
+            (
+                """fn bad() {
+  return length("abc", 1)
+}
+""",
+                r"line 2, column 10: built-in length expects 1 argument, got 2",
+            ),
+            (
+                """fn bad() {
+  return index("abc")
+}
+""",
+                r"line 2, column 10: built-in index expects 2 arguments, got 1",
+            ),
+            (
+                """fn bad() {
+  return equal("a")
+}
+""",
+                r"line 2, column 10: built-in equal expects 2 arguments, got 1",
+            ),
+            (
+                """fn bad() {
+  return new_buffer(1)
+}
+""",
+                r"line 2, column 10: built-in new_buffer expects 0 arguments, got 1",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_record_constructor_and_if_else_lower_to_herbert(self):
         source = """record Citizen { name, hunger }
 

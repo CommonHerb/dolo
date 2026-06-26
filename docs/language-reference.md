@@ -119,7 +119,8 @@ Implemented expression behavior includes:
 - function calls to Dolo functions declared in the same source file, with
   declared arity checking
 - calls to the observed Herbert built-ins named in
-  `docs/foundation/herbert-target-subset.md`
+  `docs/foundation/herbert-target-subset.md`; value-level built-ins with
+  observed arities are checked before Herbert emission
 - tuple construction
 - arithmetic and comparison operators accepted by Herbert
 - `&&` lowering to Herbert `and`
@@ -175,6 +176,8 @@ Diagnostics are intentionally small:
 - unknown function call targets report the call target column
 - Dolo function call arity mismatches report expected and actual argument
   counts at the call target column
+- observed Herbert built-in arity mismatches report expected and actual
+  argument counts at the built-in call target column
 - unknown variable references report the variable column
 - non-literal keywords in expressions report the keyword column; `true` and
   `false` are the only keyword literals today

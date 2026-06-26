@@ -30,6 +30,11 @@ Dolo v0 may emit Herbert source using:
 - no-argument `func main()` returning a value that Herbert's native renderer can
   print on Linux/x86_64
 
+For value-level built-ins that Dolo can currently emit directly, the bootstrap
+compiler validates observed argument counts before Herbert emission. This is an
+arity boundary only; Dolo does not yet claim a full type system for those
+built-ins.
+
 The initial compiler should generate conservative, readable Herbert text. It is
 better to emit boring Herbert that can be inspected than clever Herbert that
 conceals Dolo semantics.

@@ -169,12 +169,16 @@ class Emitter:
 
     def _validate_call_arity(self, token: Token, expr: Expr, index: int) -> None:
         want = self.function_arities.get(token.value)
-        if want is None:
+        subject = f"function {token.value}"
+        if want is None and token.value in HERBERT_BUILTIN_ARITIES:
+            want = HERBERT_BUILTIN_ARITIES[token.value]
+            subject = f"built-in {token.value}"
+        elif want is None:
             return
         got = self._constructor_arg_count(expr, index)
         if got != want:
             raise DoloSyntaxError(
-                f"{_location(token)}: function {token.value} expects {want} arguments, got {got}"
+                f"{_location(token)}: {subject} expects {want} {_argument_word(want)}, got {got}"
             )
 
     @staticmethod
@@ -229,6 +233,10 @@ def _location(token: Token) -> str:
     return f"line {token.line}, column {token.column}"
 
 
+def _argument_word(count: int) -> str:
+    return "argument" if count == 1 else "arguments"
+
+
 HERBERT_BUILTINS = frozenset(
     {
         "add",
@@ -243,6 +251,17 @@ HERBERT_BUILTINS = frozenset(
         "new_buffer",
     }
 )
+HERBERT_BUILTIN_ARITIES = {
+    "add": 2,
+    "append": 2,
+    "count": 1,
+    "equal": 2,
+    "freeze": 1,
+    "get": 2,
+    "index": 2,
+    "length": 1,
+    "new_buffer": 0,
+}
 EXPRESSION_KEYWORDS = frozenset({"false", "true"})
 
 

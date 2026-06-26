@@ -307,3 +307,17 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Added observed arity validation for value-level Herbert built-ins that Dolo can
+  currently emit directly, so bad calls such as `length("abc", 1)` fail with a
+  Dolo diagnostic before reaching Herbert's lower-level native-subset checks.
+- Updated `docs/language-reference.md`, `docs/foundation/herbert-target-subset.md`,
+  and `VERIFYING.md` to document this as an arity boundary only, not a full
+  Dolo type-system claim.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 42 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).
