@@ -1,5 +1,25 @@
 # Project Log
 
+## 2026-06-26
+
+- Hardened parser diagnostics for unsupported `elif` so the parser reports the
+  `elif` column with a direct unsupported-form message instead of treating it
+  as an assignment target and drifting to `expected '='`.
+- Verified the new diagnostic RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_elif_reports_unsupported_form`
+  (first observed failure: `line 4, column 10: expected '='`; after the parser
+  change: `Ran 1 test`, `OK`).
+- Verified locally with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 58 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the executable Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
+
 ## 2026-06-25
 
 - Created `CommonHerb/dolo` as a public GitHub repository.

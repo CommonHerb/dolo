@@ -170,7 +170,8 @@ Diagnostics are intentionally small:
 - unclosed expression delimiters at newline, EOF, or an expected block
   delimiter report the opening delimiter column before block parsing drifts
 - unmatched closing expression delimiters report the closing delimiter column
-- `else if` reports the `if` column with an unsupported-form diagnostic
+- `else if` reports the `if` column and `elif` reports its own column with an
+  unsupported-form diagnostic
 - unresolved record field access reports the target, field, and target column
 - unknown record fields report the record name, missing field, and field column
 - record constructor arity mismatches report expected and actual field counts

@@ -143,6 +143,12 @@ class Parser:
                 else_body = tuple(self._parse_block())
             return IfStmt(condition, then_body, else_body)
 
+        if self._peek_value("elif"):
+            self._fail_at(
+                self._peek(),
+                "elif is not implemented; use else { if ... }",
+            )
+
         name_token = self._expect_kind("IDENT")
         name = name_token.value
         self._expect_value("=")
