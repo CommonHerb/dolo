@@ -1016,6 +1016,20 @@ end
                     compile_source(source)
 
     def test_new_array_accepts_observed_herbert_type_expressions(self):
+        import dolo.herbert_surface as surface
+
+        self.assertEqual(
+            surface.HERBERT_TYPE_NAME_OWNER,
+            "experiments/herbert/type_name_candidate.herb",
+        )
+        type_names = surface.load_herbert_type_names(ROOT)
+        self.assertEqual(type_names, surface.HERBERT_TYPE_NAMES)
+        self.assertTrue(surface.is_herbert_type_name("string"))
+        self.assertTrue(surface.is_herbert_type_name("int"))
+        self.assertTrue(surface.is_herbert_type_name("bool"))
+        self.assertTrue(surface.is_herbert_type_name("buffer"))
+        self.assertFalse(surface.is_herbert_type_name("array"))
+
         source = """fn empty_counts() {
   return (count(new_array(int)), count(new_array(array(string))), count(new_array((int, bool))))
 }
@@ -2281,16 +2295,18 @@ end
             ):
                 validate_repository_manifests(root)
 
-    def test_manifest_validator_requires_type_name_candidate_to_mirror_python_table(self):
+    def test_manifest_validator_requires_type_name_candidate_to_match_oracle_probe(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             fixtures = root / "tests" / "fixtures"
+            oracle_programs = root / "tests" / "oracle" / "programs"
             examples = root / "examples"
             experiments = root / "experiments" / "herbert"
             notes = root / "docs" / "migration-candidates"
             fixtures.mkdir(parents=True)
+            oracle_programs.mkdir(parents=True)
             examples.mkdir()
             experiments.mkdir(parents=True)
             notes.mkdir(parents=True)
@@ -2302,6 +2318,12 @@ end
             )
             (fixtures / "a.herb").write_text("func main():\n  return 1\nend\n")
             (fixtures / "a.stdout").write_text("1\n")
+            (oracle_programs / "type_probe.dolo").write_text(
+                """fn main() {
+  return (count(new_array(bool)), count(new_array(buffer)), count(new_array(int)), count(new_array(string)))
+}
+"""
+            )
             (experiments / "type_name_candidate.herb").write_text(
                 """func type_name(name):
     if equal(name, "int"):
@@ -2322,7 +2344,7 @@ end
                 "tests/fixtures/type_name_candidate.stdout\n"
                 "Current Python behavior lives in HERBERT_TYPE_NAMES.\n"
                 "## Replacement Path\n"
-                "Compare this against HERBERT_TYPE_NAMES before wiring.\n"
+                "Compare this against the held-back type-name probe before wiring.\n"
                 "## Authority Boundary\n"
                 "This candidate is not compiler authority and not paid debt.\n"
             )
@@ -2338,8 +2360,8 @@ end
 
             with self.assertRaisesRegex(
                 ManifestError,
-                r"herbert_migration_manifest.tsv: type name candidate must mirror "
-                r"HERBERT_TYPE_NAMES \(missing bool",
+                r"herbert_migration_manifest.tsv: type name candidate must match "
+                r"tests/oracle/programs/type_probe.dolo \(missing bool",
             ):
                 validate_repository_manifests(root)
 
