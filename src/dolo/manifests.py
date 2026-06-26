@@ -66,9 +66,27 @@ def validate_repository_manifests(root: Path) -> None:
     executable_sources = set()
     for source_rel, herb_rel, stdout_rel in executable_rows:
         _require_file(root, source_rel, label="source")
+        _require_suffix(
+            source_rel,
+            suffix=".dolo",
+            manifest_name="executable_manifest.tsv",
+            label="source",
+        )
         _require_no_arg_main(root, source_rel)
         _require_file(root, herb_rel, label="Herbert golden")
+        _require_suffix(
+            herb_rel,
+            suffix=".herb",
+            manifest_name="executable_manifest.tsv",
+            label="Herbert golden",
+        )
         _require_file(root, stdout_rel, label="stdout golden")
+        _require_suffix(
+            stdout_rel,
+            suffix=".stdout",
+            manifest_name="executable_manifest.tsv",
+            label="stdout golden",
+        )
         executable_sources.add(source_rel)
 
     for source_rel, stdout_rel in migration_rows:
@@ -123,6 +141,19 @@ def _reject_duplicate_sources(
         if source in seen:
             raise ManifestError(f"{manifest_name}: duplicate source {source}")
         seen.add(source)
+
+
+def _require_suffix(
+    relative_path: str,
+    *,
+    suffix: str,
+    manifest_name: str,
+    label: str,
+) -> None:
+    if Path(relative_path).suffix != suffix:
+        raise ManifestError(
+            f"{manifest_name}: {label} must be {suffix}: {relative_path}"
+        )
 
 
 def _require_no_arg_main(root: Path, source_rel: str) -> None:

@@ -29,9 +29,9 @@ This proves:
   tracebacks
 - committed examples match committed Herbert goldens
 - repository manifests have sorted rows, the expected tab-separated fields,
-  unique source rows, existing file targets, and every `examples/*.dolo` file
-  is either executable with a no-argument `fn main()` or explicitly
-  non-executable with a reason
+  expected file suffixes, unique source rows, existing file targets, and every
+  `examples/*.dolo` file is either executable with a no-argument `fn main()` or
+  explicitly non-executable with a reason
 - Herbert migration manifest sources are `.herb` files with a visible
   `func main()` entry point and committed stdout goldens
 - the Herbert truth harness is pinned, stages a temporary seed copy, and
