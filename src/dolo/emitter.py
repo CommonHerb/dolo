@@ -92,6 +92,10 @@ class Emitter:
         i = 0
         while i < len(expr.tokens):
             token = expr.tokens[i]
+            if token.kind == "KEYWORD" and token.value not in EXPRESSION_KEYWORDS:
+                raise DoloSyntaxError(
+                    f"{_location(token)}: unexpected keyword {token.value!r} in expression"
+                )
             if (
                 token.kind == "IDENT"
                 and i + 2 < len(expr.tokens)
@@ -239,6 +243,7 @@ HERBERT_BUILTINS = frozenset(
         "new_buffer",
     }
 )
+EXPRESSION_KEYWORDS = frozenset({"false", "true"})
 
 
 def emit_program(program: Program) -> str:

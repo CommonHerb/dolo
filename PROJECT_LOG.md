@@ -265,3 +265,16 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 5 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Tightened expression keyword diagnostics so non-literal keywords such as
+  `return let` fail at the keyword column instead of being emitted as Herbert
+  text. Boolean keyword literals `true` and `false` remain valid.
+- Updated `docs/language-reference.md` and `VERIFYING.md` to document the
+  expression keyword boundary.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 38 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 5 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

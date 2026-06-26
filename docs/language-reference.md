@@ -176,6 +176,8 @@ Diagnostics are intentionally small:
 - Dolo function call arity mismatches report expected and actual argument
   counts at the call target column
 - unknown variable references report the variable column
+- non-literal keywords in expressions report the keyword column; `true` and
+  `false` are the only keyword literals today
 - the bootstrap CLI prints `DoloSyntaxError` and source-file read failures as
   `dolo: ...` on stderr and exits with status 1, without a Python traceback
 
