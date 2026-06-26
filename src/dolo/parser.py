@@ -13,6 +13,7 @@ from .ast import (
     ReturnStmt,
     Stmt,
 )
+from .herbert_surface import HERBERT_BUILTINS
 from .tokens import DoloSyntaxError, Token, tokenize
 
 
@@ -72,6 +73,11 @@ class Parser:
             self._fail_at(name_token, f"duplicate function {name}")
         if name in self.record_names:
             self._fail_at(name_token, f"duplicate top-level declaration {name}")
+        if name in HERBERT_BUILTINS:
+            self._fail_at(
+                name_token,
+                f"function reuses observed Herbert built-in name {name!r}",
+            )
         self.function_names.add(name)
         self._expect_value("(")
         params = self._parse_params(name)

@@ -39,6 +39,10 @@ compiler validates observed argument counts before Herbert emission. This is an
 arity boundary only; Dolo does not yet claim a full type system for those
 built-ins.
 
+Dolo reserves observed Herbert built-in names for the target surface. A Dolo
+function declaration cannot reuse names such as `length`, `new_array`, `add`,
+or `append`, because the pinned Herbert compiler rejects built-in reuse.
+
 Observed no-value Herbert mutation built-ins such as `add` and `append` require
 Herbert `do` statements. Dolo emits them only through explicit `do` statements
 and rejects them in value expressions.

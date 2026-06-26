@@ -25,14 +25,15 @@ This proves:
   before Herbert emission, while no-value Herbert mutation built-ins remain
   rejected from Dolo value expressions
 - duplicate declarations, including record/function name overlaps, record
-  annotation errors, unbound variables, unbound assignment targets, duplicate
-  `let` bindings, unknown call targets, Dolo function arity mismatches,
-  observed Herbert built-in arity mismatches, invalid `new_array` argument
-  counts, unknown `new_array` type arguments, invalid singleton Herbert tuple
-  type arguments, no-value built-in expression calls, invalid `do` statement
-  calls, expression delimiter errors, unsupported `else if` and `elif` forms,
-  stray `else` statements, and non-literal expression keywords fail with
-  focused `DoloSyntaxError` diagnostics
+  annotation errors, function names that reuse observed Herbert built-ins,
+  unbound variables, unbound assignment targets, duplicate `let` bindings,
+  unknown call targets, Dolo function arity mismatches, observed Herbert
+  built-in arity mismatches, invalid `new_array` argument counts, unknown
+  `new_array` type arguments, invalid singleton Herbert tuple type arguments,
+  no-value built-in expression calls, invalid `do` statement calls, expression
+  delimiter errors, unsupported `else if` and `elif` forms, stray `else`
+  statements, and non-literal expression keywords fail with focused
+  `DoloSyntaxError` diagnostics
 - the CLI writes Herbert to stdout
 - the CLI reports syntax and source-file read failures without Python
   tracebacks

@@ -2,6 +2,27 @@
 
 ## 2026-06-26
 
+- Replaced the stale Dolo shadowing rule for observed Herbert built-ins with a
+  target-surface reservation: Dolo function declarations now reject names such
+  as `length`, `add`, and `new_array`, matching the pinned Herbert compiler's
+  built-in reuse boundary instead of emitting Herbert that native verification
+  rejects.
+- Moved the observed Herbert built-in names, arities, and type names into
+  `src/dolo/herbert_surface.py` so parser and emitter use one target-surface
+  table.
+- Verified the compiler boundary with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_function_declaration_rejects_observed_herbert_builtin_names tests.test_compiler.CompilerTests.test_observed_herbert_builtin_call_target_is_allowed tests.test_compiler.CompilerTests.test_herbert_void_builtins_are_not_value_calls tests.test_compiler.CompilerTests.test_do_statement_emits_observed_no_value_herbert_builtin_calls`
+  (`Ran 4 tests`, `OK`).
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 73 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Hardened migration-candidate validation in the other direction too:
   candidate notes under `docs/migration-candidates/` now fail validation when
   they do not link back to any manifested Herbert candidate source.

@@ -86,6 +86,12 @@ fn hunger_of(c: Citizen) {
 The annotation is used by the Dolo compiler and is not emitted into Herbert.
 An annotation must name a record declared in the same source file.
 
+Function names must not reuse observed Herbert built-in names that Dolo can
+emit directly, such as `length`, `count`, `new_array`, `add`, or `append`.
+The pinned Herbert target rejects built-in reuse, so Dolo reserves those names
+at declaration time instead of emitting Herbert that cannot pass the native
+truth loop.
+
 Dolo-to-Dolo function calls must pass the declared number of arguments.
 Value-level calls to observed Herbert built-ins are allowed by name. For the
 built-ins Dolo can emit directly, the compiler validates observed argument
@@ -175,6 +181,8 @@ Diagnostics are intentionally small:
 - duplicate top-level record names, top-level function names, record/function
   name overlaps, record fields, and function parameters report the repeated
   name column
+- function declarations that reuse observed Herbert built-in names report the
+  function name column
 - unknown record annotations report the annotation column
 - unexpected characters and unterminated string or character literals report
   the offending or opening column

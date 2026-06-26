@@ -131,6 +131,36 @@ record Thing { value }
                 with self.assertRaisesRegex(DoloSyntaxError, expected):
                     compile_source(source)
 
+    def test_function_declaration_rejects_observed_herbert_builtin_names(self):
+        cases = (
+            (
+                """fn length(value) {
+  return value
+}
+""",
+                r"line 1, column 4: function reuses observed Herbert built-in name 'length'",
+            ),
+            (
+                """fn add(a, b) {
+  return a + b
+}
+""",
+                r"line 1, column 4: function reuses observed Herbert built-in name 'add'",
+            ),
+            (
+                """fn new_array() {
+  return 7
+}
+""",
+                r"line 1, column 4: function reuses observed Herbert built-in name 'new_array'",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_function_parameter_annotation_must_name_a_record(self):
         source = """fn bad(c: Missing) {
   return c
@@ -368,50 +398,6 @@ end
             with self.subTest(source=source):
                 with self.assertRaisesRegex(DoloSyntaxError, expected):
                     compile_source(source)
-
-    def test_dolo_functions_take_precedence_over_observed_builtin_names(self):
-        cases = (
-            (
-                """fn add(a, b) {
-  return a + b
-}
-
-fn main() {
-  return add(1, 2)
-}
-""",
-                """func add(a, b):
-  return a + b
-end
-
-func main():
-  return add(1, 2)
-end
-""",
-            ),
-            (
-                """fn new_array() {
-  return 7
-}
-
-fn main() {
-  return new_array()
-}
-""",
-                """func new_array():
-  return 7
-end
-
-func main():
-  return new_array()
-end
-""",
-            ),
-        )
-
-        for source, expected in cases:
-            with self.subTest(source=source):
-                self.assertEqual(compile_source(source), expected)
 
     def test_do_statement_emits_observed_no_value_herbert_builtin_calls(self):
         source = """fn mutate(items, label) {
