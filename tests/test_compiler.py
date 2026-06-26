@@ -128,6 +128,9 @@ end
                 source_path = ROOT / source_rel
                 herb_path = ROOT / herb_rel
                 stdout_path = ROOT / stdout_rel
+                self.assertTrue(source_path.is_file(), f"source missing: {source_rel}")
+                self.assertTrue(herb_path.is_file(), f"Herbert golden missing: {herb_rel}")
+                self.assertTrue(stdout_path.is_file(), f"stdout golden missing: {stdout_rel}")
                 source = source_path.read_text()
 
                 self.assertIn("fn main()", source)

@@ -1,3 +1,4 @@
 # source	herbert	stdout
 examples/citizen.dolo	tests/fixtures/citizen.herb	tests/fixtures/citizen.stdout
 examples/ledger.dolo	tests/fixtures/ledger.herb	tests/fixtures/ledger.stdout
+examples/boolean_gate.dolo	tests/fixtures/boolean_gate.herb	tests/fixtures/boolean_gate.stdout

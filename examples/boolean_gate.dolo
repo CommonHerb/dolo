@@ -1,0 +1,11 @@
+fn open_gate(stock, need, locked) {
+  return stock > need && !locked
+}
+
+fn restock_ready(stock, need) {
+  return stock < need || stock == need
+}
+
+fn main() {
+  return (open_gate(7, 5, false), open_gate(2, 5, false), open_gate(7, 5, true), restock_ready(3, 5), restock_ready(5, 5))
+}
