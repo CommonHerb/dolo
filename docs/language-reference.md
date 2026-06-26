@@ -172,6 +172,7 @@ Diagnostics are intentionally small:
 - unmatched closing expression delimiters report the closing delimiter column
 - `else if` reports the `if` column and `elif` reports its own column with an
   unsupported-form diagnostic
+- `else` without a matching `if` reports the `else` column
 - unresolved record field access reports the target, field, and target column
 - unknown record fields report the record name, missing field, and field column
 - record constructor arity mismatches report expected and actual field counts

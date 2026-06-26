@@ -22,8 +22,9 @@ This proves:
   annotation errors, unbound variables, unbound assignment targets, duplicate
   `let` bindings, unknown call targets, Dolo function arity mismatches,
   observed Herbert built-in arity mismatches, expression delimiter errors,
-  unsupported `else if` and `elif` forms, and non-literal expression keywords
-  fail with focused `DoloSyntaxError` diagnostics
+  unsupported `else if` and `elif` forms, stray `else` statements, and
+  non-literal expression keywords fail with focused `DoloSyntaxError`
+  diagnostics
 - the CLI writes Herbert to stdout
 - the CLI reports syntax and source-file read failures without Python
   tracebacks

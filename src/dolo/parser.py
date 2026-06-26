@@ -149,6 +149,9 @@ class Parser:
                 "elif is not implemented; use else { if ... }",
             )
 
+        if self._peek_value("else"):
+            self._fail_at(self._peek(), "else without matching if")
+
         name_token = self._expect_kind("IDENT")
         name = name_token.value
         self._expect_value("=")

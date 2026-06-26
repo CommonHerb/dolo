@@ -1350,6 +1350,20 @@ fn bad() {
         ):
             compile_source(source)
 
+    def test_stray_else_reports_without_matching_if(self):
+        source = """fn bad() {
+  else {
+    return 1
+  }
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 3: else without matching if",
+        ):
+            compile_source(source)
+
     def test_bang_lowers_to_herbert_not(self):
         source = """fn ready(flag) {
   return !flag
