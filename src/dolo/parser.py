@@ -142,6 +142,9 @@ class Parser:
         while True:
             token = self._peek()
             if token.kind == "EOF":
+                if openers:
+                    opener = openers[-1]
+                    self._fail_at(opener, f"unterminated {opener.value!r} in expression")
                 break
             if token.kind == "NEWLINE":
                 if not openers:

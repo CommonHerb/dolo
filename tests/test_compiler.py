@@ -383,6 +383,16 @@ fn bad() {
         ):
             compile_source(source)
 
+    def test_unclosed_expression_delimiter_at_eof_reports_opening_column(self):
+        source = """fn bad() {
+  return missing(1"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 17: unterminated '\(' in expression",
+        ):
+            compile_source(source)
+
     def test_bang_lowers_to_herbert_not(self):
         source = """fn ready(flag) {
   return !flag

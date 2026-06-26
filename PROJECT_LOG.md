@@ -205,3 +205,14 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 5 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Tightened parser EOF diagnostics for unclosed expression delimiters: an
+  expression ending at EOF with an open delimiter now reports the opening
+  delimiter column instead of drifting into an `unterminated block` message.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 33 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 5 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

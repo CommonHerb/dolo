@@ -163,8 +163,8 @@ Diagnostics are intentionally small:
 - unknown record annotations report the annotation column
 - unexpected characters and unterminated string or character literals report
   the offending or opening column
-- unclosed expression delimiters report the opening delimiter column before
-  block parsing drifts
+- unclosed expression delimiters at newline or EOF report the opening delimiter
+  column before block parsing drifts
 - unresolved record field access reports the target, field, and target column
 - unknown record fields report the record name, missing field, and field column
 - record constructor arity mismatches report expected and actual field counts
