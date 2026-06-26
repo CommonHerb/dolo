@@ -468,6 +468,32 @@ fn bad() {
         ):
             compile_source(source)
 
+    def test_unmatched_expression_closer_reports_closer_column(self):
+        source = """fn bad(flag) {
+  return flag)
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 14: unexpected '\)' in expression",
+        ):
+            compile_source(source)
+
+    def test_unmatched_condition_closer_reports_closer_column(self):
+        source = """fn bad(flag) {
+  if flag) {
+    return 1
+  }
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 10: unexpected '\)' in expression",
+        ):
+            compile_source(source)
+
     def test_bang_lowers_to_herbert_not(self):
         source = """fn ready(flag) {
   return !flag

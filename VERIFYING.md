@@ -20,8 +20,8 @@ This proves:
   arithmetic-like expressions emit readable Herbert source
 - duplicate declarations, record annotation errors, unbound variables,
   unbound assignment targets, duplicate `let` bindings, unknown call targets,
-  and Dolo function arity mismatches fail with focused `DoloSyntaxError`
-  diagnostics
+  Dolo function arity mismatches, and expression delimiter errors fail with
+  focused `DoloSyntaxError` diagnostics
 - the CLI writes Herbert to stdout
 - the CLI reports syntax and source-file read failures without Python
   tracebacks

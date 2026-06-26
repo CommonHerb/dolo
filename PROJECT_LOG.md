@@ -252,3 +252,16 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 5 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Tightened expression delimiter diagnostics so unmatched closing delimiters
+  such as `return flag)` and `if flag) {` fail at the closing delimiter column
+  instead of drifting into later parser errors or emitted Herbert text.
+- Updated `docs/language-reference.md` and `VERIFYING.md` to document the
+  delimiter diagnostic contract.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 37 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 5 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

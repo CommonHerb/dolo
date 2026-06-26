@@ -15,6 +15,9 @@ from .ast import (
 from .tokens import DoloSyntaxError, Token, tokenize
 
 
+CLOSING_DELIMITERS = {")": "(", "}": "{"}
+
+
 class Parser:
     def __init__(self, source: str):
         self.tokens = tokenize(source)
@@ -153,9 +156,12 @@ class Parser:
                 self._fail_at(opener, f"unterminated {opener.value!r} in expression")
             if token.value in ("(", "{"):
                 openers.append(token)
-            elif token.value in (")", "}"):
-                if not openers:
-                    break
+            elif token.value in CLOSING_DELIMITERS:
+                if (
+                    not openers
+                    or openers[-1].value != CLOSING_DELIMITERS[token.value]
+                ):
+                    self._fail_at(token, f"unexpected {token.value!r} in expression")
                 openers.pop()
             collected.append(self._advance())
         if not collected:
@@ -172,13 +178,20 @@ class Parser:
                     opener = openers[-1]
                     self._fail_at(opener, f"unterminated {opener.value!r} in expression")
                 self._fail(f"expected {value!r}")
-            if not openers and token.value == value:
+            if token.value == value:
+                if openers:
+                    opener = openers[-1]
+                    self._fail_at(opener, f"unterminated {opener.value!r} in expression")
                 break
             if token.value == "(":
                 openers.append(token)
-            elif token.value == ")":
-                if openers:
-                    openers.pop()
+            elif token.value in CLOSING_DELIMITERS:
+                if (
+                    not openers
+                    or openers[-1].value != CLOSING_DELIMITERS[token.value]
+                ):
+                    self._fail_at(token, f"unexpected {token.value!r} in expression")
+                openers.pop()
             if token.kind != "NEWLINE":
                 collected.append(token)
             self._advance()
