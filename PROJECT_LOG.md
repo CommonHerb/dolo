@@ -238,3 +238,17 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 5 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Added `tests/fixtures/non_executable_examples.tsv` and a bootstrap test that
+  requires every `examples/*.dolo` file to be classified as executable or
+  explicitly non-executable with a reason, so example additions cannot bypass
+  the Herbert truth-loop decision surface by accident.
+- Updated `VERIFYING.md` to document the executable/non-executable example
+  classification rule.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 35 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 5 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

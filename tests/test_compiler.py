@@ -253,6 +253,66 @@ end
                 self.assertEqual(compile_source(source), herb_path.read_text())
                 self.assertTrue(stdout_path.read_text().endswith("\n"))
 
+    def test_all_examples_are_classified_for_execution(self):
+        executable_manifest = (
+            ROOT / "tests" / "fixtures" / "executable_manifest.tsv"
+        )
+        non_executable_manifest = (
+            ROOT / "tests" / "fixtures" / "non_executable_examples.tsv"
+        )
+        self.assertTrue(
+            non_executable_manifest.is_file(),
+            "non-executable example manifest is required",
+        )
+
+        executable_rows = [
+            tuple(line.split("\t"))
+            for line in executable_manifest.read_text().splitlines()
+            if line and not line.startswith("#")
+        ]
+        executable_sources = {row[0] for row in executable_rows}
+
+        non_executable_rows = [
+            tuple(line.split("\t"))
+            for line in non_executable_manifest.read_text().splitlines()
+            if line and not line.startswith("#")
+        ]
+        self.assertEqual(
+            non_executable_rows,
+            sorted(non_executable_rows),
+            "non-executable example rows must be sorted",
+        )
+
+        non_executable_sources = set()
+        for row in non_executable_rows:
+            self.assertEqual(
+                len(row),
+                2,
+                f"non-executable example row must have source and reason: {row!r}",
+            )
+            source_rel, reason = row
+            self.assertTrue(
+                reason.strip(),
+                f"non-executable example needs a reason: {source_rel}",
+            )
+            self.assertTrue(
+                (ROOT / source_rel).is_file(), f"source missing: {source_rel}"
+            )
+            non_executable_sources.add(source_rel)
+
+        self.assertFalse(
+            executable_sources & non_executable_sources,
+            "examples cannot be both executable and non-executable",
+        )
+        example_sources = {
+            str(path.relative_to(ROOT))
+            for path in sorted((ROOT / "examples").glob("*.dolo"))
+        }
+        self.assertEqual(
+            example_sources,
+            executable_sources | non_executable_sources,
+        )
+
     def test_cli_emits_herbert_to_stdout(self):
         source_path = ROOT / "examples" / "citizen.dolo"
         expected = (ROOT / "tests" / "fixtures" / "citizen.herb").read_text()
