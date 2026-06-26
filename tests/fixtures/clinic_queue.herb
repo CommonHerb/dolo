@@ -1,0 +1,28 @@
+func priority(p):
+  if p.1 > 7 or p.2 > 30:
+    return "urgent"
+  else:
+    return "normal"
+  end
+end
+
+func assignment(r, p):
+  if r.1 and r.2 > 0:
+    return (r.0, priority(p))
+  else:
+    return ("hold", priority(p))
+  end
+end
+
+func main():
+  let patient = ("Mira", 8, 12)
+  let room = ("north", true, 2)
+  let seen = new_array(string)
+  do add(seen, patient.0)
+  do add(seen, room.0)
+  let tag = new_buffer()
+  do append(tag, 'r')
+  do append(tag, 'u')
+  do append(tag, 'n')
+  return (assignment(room, patient), count(seen), get(seen, 0), get(seen, 1), freeze(tag))
+end

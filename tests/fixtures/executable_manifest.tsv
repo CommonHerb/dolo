@@ -6,6 +6,7 @@ examples/boolean_gate.dolo	tests/fixtures/boolean_gate.herb	tests/fixtures/boole
 examples/citizen.dolo	tests/fixtures/citizen.herb	tests/fixtures/citizen.stdout
 examples/citizen_alias.dolo	tests/fixtures/citizen_alias.herb	tests/fixtures/citizen_alias.stdout
 examples/citizen_reassignment.dolo	tests/fixtures/citizen_reassignment.herb	tests/fixtures/citizen_reassignment.stdout
+examples/clinic_queue.dolo	tests/fixtures/clinic_queue.herb	tests/fixtures/clinic_queue.stdout
 examples/ledger.dolo	tests/fixtures/ledger.herb	tests/fixtures/ledger.stdout
 examples/market_day.dolo	tests/fixtures/market_day.herb	tests/fixtures/market_day.stdout
 examples/order_triage.dolo	tests/fixtures/order_triage.herb	tests/fixtures/order_triage.stdout

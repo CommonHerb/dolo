@@ -1,0 +1,31 @@
+record Patient { name, severity, wait }
+record Room { label, open, capacity }
+
+fn priority(p: Patient) {
+  if p.severity > 7 || p.wait > 30 {
+    return "urgent"
+  } else {
+    return "normal"
+  }
+}
+
+fn assignment(r: Room, p: Patient) {
+  if r.open && r.capacity > 0 {
+    return (r.label, priority(p))
+  } else {
+    return ("hold", priority(p))
+  }
+}
+
+fn main() {
+  let patient = Patient("Mira", 8, 12)
+  let room = Room("north", true, 2)
+  let seen = new_array(string)
+  do add(seen, patient.name)
+  do add(seen, room.label)
+  let tag = new_buffer()
+  do append(tag, 'r')
+  do append(tag, 'u')
+  do append(tag, 'n')
+  return (assignment(room, patient), count(seen), get(seen, 0), get(seen, 1), freeze(tag))
+}

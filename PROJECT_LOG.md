@@ -2,6 +2,30 @@
 
 ## 2026-06-26
 
+- Added executable application-shaped example `examples/clinic_queue.dolo`,
+  combining records, record-field lowering, boolean branching, string arrays,
+  and buffer mutation without expanding the Dolo language surface.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_all_examples_are_classified_for_execution`
+  (first valid observed failure after adding only the source:
+  `examples/clinic_queue.dolo` was unclassified; after adding the manifest row
+  and committed Herbert/stdout goldens: `Ran 1 test`, `OK`). An earlier
+  mis-typed test name failed before exercising the repository and was discarded
+  as invalid evidence.
+- Verified neighboring executable-example manifest behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_all_examples_are_classified_for_execution tests.test_compiler.CompilerTests.test_examples_compile_to_committed_herbert tests.test_compiler.CompilerTests.test_executable_manifest_examples_have_main_and_goldens tests.test_compiler.CompilerTests.test_manifest_validator_accepts_repository_manifests`
+  (`Ran 4 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 108 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 13 Dolo executable example(s)`, including
+  `examples/clinic_queue.dolo`; `PASS: 3 Herbert migration candidate(s)`), and
+  confirmed the profile was stopped afterward.
 - Rejected chained field access so forms such as `c.hunger.name` no longer
   leak through the token-preserving emitter as `c.1.name` when the final field
   token is also a bound variable.
