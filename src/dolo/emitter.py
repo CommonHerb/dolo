@@ -87,7 +87,7 @@ class Emitter:
         want = len(record.fields)
         if got != want:
             raise DoloSyntaxError(
-                f"line {token.line}: record {record.name} expects {want} fields, got {got}"
+                f"{_location(token)}: record {record.name} expects {want} fields, got {got}"
             )
 
     def _constructor_arg_count(self, expr: Expr, index: int) -> int:
@@ -113,14 +113,14 @@ class Emitter:
         record_name = env.get(target.value)
         if record_name not in self.records:
             raise DoloSyntaxError(
-                f"line {target.line}: cannot resolve record type for {target.value}.{field.value}"
+                f"{_location(target)}: cannot resolve record type for {target.value}.{field.value}"
             )
         record = self.records[record_name]
         try:
             index = record.fields.index(field.value)
         except ValueError as exc:
             raise DoloSyntaxError(
-                f"line {field.line}: record {record.name} has no field {field.value!r}"
+                f"{_location(field)}: record {record.name} has no field {field.value!r}"
             ) from exc
         return f"{target.value}.{index}"
 
@@ -164,6 +164,10 @@ def _operator_value(value: str) -> str:
     if value == "!":
         return "not"
     return value
+
+
+def _location(token: Token) -> str:
+    return f"line {token.line}, column {token.column}"
 
 
 def emit_program(program: Program) -> str:

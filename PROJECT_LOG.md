@@ -63,3 +63,9 @@
 - Pushed `codex/dolo-stewardship-20260625` to origin at
   `c392db6958ab6fd43148c02ff43cac962808a125` and observed GitHub Actions
   `check` success for run `28212891134`.
+- Tightened parser and lowering diagnostics so record constructor arity,
+  unresolved field access, unknown record fields, and unclosed expression
+  delimiters report useful columns instead of line-only or drifted block errors.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 18 tests`, `OK`).

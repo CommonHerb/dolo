@@ -111,6 +111,60 @@ fn bad() {
         with self.assertRaisesRegex(DoloSyntaxError, "Citizen expects 2 fields, got 3"):
             compile_source(too_many)
 
+    def test_record_constructor_arity_diagnostic_reports_column(self):
+        source = """record Citizen { name, hunger }
+
+fn bad() {
+  let c = Citizen("Ada")
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 4, column 11: record Citizen expects 2 fields, got 1",
+        ):
+            compile_source(source)
+
+    def test_unresolved_field_access_diagnostic_reports_target_column(self):
+        source = """fn bad(c) {
+  return c.hunger
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 10: cannot resolve record type for c.hunger",
+        ):
+            compile_source(source)
+
+    def test_unknown_record_field_diagnostic_reports_field_column(self):
+        source = """record Citizen { name, hunger }
+
+fn bad(c: Citizen) {
+  return c.coins
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 4, column 12: record Citizen has no field 'coins'",
+        ):
+            compile_source(source)
+
+    def test_unclosed_expression_delimiter_reports_opening_column(self):
+        source = """record Citizen { name, hunger }
+
+fn bad() {
+  let c = Citizen("Ada"
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 4, column 18: unterminated '\(' in expression",
+        ):
+            compile_source(source)
+
     def test_bang_lowers_to_herbert_not(self):
         source = """fn ready(flag) {
   return !flag

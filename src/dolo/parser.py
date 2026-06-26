@@ -102,19 +102,22 @@ class Parser:
 
     def _expr_until_line(self) -> Expr:
         collected: list[Token] = []
-        depth = 0
+        openers: list[Token] = []
         while True:
             token = self._peek()
             if token.kind == "EOF":
                 break
-            if token.value in ("(", "{"):
-                depth += 1
-            elif token.value in (")", "}"):
-                if depth == 0:
+            if token.kind == "NEWLINE":
+                if not openers:
                     break
-                depth -= 1
-            if depth == 0 and token.kind == "NEWLINE":
-                break
+                opener = openers[-1]
+                self._fail_at(opener, f"unterminated {opener.value!r} in expression")
+            if token.value in ("(", "{"):
+                openers.append(token)
+            elif token.value in (")", "}"):
+                if not openers:
+                    break
+                openers.pop()
             collected.append(self._advance())
         if not collected:
             self._fail("expected expression")
@@ -176,6 +179,10 @@ class Parser:
 
     def _fail(self, message: str) -> None:
         token = self._peek()
+        self._fail_at(token, message)
+
+    @staticmethod
+    def _fail_at(token: Token, message: str) -> None:
         raise DoloSyntaxError(f"line {token.line}, column {token.column}: {message}")
 
 
