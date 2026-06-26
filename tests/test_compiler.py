@@ -965,7 +965,20 @@ end
         self.assertEqual(surface.herbert_builtin_kind("add"), "void")
         self.assertEqual(set(kinds.values()), {"value", "void"})
 
-    def test_observed_herbert_builtin_call_requires_observed_arity(self):
+    def test_builtin_arity_owner_drives_observed_call_validation(self):
+        import dolo.herbert_surface as surface
+
+        self.assertEqual(
+            surface.HERBERT_BUILTIN_ARITY_OWNER,
+            "experiments/herbert/builtin_arity_candidate.herb",
+        )
+        arities = surface.load_herbert_builtin_arities(ROOT)
+        self.assertEqual(arities, surface.HERBERT_BUILTIN_ARITIES)
+        self.assertEqual(surface.herbert_builtin_arity("new_buffer"), 0)
+        self.assertEqual(surface.herbert_builtin_arity("new_array"), 1)
+        self.assertEqual(surface.herbert_builtin_arity("equal"), 2)
+        self.assertIsNone(surface.herbert_builtin_arity("missing"))
+
         cases = (
             (
                 """fn bad() {
@@ -1003,6 +1016,20 @@ end
                     compile_source(source)
 
     def test_new_array_accepts_observed_herbert_type_expressions(self):
+        import dolo.herbert_surface as surface
+
+        self.assertEqual(
+            surface.HERBERT_TYPE_NAME_OWNER,
+            "experiments/herbert/type_name_candidate.herb",
+        )
+        type_names = surface.load_herbert_type_names(ROOT)
+        self.assertEqual(type_names, surface.HERBERT_TYPE_NAMES)
+        self.assertTrue(surface.is_herbert_type_name("string"))
+        self.assertTrue(surface.is_herbert_type_name("int"))
+        self.assertTrue(surface.is_herbert_type_name("bool"))
+        self.assertTrue(surface.is_herbert_type_name("buffer"))
+        self.assertFalse(surface.is_herbert_type_name("array"))
+
         source = """fn empty_counts() {
   return (count(new_array(int)), count(new_array(array(string))), count(new_array((int, bool))))
 }
@@ -2066,16 +2093,18 @@ end
             ):
                 validate_repository_manifests(root)
 
-    def test_manifest_validator_requires_builtin_arity_candidate_to_mirror_python_table(self):
+    def test_manifest_validator_requires_builtin_arity_candidate_to_match_oracle_golden(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             fixtures = root / "tests" / "fixtures"
+            oracle = root / "tests" / "oracle"
             examples = root / "examples"
             experiments = root / "experiments" / "herbert"
             notes = root / "docs" / "migration-candidates"
             fixtures.mkdir(parents=True)
+            oracle.mkdir(parents=True)
             examples.mkdir()
             experiments.mkdir(parents=True)
             notes.mkdir(parents=True)
@@ -2102,12 +2131,17 @@ end
 """
             )
             (fixtures / "builtin_arity_candidate.stdout").write_text("2\n")
+            (oracle / "builtin_arity_golden.tsv").write_text(
+                "# name\tarity\n"
+                "add\t2\n"
+                "append\t2\n"
+            )
             (notes / "0001-builtin.md").write_text(
                 "experiments/herbert/builtin_arity_candidate.herb\n"
                 "tests/fixtures/builtin_arity_candidate.stdout\n"
                 "Current Python behavior lives in src/dolo/herbert_surface.py.\n"
                 "## Replacement Path\n"
-                "Compare this against HERBERT_BUILTIN_ARITIES before wiring.\n"
+                "Compare this against the held-back arity golden before wiring.\n"
                 "## Authority Boundary\n"
                 "This candidate is not compiler authority and not paid debt.\n"
             )
@@ -2123,8 +2157,8 @@ end
 
             with self.assertRaisesRegex(
                 ManifestError,
-                r"herbert_migration_manifest.tsv: builtin arity candidate must mirror "
-                r"HERBERT_BUILTIN_ARITIES \(missing append",
+                r"herbert_migration_manifest.tsv: builtin arity candidate must match "
+                r"tests/oracle/builtin_arity_golden.tsv \(missing append",
             ):
                 validate_repository_manifests(root)
 
@@ -2199,7 +2233,7 @@ end
             ):
                 validate_repository_manifests(root)
 
-    def test_manifest_validator_requires_boolean_operator_candidate_to_mirror_python_table(self):
+    def test_manifest_validator_requires_boolean_operator_candidate_to_cover_operator_surface(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -2240,7 +2274,7 @@ end
                 "tests/fixtures/boolean_operator_candidate.stdout\n"
                 "Current Python behavior lives in DOLO_BOOLEAN_OPERATOR_LOWERINGS.\n"
                 "## Replacement Path\n"
-                "Compare this against DOLO_BOOLEAN_OPERATOR_LOWERINGS before wiring.\n"
+                "Compare this against the Dolo boolean operator surface before wiring.\n"
                 "## Authority Boundary\n"
                 "This candidate is not compiler authority and not paid debt.\n"
             )
@@ -2256,21 +2290,23 @@ end
 
             with self.assertRaisesRegex(
                 ManifestError,
-                r"herbert_migration_manifest.tsv: boolean operator candidate must mirror "
-                r"DOLO_BOOLEAN_OPERATOR_LOWERINGS \(missing !",
+                r"herbert_migration_manifest.tsv: boolean operator candidate must cover "
+                r"Dolo boolean operators \(missing !, \|\|",
             ):
                 validate_repository_manifests(root)
 
-    def test_manifest_validator_requires_type_name_candidate_to_mirror_python_table(self):
+    def test_manifest_validator_requires_type_name_candidate_to_match_oracle_probe(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             fixtures = root / "tests" / "fixtures"
+            oracle_programs = root / "tests" / "oracle" / "programs"
             examples = root / "examples"
             experiments = root / "experiments" / "herbert"
             notes = root / "docs" / "migration-candidates"
             fixtures.mkdir(parents=True)
+            oracle_programs.mkdir(parents=True)
             examples.mkdir()
             experiments.mkdir(parents=True)
             notes.mkdir(parents=True)
@@ -2282,6 +2318,12 @@ end
             )
             (fixtures / "a.herb").write_text("func main():\n  return 1\nend\n")
             (fixtures / "a.stdout").write_text("1\n")
+            (oracle_programs / "type_probe.dolo").write_text(
+                """fn main() {
+  return (count(new_array(bool)), count(new_array(buffer)), count(new_array(int)), count(new_array(string)))
+}
+"""
+            )
             (experiments / "type_name_candidate.herb").write_text(
                 """func type_name(name):
     if equal(name, "int"):
@@ -2302,7 +2344,7 @@ end
                 "tests/fixtures/type_name_candidate.stdout\n"
                 "Current Python behavior lives in HERBERT_TYPE_NAMES.\n"
                 "## Replacement Path\n"
-                "Compare this against HERBERT_TYPE_NAMES before wiring.\n"
+                "Compare this against the held-back type-name probe before wiring.\n"
                 "## Authority Boundary\n"
                 "This candidate is not compiler authority and not paid debt.\n"
             )
@@ -2318,8 +2360,8 @@ end
 
             with self.assertRaisesRegex(
                 ManifestError,
-                r"herbert_migration_manifest.tsv: type name candidate must mirror "
-                r"HERBERT_TYPE_NAMES \(missing bool",
+                r"herbert_migration_manifest.tsv: type name candidate must match "
+                r"tests/oracle/programs/type_probe.dolo \(missing bool",
             ):
                 validate_repository_manifests(root)
 
@@ -3086,13 +3128,26 @@ fn bad() {
         ):
             compile_source(source)
 
-    def test_bang_lowers_to_herbert_not(self):
-        source = """fn ready(flag) {
-  return !flag
+    def test_boolean_operators_lower_from_herbert_owner(self):
+        import dolo.herbert_surface as surface
+
+        self.assertEqual(
+            surface.DOLO_BOOLEAN_OPERATOR_OWNER,
+            "experiments/herbert/boolean_operator_candidate.herb",
+        )
+        lowerings = surface.load_dolo_boolean_operator_lowerings(ROOT)
+        self.assertEqual(lowerings, surface.DOLO_BOOLEAN_OPERATOR_LOWERINGS)
+        self.assertEqual(surface.dolo_boolean_operator_lowering("!"), "not")
+        self.assertEqual(surface.dolo_boolean_operator_lowering("&&"), "and")
+        self.assertEqual(surface.dolo_boolean_operator_lowering("||"), "or")
+        self.assertIsNone(surface.dolo_boolean_operator_lowering("+"))
+
+        source = """fn ready(a, b) {
+  return (!a, a && b, a || b)
 }
 """
-        expected = """func ready(flag):
-  return not flag
+        expected = """func ready(a, b):
+  return (not a, a and b, a or b)
 end
 """
 

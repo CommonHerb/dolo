@@ -6,11 +6,6 @@ import sys
 from pathlib import Path
 
 from .compiler import compile_source
-from .herbert_surface import (
-    DOLO_BOOLEAN_OPERATOR_LOWERINGS,
-    HERBERT_BUILTIN_ARITIES,
-    HERBERT_TYPE_NAMES,
-)
 from .parser import parse_source
 from .tokens import DoloSyntaxError
 
@@ -22,12 +17,14 @@ class ManifestError(ValueError):
 ARRAY_MUTATION_CANDIDATE = "experiments/herbert/array_mutation_candidate.herb"
 ARRAY_MUTATION_HERBERT_GOLDEN = "tests/fixtures/array_mutation.herb"
 BOOLEAN_OPERATOR_CANDIDATE = "experiments/herbert/boolean_operator_candidate.herb"
+BOOLEAN_OPERATOR_NAMES = frozenset({"!", "&&", "||"})
 BUILTIN_ARITY_CANDIDATE = "experiments/herbert/builtin_arity_candidate.herb"
 BUILTIN_KIND_CANDIDATE = "experiments/herbert/builtin_kind_candidate.herb"
 RECORD_FIELD_INDEX_CANDIDATE = "experiments/herbert/record_field_index_candidate.herb"
 RECORD_FIELD_INDEX_EXAMPLE = "examples/citizen.dolo"
 RECORD_FIELD_INDEX_RECORD = "Citizen"
 TYPE_NAME_CANDIDATE = "experiments/herbert/type_name_candidate.herb"
+TYPE_NAME_PROBE = "tests/oracle/programs/type_probe.dolo"
 ARRAY_RETURN_CALL_PATTERN = re.compile(r"\b(?:count|get|freeze)\([^)]*\)")
 
 
@@ -165,11 +162,11 @@ def validate_repository_manifests(root: Path) -> None:
         )
         _require_migration_candidate_note(root, source_rel, stdout_rel)
         _require_array_mutation_candidate_matches_emitted_fixture(root, source_rel)
-        _require_boolean_operator_candidate_matches_python_table(root, source_rel)
-        _require_builtin_arity_candidate_matches_python_table(root, source_rel)
+        _require_boolean_operator_candidate_covers_operator_surface(root, source_rel)
+        _require_builtin_arity_candidate_matches_oracle_golden(root, source_rel)
         _require_builtin_kind_candidate_matches_oracle_golden(root, source_rel)
         _require_record_field_index_candidate_matches_dolo_record(root, source_rel)
-        _require_type_name_candidate_matches_python_table(root, source_rel)
+        _require_type_name_candidate_matches_oracle_probe(root, source_rel)
     _require_migration_candidate_notes_are_manifested(
         root,
         set(migration_rows),
@@ -426,7 +423,7 @@ def _require_migration_candidate_notes_are_manifested(
             )
 
 
-def _require_builtin_arity_candidate_matches_python_table(
+def _require_builtin_arity_candidate_matches_oracle_golden(
     root: Path,
     source_rel: str,
 ) -> None:
@@ -434,7 +431,7 @@ def _require_builtin_arity_candidate_matches_python_table(
         return
 
     actual = _extract_builtin_arity_candidate_map((root / source_rel).read_text())
-    expected = dict(sorted(HERBERT_BUILTIN_ARITIES.items()))
+    expected = _read_builtin_arity_golden(root)
     if actual == expected:
         return
 
@@ -459,8 +456,8 @@ def _require_builtin_arity_candidate_matches_python_table(
             )
         )
     raise ManifestError(
-        "herbert_migration_manifest.tsv: builtin arity candidate must mirror "
-        "HERBERT_BUILTIN_ARITIES "
+        "herbert_migration_manifest.tsv: builtin arity candidate must match "
+        "tests/oracle/builtin_arity_golden.tsv "
         f"({'; '.join(details)})"
     )
 
@@ -523,6 +520,33 @@ def _extract_builtin_arity_candidate_map(text: str) -> dict[str, int]:
         candidate_label="builtin arity candidate",
         manifest_name="herbert_migration_manifest.tsv",
     )
+
+
+def _read_builtin_arity_golden(root: Path) -> dict[str, int]:
+    path = root / "tests" / "oracle" / "builtin_arity_golden.tsv"
+    if not path.is_file():
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: builtin arity golden missing: "
+            "tests/oracle/builtin_arity_golden.tsv"
+        )
+    found: dict[str, int] = {}
+    for line_number, line in enumerate(path.read_text().splitlines(), start=1):
+        if not line or line.startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) != 2:
+            raise ManifestError(
+                "tests/oracle/builtin_arity_golden.tsv:"
+                f"{line_number}: expected name<TAB>arity"
+            )
+        name, arity_text = fields
+        if not arity_text.isdigit():
+            raise ManifestError(
+                "tests/oracle/builtin_arity_golden.tsv:"
+                f"{line_number}: unexpected arity {arity_text!r}"
+            )
+        found[name] = int(arity_text)
+    return dict(sorted(found.items()))
 
 
 def _require_builtin_kind_candidate_matches_oracle_golden(
@@ -599,7 +623,7 @@ def _read_builtin_kind_golden(root: Path) -> dict[str, str]:
     return dict(sorted(found.items()))
 
 
-def _require_boolean_operator_candidate_matches_python_table(
+def _require_boolean_operator_candidate_covers_operator_surface(
     root: Path,
     source_rel: str,
 ) -> None:
@@ -607,33 +631,19 @@ def _require_boolean_operator_candidate_matches_python_table(
         return
 
     actual = _extract_boolean_operator_candidate_map((root / source_rel).read_text())
-    expected = dict(sorted(DOLO_BOOLEAN_OPERATOR_LOWERINGS.items()))
-    if actual == expected:
+    missing = sorted(BOOLEAN_OPERATOR_NAMES - set(actual))
+    unexpected = sorted(set(actual) - BOOLEAN_OPERATOR_NAMES)
+    if not missing and not unexpected:
         return
 
-    missing = sorted(set(expected) - set(actual))
-    unexpected = sorted(set(actual) - set(expected))
-    mismatched = sorted(
-        name
-        for name in set(expected) & set(actual)
-        if expected[name] != actual[name]
-    )
     details: list[str] = []
     if missing:
         details.append(f"missing {', '.join(missing)}")
     if unexpected:
         details.append(f"unexpected {', '.join(unexpected)}")
-    if mismatched:
-        details.append(
-            "mismatched "
-            + ", ".join(
-                f"{name} expected {expected[name]} got {actual[name]}"
-                for name in mismatched
-            )
-        )
     raise ManifestError(
-        "herbert_migration_manifest.tsv: boolean operator candidate must mirror "
-        "DOLO_BOOLEAN_OPERATOR_LOWERINGS "
+        "herbert_migration_manifest.tsv: boolean operator candidate must cover "
+        "Dolo boolean operators "
         f"({'; '.join(details)})"
     )
 
@@ -646,7 +656,7 @@ def _extract_boolean_operator_candidate_map(text: str) -> dict[str, str]:
     )
 
 
-def _require_type_name_candidate_matches_python_table(
+def _require_type_name_candidate_matches_oracle_probe(
     root: Path,
     source_rel: str,
 ) -> None:
@@ -654,7 +664,7 @@ def _require_type_name_candidate_matches_python_table(
         return
 
     actual = _extract_type_name_candidate_map((root / source_rel).read_text())
-    expected = dict(sorted((name, 1) for name in HERBERT_TYPE_NAMES))
+    expected = dict(sorted((name, 1) for name in _read_type_name_probe_names(root)))
     if actual == expected:
         return
 
@@ -679,8 +689,8 @@ def _require_type_name_candidate_matches_python_table(
             )
         )
     raise ManifestError(
-        "herbert_migration_manifest.tsv: type name candidate must mirror "
-        "HERBERT_TYPE_NAMES "
+        "herbert_migration_manifest.tsv: type name candidate must match "
+        f"{TYPE_NAME_PROBE} "
         f"({'; '.join(details)})"
     )
 
@@ -690,6 +700,84 @@ def _extract_type_name_candidate_map(text: str) -> dict[str, int]:
         text,
         candidate_label="type name candidate",
         manifest_name="herbert_migration_manifest.tsv",
+    )
+
+
+def _read_type_name_probe_names(root: Path) -> frozenset[str]:
+    path = root / TYPE_NAME_PROBE
+    if not path.is_file():
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: type name probe missing: "
+            f"{TYPE_NAME_PROBE}"
+        )
+    try:
+        program = parse_source(path.read_text())
+    except DoloSyntaxError as exc:
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: type name probe failed to parse: "
+            f"{exc}"
+        ) from exc
+
+    names: set[str] = set()
+    for function in program.functions:
+        for expr in _iter_statement_exprs(function.body):
+            _collect_new_array_type_names(expr.tokens, names)
+    if not names:
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: type name probe declares no "
+            f"new_array type names: {TYPE_NAME_PROBE}"
+        )
+    return frozenset(names)
+
+
+def _iter_statement_exprs(statements):
+    for stmt in statements:
+        expr = getattr(stmt, "expr", None)
+        if expr is not None:
+            yield expr
+        condition = getattr(stmt, "condition", None)
+        if condition is not None:
+            yield condition
+        then_body = getattr(stmt, "then_body", ())
+        if then_body:
+            yield from _iter_statement_exprs(then_body)
+        else_body = getattr(stmt, "else_body", ())
+        if else_body:
+            yield from _iter_statement_exprs(else_body)
+
+
+def _collect_new_array_type_names(tokens, names: set[str]) -> None:
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if (
+            token.kind == "IDENT"
+            and token.value == "new_array"
+            and index + 1 < len(tokens)
+            and tokens[index + 1].value == "("
+        ):
+            close_index = _call_close_index(tokens, index)
+            for type_token in tokens[index + 2 : close_index]:
+                if type_token.kind == "IDENT" and type_token.value != "array":
+                    names.add(type_token.value)
+            index = close_index + 1
+            continue
+        index += 1
+
+
+def _call_close_index(tokens, index: int) -> int:
+    depth = 0
+    for cursor, token in enumerate(tokens[index + 2 :], start=index + 2):
+        if token.value == "(":
+            depth += 1
+        elif token.value == ")":
+            if depth == 0:
+                return cursor
+            depth -= 1
+    call = tokens[index]
+    raise ManifestError(
+        "herbert_migration_manifest.tsv: type name probe has unterminated "
+        f"{call.value} call"
     )
 
 

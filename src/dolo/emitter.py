@@ -15,10 +15,10 @@ from .ast import (
     Stmt,
 )
 from .herbert_surface import (
-    DOLO_BOOLEAN_OPERATOR_LOWERINGS,
-    HERBERT_BUILTIN_ARITIES,
-    HERBERT_TYPE_NAMES,
+    dolo_boolean_operator_lowering,
+    herbert_builtin_arity,
     herbert_builtin_kind,
+    is_herbert_type_name,
 )
 from .tokens import DoloSyntaxError, Token
 
@@ -299,7 +299,7 @@ class Emitter:
             )
         token = tokens[index]
         if token.kind == "IDENT":
-            if token.value in HERBERT_TYPE_NAMES:
+            if is_herbert_type_name(token.value):
                 return index + 1
             if token.value == "array":
                 if index + 1 >= end or tokens[index + 1].value != "(":
@@ -390,8 +390,9 @@ class Emitter:
     def _validate_call_arity(self, token: Token, expr: Expr, index: int) -> None:
         want = self.function_arities.get(token.value)
         subject = f"function {token.value}"
-        if want is None and token.value in HERBERT_BUILTIN_ARITIES:
-            want = HERBERT_BUILTIN_ARITIES[token.value]
+        builtin_arity = herbert_builtin_arity(token.value)
+        if want is None and builtin_arity is not None:
+            want = builtin_arity
             subject = f"built-in {token.value}"
         elif want is None:
             return
@@ -538,7 +539,7 @@ def _format_expr(parts: list[str]) -> str:
 
 
 def _operator_value(value: str) -> str:
-    return DOLO_BOOLEAN_OPERATOR_LOWERINGS.get(value, value)
+    return dolo_boolean_operator_lowering(value) or value
 
 
 def _is_expression_value_start(token: Token) -> bool:
