@@ -8,6 +8,7 @@ Format: `YYYY-MM-DD  <GREEN|RED|PROPOSE|NEEDS-SYNC>  <commit-or-—>  <one line>
 
 ---
 
+2026-06-26  GREEN  7aaeaec  Orchestrator ACCEPTED + merged the full-auto queue (builtin_arity + boolean_operator + type_name) via PR#6 -> meter 5->2 (4 authorities herbert-owned, all oracles WIRED in CI). Verified: no held-back-oracle edits, no test masking (5 removed = 5 renamed), 3 Python literals deleted, owners load-bearing. NOTE: the stacked PRs #3/#4/#5 had base=prior-branch (not main) so merging #5 didn't reach main; consolidated all 3 into PR#6 (base=main). Next 2 authorities (record_field_index/array_mutation) await orchestrator-authored oracles.
 2026-06-26  SLICE  —  FULL-AUTO queue complete locally: builtin_arity, boolean_operator, and type_name are wired; meter reads 2 with all three new wiring oracles WIRED.
 2026-06-26  SLICE  —  type_name is wired to experiments/herbert/type_name_candidate.herb; emitter new_array type-name validation consults the Herbert-family owner-derived set instead of the Python type-name literal.
 2026-06-26  SLICE  —  boolean_operator is wired to experiments/herbert/boolean_operator_candidate.herb; emitter operator lowering consults the Herbert-family owner-derived lookup instead of the Python lowering literal.
