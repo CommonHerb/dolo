@@ -213,7 +213,9 @@ Diagnostics are intentionally small:
   name overlaps, record fields, and function parameters report the repeated
   name column
 - records with no fields report the record name column
+- record field declaration commas without field names report the comma column
 - record field declaration trailing commas report the comma column
+- function parameter list commas without parameter names report the comma column
 - function parameter list trailing commas report the comma column
 - function declarations that reuse observed Herbert built-in names report the
   function name column

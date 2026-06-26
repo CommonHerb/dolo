@@ -2,6 +2,31 @@
 
 ## 2026-06-26
 
+- Tightened leading and doubled comma diagnostics in declaration lists. Record
+  field lists such as `record Pair { , left }` / `record Pair { left,, right }`
+  and parameter lists such as `fn id(, a)` / `fn id(a,, b)` now report a
+  focused missing-name diagnostic at the comma instead of generic
+  `expected ident`.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_record_declaration_rejects_missing_field_names_between_commas tests.test_compiler.CompilerTests.test_function_declaration_rejects_missing_parameter_names_between_commas`
+  (first observed failures: all four malformed separators reported
+  `expected ident`; after the parser change: `Ran 2 tests`, `OK`).
+- Verified neighboring declaration-list comma behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_record_declaration_rejects_trailing_field_comma tests.test_compiler.CompilerTests.test_function_declaration_rejects_trailing_parameter_comma tests.test_compiler.CompilerTests.test_record_declaration_rejects_duplicate_field_names tests.test_compiler.CompilerTests.test_function_declaration_rejects_duplicate_parameter_names`
+  (`Ran 4 tests`, `OK`).
+- Probed valid record and parameter lists after the change; `record Pair {
+  left, right }` and `fn first(a, b)` still compile to the expected Herbert
+  function shapes.
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 92 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Tightened function parameter list trailing-comma diagnostics. `fn id(a,)`
   and typed forms such as `fn id(a: Box,)` now fail at the comma with a
   parameter-list diagnostic instead of drifting to `expected ident` at the

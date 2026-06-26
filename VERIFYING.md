@@ -26,12 +26,13 @@ This proves:
   rejected from Dolo value expressions
 - sources without top-level declarations, duplicate declarations, including
   record/function name overlaps, empty record declarations, record annotation
-  errors, record field declaration trailing commas, function parameter trailing
-  commas, function names that reuse observed Herbert built-ins, `main`
-  declarations with parameters, functions that may complete without returning,
-  unbound variables, unbound assignment targets, duplicate `let` bindings,
-  assignment operators inside expressions, empty parenthesized value
-  expressions, commas without values on both sides, unknown call targets,
+  errors, record field declaration missing-name commas, record field
+  declaration trailing commas, function parameter missing-name commas, function
+  parameter trailing commas, function names that reuse observed Herbert
+  built-ins, `main` declarations with parameters, functions that may complete
+  without returning, unbound variables, unbound assignment targets, duplicate
+  `let` bindings, assignment operators inside expressions, empty parenthesized
+  value expressions, commas without values on both sides, unknown call targets,
   malformed field access, adjacent expression values without an operator, Dolo
   function arity mismatches, binary operators without both operands, malformed
   prefix `!` expressions, observed Herbert built-in arity mismatches, invalid

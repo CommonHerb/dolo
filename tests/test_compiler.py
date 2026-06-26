@@ -144,6 +144,33 @@ fn main() {
         ):
             compile_source(source)
 
+    def test_record_declaration_rejects_missing_field_names_between_commas(self):
+        cases = (
+            (
+                """record Pair { , left }
+
+fn main() {
+  return 0
+}
+""",
+                r"line 1, column 15: record Pair field list expects a field name",
+            ),
+            (
+                """record Pair { left,, right }
+
+fn main() {
+  return 0
+}
+""",
+                r"line 1, column 20: record Pair field list expects a field name",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_function_declaration_rejects_duplicate_parameter_names(self):
         source = """fn bad(x, x) {
   return x
@@ -173,6 +200,29 @@ fn id(a: Box,) {
 }
 """,
                 r"line 3, column 13: function id parameter list cannot end with ','",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
+    def test_function_declaration_rejects_missing_parameter_names_between_commas(self):
+        cases = (
+            (
+                """fn id(, a) {
+  return a
+}
+""",
+                r"line 1, column 7: function id parameter list expects a parameter name",
+            ),
+            (
+                """fn id(a,, b) {
+  return a
+}
+""",
+                r"line 1, column 9: function id parameter list expects a parameter name",
             ),
         )
 

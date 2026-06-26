@@ -57,6 +57,8 @@ class Parser:
         fields: list[str] = []
         seen_fields: set[str] = set()
         while not self._match_value("}"):
+            if self._peek_value(","):
+                self._fail(f"record {name} field list expects a field name")
             field = self._expect_kind("IDENT")
             if field.value in seen_fields:
                 self._fail_at(field, f"record {name} repeats field {field.value!r}")
@@ -109,6 +111,10 @@ class Parser:
         if self._peek_value(")"):
             return params
         while True:
+            if self._peek_value(","):
+                self._fail(
+                    f"function {function_name} parameter list expects a parameter name"
+                )
             name_token = self._expect_kind("IDENT")
             name = name_token.value
             if name in seen_params:
