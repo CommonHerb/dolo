@@ -141,6 +141,20 @@ fn bad(c: Citizen) {
         ):
             compile_source(source)
 
+    def test_chained_field_access_is_not_implemented(self):
+        source = """record Citizen { name, hunger }
+
+fn bad(c: Citizen, name) {
+  return c.hunger.name
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 4, column 18: chained field access is not implemented",
+        ):
+            compile_source(source)
+
     def test_record_declaration_rejects_duplicate_field_names(self):
         source = """record Citizen { name, hunger, name }
 

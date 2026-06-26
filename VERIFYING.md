@@ -38,15 +38,16 @@ This proves:
   statements missing `=`, statement forms missing their required expression,
   call, or condition, assignment operators inside expressions, empty
   parenthesized value expressions, commas without values on both sides,
-  unknown call targets, malformed field access, callable field access, adjacent
-  expression values without an operator, Dolo function arity mismatches, binary
-  operators without both operands, malformed prefix `!` expressions, observed
-  Herbert built-in arity mismatches, invalid `new_array` argument counts,
-  unknown `new_array` type arguments, invalid singleton Herbert tuple type
-  arguments, no-value built-in expression calls, invalid `do` statement calls,
-  expression delimiter errors, unsupported expression punctuation, unsupported
-  `else if` and `elif` forms, stray `else` statements, and non-literal
-  expression keywords fail with focused `DoloSyntaxError` diagnostics
+  unknown call targets, malformed field access, callable field access, chained
+  field access, adjacent expression values without an operator, Dolo function
+  arity mismatches, binary operators without both operands, malformed prefix
+  `!` expressions, observed Herbert built-in arity mismatches, invalid
+  `new_array` argument counts, unknown `new_array` type arguments, invalid
+  singleton Herbert tuple type arguments, no-value built-in expression calls,
+  invalid `do` statement calls, expression delimiter errors, unsupported
+  expression punctuation, unsupported `else if` and `elif` forms, stray `else`
+  statements, and non-literal expression keywords fail with focused
+  `DoloSyntaxError` diagnostics
 - the CLI writes Herbert to stdout
 - the CLI reports syntax and source-file read failures without Python
   tracebacks

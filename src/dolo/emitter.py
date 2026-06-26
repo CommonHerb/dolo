@@ -406,6 +406,7 @@ class Emitter:
             if i in skipped_indexes:
                 continue
             previous = expr.tokens[i - 1] if i > 0 else None
+            previous_previous = expr.tokens[i - 2] if i > 1 else None
             next_token = expr.tokens[i + 1] if i + 1 < len(expr.tokens) else None
             next_next_token = expr.tokens[i + 2] if i + 2 < len(expr.tokens) else None
             if token.value in UNSUPPORTED_EXPRESSION_PUNCTUATION:
@@ -452,6 +453,10 @@ class Emitter:
                 if next_token is None or next_token.kind != "IDENT":
                     raise DoloSyntaxError(
                         f"{_location(token)}: field access requires a field name"
+                    )
+                if previous_previous is not None and previous_previous.value == ".":
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: chained field access is not implemented"
                     )
                 if next_next_token is not None and next_next_token.value == "(":
                     raise DoloSyntaxError(

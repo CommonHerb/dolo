@@ -166,7 +166,8 @@ with `let`.
 
 Field access is currently limited to a simple identifier target and identifier
 field name, such as `citizen.hunger`. Callable field or method-like forms such
-as `citizen.hunger()` are not implemented.
+as `citizen.hunger()` are not implemented. Chained field access such as
+`citizen.home.name` is not implemented.
 
 Parenthesized expressions must contain an expression. Tuple and call commas
 must have an expression on both sides; trailing commas and empty tuple fields
@@ -240,6 +241,7 @@ Diagnostics are intentionally small:
 - `else` without a matching `if` reports the `else` column
 - malformed field access reports the dot column
 - callable field access reports the call-opening parenthesis column
+- chained field access reports the second dot column
 - unresolved record field access reports the target, field, and target column
 - unknown record fields report the record name, missing field, and field column
 - record constructor arity mismatches report expected and actual field counts
