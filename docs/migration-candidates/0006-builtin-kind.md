@@ -9,9 +9,9 @@ yet. It isolates the boundary Dolo uses when it decides whether a built-in call
 may appear in a value expression or must be spelled as a `do` statement.
 
 Current Python behavior lives in `src/dolo/herbert_surface.py` as
-`HERBERT_VALUE_BUILTINS` and `HERBERT_VOID_BUILTINS`, and the emitter uses
-those sets when validating expression calls and `do` statements before Herbert
-emission.
+`HERBERT_BUILTIN_KINDS`. The emitter uses the derived
+`HERBERT_VALUE_BUILTINS` and `HERBERT_VOID_BUILTINS` sets when validating
+expression calls and `do` statements before Herbert emission.
 
 ## Executable Candidate
 
@@ -28,12 +28,12 @@ placeholder for this candidate program's first executable shape.
 
 ## Replacement Path
 
-The lowest-risk replacement path is to mirror, then replace, the Python
-`HERBERT_VALUE_BUILTINS` and `HERBERT_VOID_BUILTINS` sets with a Herbert-family
-built-in-kind table that can be executed and compared against the current
-Python-owned sets before compiler wiring changes. Local manifest validation
-compares this candidate's lookup table against every observed built-in in both
-sets. Until a replacement is wired and verified through the compiler path,
+The lowest-risk replacement path is to mirror, then replace, Python-owned
+`HERBERT_BUILTIN_KINDS` with a Herbert-family built-in-kind table that can be
+executed and compared against the current Python-owned table before compiler
+wiring changes. Local manifest validation compares this candidate's lookup
+table against every observed built-in in `HERBERT_BUILTIN_KINDS`. Until a
+replacement is wired and verified through the compiler path,
 `src/dolo/herbert_surface.py` and the Python emitter remain the compiler
 authority and this candidate remains executable migration evidence.
 
@@ -45,8 +45,7 @@ seed on Linux/x86_64, runs the resulting ELF, and compares stdout with
 `tests/fixtures/builtin_kind_candidate.stdout`.
 
 Local manifest validation also compares the candidate's built-in names and
-value/no-value kinds against Python-owned `HERBERT_VALUE_BUILTINS` and
-`HERBERT_VOID_BUILTINS`.
+value/no-value kinds against Python-owned `HERBERT_BUILTIN_KINDS`.
 
 This proves the candidate can execute through Herbert. It does not prove the
 Dolo compiler has migrated away from Python yet.
@@ -54,6 +53,6 @@ Dolo compiler has migrated away from Python yet.
 ## Authority Boundary
 
 This candidate is not compiler authority and not paid debt. Dolo's compiler
-still uses Python-owned `HERBERT_VALUE_BUILTINS`, `HERBERT_VOID_BUILTINS`, and
+still uses Python-owned `HERBERT_BUILTIN_KINDS`, its derived built-in sets, and
 Python emitter validation until a Herbert-family replacement is wired through
 the compiler path and verified by the full local and native truth gates.

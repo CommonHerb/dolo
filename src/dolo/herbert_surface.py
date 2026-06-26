@@ -6,20 +6,25 @@ DOLO_BOOLEAN_OPERATOR_LOWERINGS = {
     "&&": "and",
     "||": "or",
 }
+HERBERT_BUILTIN_KINDS = {
+    "add": "void",
+    "append": "void",
+    "count": "value",
+    "equal": "value",
+    "freeze": "value",
+    "get": "value",
+    "index": "value",
+    "length": "value",
+    "new_array": "value",
+    "new_buffer": "value",
+}
 HERBERT_VALUE_BUILTINS = frozenset(
-    {
-        "count",
-        "equal",
-        "freeze",
-        "get",
-        "index",
-        "length",
-        "new_array",
-        "new_buffer",
-    }
+    name for name, kind in HERBERT_BUILTIN_KINDS.items() if kind == "value"
 )
-HERBERT_VOID_BUILTINS = frozenset({"add", "append"})
-HERBERT_BUILTINS = HERBERT_VALUE_BUILTINS | HERBERT_VOID_BUILTINS
+HERBERT_VOID_BUILTINS = frozenset(
+    name for name, kind in HERBERT_BUILTIN_KINDS.items() if kind == "void"
+)
+HERBERT_BUILTINS = frozenset(HERBERT_BUILTIN_KINDS)
 HERBERT_BUILTIN_ARITIES = {
     "add": 2,
     "append": 2,

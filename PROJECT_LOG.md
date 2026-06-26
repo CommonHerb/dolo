@@ -26,6 +26,28 @@
   `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
   (`PASS: 13 Dolo executable example(s)`, `PASS: 6 Herbert migration
   candidate(s)`), and confirmed the profile was stopped afterward.
+- Collapsed the Python-owned built-in kind boundary into one explicit
+  `HERBERT_BUILTIN_KINDS` table, deriving `HERBERT_VALUE_BUILTINS` and
+  `HERBERT_VOID_BUILTINS` from it. The candidate 0006 comparison now targets
+  that single owner table instead of reconstructing kind from two separate
+  sets.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_builtin_kind_sets_are_derived_from_one_owner_table`
+  (first observed failure: `HERBERT_BUILTIN_KINDS must be the Python owner for
+  built-in kind`; after the table refactor: `Ran 1 test`, `OK`).
+- Verified neighboring built-in behavior and candidate comparison with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_builtin_kind_sets_are_derived_from_one_owner_table tests.test_compiler.CompilerTests.test_manifest_validator_requires_builtin_kind_candidate_to_mirror_python_tables tests.test_compiler.CompilerTests.test_observed_herbert_builtin_call_target_is_allowed tests.test_compiler.CompilerTests.test_observed_herbert_builtin_call_requires_observed_arity tests.test_compiler.CompilerTests.test_do_statement_emits_observed_no_value_herbert_builtin_calls tests.test_compiler.CompilerTests.test_do_statement_rejects_value_builtin_calls tests.test_compiler.CompilerTests.test_herbert_void_builtins_are_not_value_calls`
+  (`Ran 7 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 112 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 13 Dolo executable example(s)`, `PASS: 6 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Added Herbert-family migration candidate 0005,
   `experiments/herbert/type_name_candidate.herb`, plus its stdout golden and
   candidate note. It mirrors the Python-owned `HERBERT_TYPE_NAMES` set for the

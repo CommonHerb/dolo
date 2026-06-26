@@ -935,6 +935,33 @@ end
 
         self.assertEqual(emitted, expected)
 
+    def test_builtin_kind_sets_are_derived_from_one_owner_table(self):
+        import dolo.herbert_surface as surface
+
+        kinds = getattr(surface, "HERBERT_BUILTIN_KINDS", None)
+        self.assertIsNotNone(
+            kinds,
+            "HERBERT_BUILTIN_KINDS must be the Python owner for built-in kind",
+        )
+        self.assertEqual(set(kinds), surface.HERBERT_BUILTINS)
+        self.assertEqual(
+            {
+                name
+                for name, kind in kinds.items()
+                if kind == "value"
+            },
+            surface.HERBERT_VALUE_BUILTINS,
+        )
+        self.assertEqual(
+            {
+                name
+                for name, kind in kinds.items()
+                if kind == "void"
+            },
+            surface.HERBERT_VOID_BUILTINS,
+        )
+        self.assertEqual(set(kinds.values()), {"value", "void"})
+
     def test_observed_herbert_builtin_call_requires_observed_arity(self):
         cases = (
             (

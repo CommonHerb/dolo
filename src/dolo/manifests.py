@@ -9,9 +9,8 @@ from .compiler import compile_source
 from .herbert_surface import (
     DOLO_BOOLEAN_OPERATOR_LOWERINGS,
     HERBERT_BUILTIN_ARITIES,
+    HERBERT_BUILTIN_KINDS,
     HERBERT_TYPE_NAMES,
-    HERBERT_VALUE_BUILTINS,
-    HERBERT_VOID_BUILTINS,
 )
 from .parser import parse_source
 from .tokens import DoloSyntaxError
@@ -535,11 +534,7 @@ def _require_builtin_kind_candidate_matches_python_tables(
         return
 
     actual = _extract_builtin_kind_candidate_map((root / source_rel).read_text())
-    expected = {
-        **{name: "value" for name in HERBERT_VALUE_BUILTINS},
-        **{name: "void" for name in HERBERT_VOID_BUILTINS},
-    }
-    expected = dict(sorted(expected.items()))
+    expected = dict(sorted(HERBERT_BUILTIN_KINDS.items()))
     if actual == expected:
         return
 
