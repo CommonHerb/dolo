@@ -1,0 +1,31 @@
+record Stall { label, stock, price }
+record Order { item, quantity, urgent }
+
+fn total_value(s: Stall, o: Order) {
+  return s.price * o.quantity
+}
+
+fn restock_needed(s: Stall, o: Order) {
+  return s.stock < o.quantity || o.urgent
+}
+
+fn main() {
+  let stall = Stall("seed", 7, 4)
+  let alias = stall
+  let order = Order(alias.label, 3, false)
+  let stock = alias.stock
+  stock = stock - order.quantity
+  let status = new_buffer()
+  do append(status, 'o')
+  do append(status, 'p')
+  do append(status, 'e')
+  do append(status, 'n')
+  let orders = new_array(string)
+  do add(orders, alias.label)
+  do add(orders, "meal")
+  if restock_needed(alias, order) {
+    return ("restock", freeze(status), alias.label, total_value(alias, order), stock, count(orders), get(orders, 0), get(orders, 1), true)
+  } else {
+    return ("serve", freeze(status), alias.label, total_value(alias, order), stock, count(orders), get(orders, 0), get(orders, 1), false)
+  }
+}

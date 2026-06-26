@@ -1031,6 +1031,16 @@ end
 
         self.assertEqual(compile_source(source), expected)
 
+    def test_market_day_example_compiles_to_committed_herbert(self):
+        source_path = ROOT / "examples" / "market_day.dolo"
+        expected_path = ROOT / "tests" / "fixtures" / "market_day.herb"
+        self.assertTrue(source_path.is_file(), "market day example is required")
+        self.assertTrue(expected_path.is_file(), "market day Herbert golden is required")
+        source = source_path.read_text()
+        expected = expected_path.read_text()
+
+        self.assertEqual(compile_source(source), expected)
+
     def test_executable_manifest_examples_have_main_and_goldens(self):
         manifest = ROOT / "tests" / "fixtures" / "executable_manifest.tsv"
         self.assertTrue(manifest.is_file(), "executable manifest is required")

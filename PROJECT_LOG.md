@@ -2,6 +2,34 @@
 
 ## 2026-06-26
 
+- Added executable application-shaped example `examples/market_day.dolo` with
+  committed Herbert and stdout fixtures. It combines two records, annotated
+  record parameters, record aliases, assignment, boolean branching, buffer
+  mutation, typed array mutation, function calls, and native stdout comparison
+  in one manifested proof.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_market_day_example_compiles_to_committed_herbert`
+  (first observed failure: the named example file was missing; after adding the
+  example and Herbert golden: `Ran 1 test`, `OK`).
+- Verified manifest integration with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_executable_manifest_examples_have_main_and_goldens`
+  (`Ran 1 test`, `OK`) and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- During native verification, the first `market_day` draft exposed two pinned
+  Herbert subset limits: `if` arms must return the same structural shape, and
+  `main` should avoid nested tuple values produced by helper calls. The final
+  example keeps `main`'s returned tuple flat while still proving the combined
+  application flow.
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 93 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 10 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Tightened leading and doubled comma diagnostics in declaration lists. Record
   field lists such as `record Pair { , left }` / `record Pair { left,, right }`
   and parameter lists such as `fn id(, a)` / `fn id(a,, b)` now report a
