@@ -444,6 +444,58 @@ end
                     with self.assertRaisesRegex(ManifestError, expected):
                         validate_repository_manifests(root)
 
+    def test_manifest_validator_requires_executable_no_arg_main(self):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        cases = (
+            (
+                """fn helper() {
+  return 1
+}
+""",
+                r"executable_manifest.tsv: examples/a.dolo must define no-argument fn main\(\)",
+            ),
+            (
+                """fn main(seed) {
+  return seed
+}
+""",
+                r"executable_manifest.tsv: examples/a.dolo must define no-argument fn main\(\)",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    fixtures = root / "tests" / "fixtures"
+                    examples = root / "examples"
+                    experiments = root / "experiments" / "herbert"
+                    fixtures.mkdir(parents=True)
+                    examples.mkdir()
+                    experiments.mkdir(parents=True)
+                    (examples / "a.dolo").write_text(source)
+                    (fixtures / "a.herb").write_text(
+                        "func main():\n  return 1\nend\n"
+                    )
+                    (fixtures / "a.stdout").write_text("1\n")
+                    (experiments / "candidate.herb").write_text(
+                        "func main():\n  return 1\nend\n"
+                    )
+                    (fixtures / "candidate.stdout").write_text("1\n")
+                    (fixtures / "executable_manifest.tsv").write_text(
+                        "examples/a.dolo\ttests/fixtures/a.herb\t"
+                        "tests/fixtures/a.stdout\n"
+                    )
+                    (fixtures / "non_executable_examples.tsv").write_text("")
+                    (fixtures / "herbert_migration_manifest.tsv").write_text(
+                        "experiments/herbert/candidate.herb\t"
+                        "tests/fixtures/candidate.stdout\n"
+                    )
+
+                    with self.assertRaisesRegex(ManifestError, expected):
+                        validate_repository_manifests(root)
+
     def test_all_examples_are_classified_for_execution(self):
         executable_manifest = (
             ROOT / "tests" / "fixtures" / "executable_manifest.tsv"

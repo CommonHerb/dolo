@@ -4,6 +4,9 @@ import argparse
 import sys
 from pathlib import Path
 
+from .parser import parse_source
+from .tokens import DoloSyntaxError
+
 
 class ManifestError(ValueError):
     pass
@@ -63,6 +66,7 @@ def validate_repository_manifests(root: Path) -> None:
     executable_sources = set()
     for source_rel, herb_rel, stdout_rel in executable_rows:
         _require_file(root, source_rel, label="source")
+        _require_no_arg_main(root, source_rel)
         _require_file(root, herb_rel, label="Herbert golden")
         _require_file(root, stdout_rel, label="stdout golden")
         executable_sources.add(source_rel)
@@ -118,6 +122,22 @@ def _reject_duplicate_sources(
         if source in seen:
             raise ManifestError(f"{manifest_name}: duplicate source {source}")
         seen.add(source)
+
+
+def _require_no_arg_main(root: Path, source_rel: str) -> None:
+    source_path = root / source_rel
+    try:
+        program = parse_source(source_path.read_text())
+    except DoloSyntaxError as exc:
+        raise ManifestError(
+            f"executable_manifest.tsv: {source_rel} failed to parse: {exc}"
+        ) from exc
+    for function in program.functions:
+        if function.name == "main" and not function.params:
+            return
+    raise ManifestError(
+        f"executable_manifest.tsv: {source_rel} must define no-argument fn main()"
+    )
 
 
 def _require_file(root: Path, relative_path: str, *, label: str) -> None:
