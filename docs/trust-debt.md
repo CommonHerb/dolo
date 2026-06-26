@@ -20,6 +20,8 @@ The `experiments/herbert/` programs are tiny Herbert-family implementation
 candidates. Today they mirror narrow Python bootstrap compiler decisions:
 
 - `record_field_index_candidate.herb` mirrors record-field-index selection.
+  Local manifest validation compares this candidate against the parsed
+  `Citizen` record fields in `examples/citizen.dolo`.
 - `array_mutation_candidate.herb` mirrors the typed array and no-value mutation
   boundary used by Dolo's emitted Herbert.
 - `builtin_arity_candidate.herb` mirrors the observed Herbert built-in arity
@@ -34,9 +36,9 @@ mirrors and include a replacement path that says how the executable proof could
 eventually displace that owner. A candidate without both is not precise enough
 to count as a trust-debt repayment path.
 
-Comparison against a Python/bootstrap owner is evidence, not authority transfer.
-The Dolo compiler still uses Python-owned bootstrap code until a replacement is
-wired and verified through the full gates.
+Comparison against a Dolo/Python bootstrap owner is evidence, not authority
+transfer. The Dolo compiler still uses Python-owned bootstrap code until a
+replacement is wired and verified through the full gates.
 
 ## Current Pin
 

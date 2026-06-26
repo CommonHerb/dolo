@@ -21,6 +21,8 @@ This roadmap is a living map. It separates what is proven from what is intended.
 - Herbert-family migration candidates for record field indexing, array
   mutation, and built-in arity lookup run through the same pinned Herbert seed
   and are tracked as candidates 0001, 0002, and 0003.
+- Local manifest validation compares the record-field and built-in-arity
+  candidates against the Dolo/Python bootstrap owners they mirror.
 
 ## First Foundation
 

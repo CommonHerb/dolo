@@ -1891,6 +1891,81 @@ end
             ):
                 validate_repository_manifests(root)
 
+    def test_manifest_validator_requires_record_field_candidate_to_mirror_citizen_record(self):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixtures = root / "tests" / "fixtures"
+            examples = root / "examples"
+            experiments = root / "experiments" / "herbert"
+            notes = root / "docs" / "migration-candidates"
+            fixtures.mkdir(parents=True)
+            examples.mkdir()
+            experiments.mkdir(parents=True)
+            notes.mkdir(parents=True)
+            (examples / "a.dolo").write_text(
+                """fn main() {
+  return 1
+}
+"""
+            )
+            (examples / "citizen.dolo").write_text(
+                """record Citizen { name, hunger, coins }
+
+fn main() {
+  let c = Citizen("Ada", 3, 12)
+  return c.coins
+}
+"""
+            )
+            (fixtures / "a.herb").write_text("func main():\n  return 1\nend\n")
+            (fixtures / "a.stdout").write_text("1\n")
+            (experiments / "record_field_index_candidate.herb").write_text(
+                """func citizen_field_index(name):
+    if equal(name, "name"):
+        return 0
+    else:
+        if equal(name, "hunger"):
+            return 1
+        else:
+            return 999
+        end
+    end
+end
+
+func main():
+    return citizen_field_index("hunger")
+end
+"""
+            )
+            (fixtures / "record_field_index_candidate.stdout").write_text("1\n")
+            (notes / "0001-record.md").write_text(
+                "experiments/herbert/record_field_index_candidate.herb\n"
+                "tests/fixtures/record_field_index_candidate.stdout\n"
+                "Current Python behavior lives in the emitter's record-field lowering.\n"
+                "## Replacement Path\n"
+                "Compare this against the Citizen record before wiring.\n"
+            )
+            (fixtures / "executable_manifest.tsv").write_text(
+                "examples/a.dolo\ttests/fixtures/a.herb\t"
+                "tests/fixtures/a.stdout\n"
+            )
+            (fixtures / "non_executable_examples.tsv").write_text(
+                "examples/citizen.dolo\tfixture for record-field candidate comparison\n"
+            )
+            (fixtures / "herbert_migration_manifest.tsv").write_text(
+                "experiments/herbert/record_field_index_candidate.herb\t"
+                "tests/fixtures/record_field_index_candidate.stdout\n"
+            )
+
+            with self.assertRaisesRegex(
+                ManifestError,
+                r"herbert_migration_manifest.tsv: record field index candidate "
+                r"must mirror examples/citizen.dolo Citizen fields \(missing coins",
+            ):
+                validate_repository_manifests(root)
+
     def test_manifest_validator_rejects_orphaned_migration_candidate_notes(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 

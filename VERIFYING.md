@@ -63,6 +63,10 @@ This proves:
   also name the current Python/bootstrap owner it mirrors, include a
   replacement path toward Herbert-family ownership, and notes under that
   directory must link back to at least one manifested Herbert candidate
+- `experiments/herbert/record_field_index_candidate.herb` enumerates the same
+  `Citizen` field names and tuple indexes parsed from `examples/citizen.dolo`,
+  so the first record-field migration candidate is compared against the Dolo
+  record metadata it intends to replace
 - `experiments/herbert/builtin_arity_candidate.herb` enumerates the same
   built-in names and arities as Python-owned `HERBERT_BUILTIN_ARITIES`, so the
   first arity migration candidate is compared against the bootstrap table it
@@ -136,8 +140,11 @@ stdout goldens that do not use a `.stdout` suffix or end with a newline. When
 candidate note to mention the manifested Herbert source and stdout golden, name
 the current Python/bootstrap owner it mirrors, and include a replacement path.
 It also rejects orphaned migration candidate notes that do not link back to a
-manifest source. The built-in arity candidate has one extra local check: its
-Herbert lookup table must mirror Python-owned `HERBERT_BUILTIN_ARITIES`.
+manifest source. The record-field index candidate has one extra local check:
+its Herbert lookup table must mirror the parsed `Citizen` fields in
+`examples/citizen.dolo`. The built-in arity candidate has one extra local
+check: its Herbert lookup table must mirror Python-owned
+`HERBERT_BUILTIN_ARITIES`.
 
 This does not prove arbitrary Dolo program correctness, arbitrary Herbert
 compiler correctness, or removal of bootstrap trust debt. It proves only the

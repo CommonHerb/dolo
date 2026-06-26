@@ -27,10 +27,11 @@ placeholder for this candidate program's first executable shape.
 
 This candidate can only replace Python emitter behavior after record metadata,
 field-name lookup, and diagnostic policy have Herbert-family representation.
-The first wiring step should compare this executable lookup shape against the
-Python emitter's record-field lowering for pinned examples before any compiler
-authority moves. Until then, the candidate is executable repayment evidence,
-not Dolo's semantic authority.
+Local manifest validation now compares this executable lookup shape against the
+parsed `Citizen` record fields in `examples/citizen.dolo` before any compiler
+authority moves. Until a replacement is wired and verified through the compiler
+path, the candidate is executable repayment evidence, not Dolo's semantic
+authority.
 
 ## Verification
 
@@ -38,6 +39,9 @@ The candidate is listed in `tests/fixtures/herbert_migration_manifest.tsv`.
 `scripts/verify_herbert_truth.sh` compiles it directly with the pinned Herbert
 seed on Linux/x86_64, runs the resulting ELF, and compares stdout with
 `tests/fixtures/record_field_index_candidate.stdout`.
+
+Local manifest validation also compares the candidate's field names and indexes
+against the parsed `Citizen` record in `examples/citizen.dolo`.
 
 This proves the candidate can execute through Herbert. It does not prove the
 Dolo compiler has migrated away from Python yet.
