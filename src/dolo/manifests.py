@@ -73,6 +73,7 @@ def validate_repository_manifests(root: Path) -> None:
 
     for source_rel, stdout_rel in migration_rows:
         _require_file(root, source_rel, label="migration source")
+        _require_migration_main(root, source_rel)
         _require_file(root, stdout_rel, label="migration stdout golden")
 
     non_executable_sources = set()
@@ -138,6 +139,18 @@ def _require_no_arg_main(root: Path, source_rel: str) -> None:
     raise ManifestError(
         f"executable_manifest.tsv: {source_rel} must define no-argument fn main()"
     )
+
+
+def _require_migration_main(root: Path, source_rel: str) -> None:
+    source_path = root / source_rel
+    if source_path.suffix != ".herb":
+        raise ManifestError(
+            f"herbert_migration_manifest.tsv: migration source must be .herb: {source_rel}"
+        )
+    if "func main()" not in source_path.read_text():
+        raise ManifestError(
+            f"herbert_migration_manifest.tsv: {source_rel} must define func main()"
+        )
 
 
 def _require_file(root: Path, relative_path: str, *, label: str) -> None:
