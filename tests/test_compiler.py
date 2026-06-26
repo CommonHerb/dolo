@@ -286,6 +286,18 @@ end
 
         self.assertEqual(compile_source(source), expected)
 
+    def test_expression_formatting_keeps_space_before_group_after_comma(self):
+        source = """fn shape() {
+  return count(new_array(array((int, (bool, string)))))
+}
+"""
+        expected = """func shape():
+  return count(new_array(array((int, (bool, string)))))
+end
+"""
+
+        self.assertEqual(compile_source(source), expected)
+
     def test_new_array_type_argument_must_be_observed_herbert_type_expression(self):
         source = """fn bad() {
   return new_array(Missing)

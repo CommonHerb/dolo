@@ -411,7 +411,7 @@ def _format_expr(parts: list[str]) -> str:
         elif part == ".":
             out += part
         elif part == "(":
-            out += part
+            out += (" " if previous == "," else "") + part
         elif out.endswith("(") or out.endswith("."):
             out += part
         elif previous == ",":

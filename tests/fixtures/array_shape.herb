@@ -1,5 +1,5 @@
 func nested_type_counts():
-  let deep = new_array(array((int,(bool, string))))
+  let deep = new_array(array((int, (bool, string))))
   let rows = new_array((int, array(string)))
   return (count(deep), count(rows))
 end

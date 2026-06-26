@@ -2,6 +2,19 @@
 
 ## 2026-06-26
 
+- Improved expression formatting so a grouped expression after a comma keeps a
+  separating space in emitted Herbert, for example `array((int, (bool,
+  string)))`.
+- Verified the formatter slice with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_expression_formatting_keeps_space_before_group_after_comma`
+  (first observed failure: emitted Herbert used `int,(bool, string)`; after the
+  formatter change: `Ran 1 test`, `OK`). The full bootstrap suite then ran as
+  `Ran 71 tests`, `OK`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Added executable example `examples/array_shape.dolo` with committed Herbert
   and stdout fixtures, proving nested observed Herbert type expressions such as
   `array((int, (bool, string)))` and tuple fields containing `array(string)`
