@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 DOLO_BOOLEAN_OPERATOR_OWNER = "experiments/herbert/boolean_operator_candidate.herb"
+DOLO_CLOSING_DELIMITER_OWNER = "experiments/herbert/closing_delimiters_candidate.herb"
 HERBERT_BUILTIN_ARITY_OWNER = "experiments/herbert/builtin_arity_candidate.herb"
 HERBERT_BUILTIN_KIND_OWNER = "experiments/herbert/builtin_kind_candidate.herb"
 HERBERT_TYPE_NAME_OWNER = "experiments/herbert/type_name_candidate.herb"
@@ -43,6 +44,49 @@ def _extract_boolean_operator_owner_map(text: str) -> dict[str, str]:
         if name in seen_lookup_names:
             raise RuntimeError(
                 f"Dolo boolean operator owner repeats lookup name {name!r}"
+            )
+        seen_lookup_names.add(name)
+        return_line = lines[index + 1].strip()
+        if not return_line.startswith("return "):
+            continue
+        value_text = return_line.removeprefix("return ").strip()
+        if len(value_text) >= 2 and value_text[0] == '"' and value_text[-1] == '"':
+            found[name] = value_text[1:-1]
+    return dict(sorted(found.items()))
+
+
+def load_dolo_closing_delimiters(root: Path | str | None = None) -> dict[str, str]:
+    repo_root = Path(root) if root is not None else _REPO_ROOT
+    owner_path = repo_root / DOLO_CLOSING_DELIMITER_OWNER
+    try:
+        owner_text = owner_path.read_text()
+    except OSError as exc:
+        raise RuntimeError(
+            f"Dolo closing-delimiter owner is unreadable: {DOLO_CLOSING_DELIMITER_OWNER}"
+        ) from exc
+
+    delimiters = _extract_closing_delimiter_owner_map(owner_text)
+    if not delimiters:
+        raise RuntimeError(
+            f"Dolo closing-delimiter owner declares no delimiter data: {DOLO_CLOSING_DELIMITER_OWNER}"
+        )
+    return delimiters
+
+
+def _extract_closing_delimiter_owner_map(text: str) -> dict[str, str]:
+    found: dict[str, str] = {}
+    seen_lookup_names: set[str] = set()
+    lines = text.splitlines()
+    prefix = 'if equal(name, "'
+    suffix = '"):'
+    for index, line in enumerate(lines[:-1]):
+        stripped = line.strip()
+        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
+            continue
+        name = stripped[len(prefix) : -len(suffix)]
+        if name in seen_lookup_names:
+            raise RuntimeError(
+                f"Dolo closing-delimiter owner repeats lookup name {name!r}"
             )
         seen_lookup_names.add(name)
         return_line = lines[index + 1].strip()
@@ -213,6 +257,7 @@ def _extract_type_name_owner_map(text: str) -> dict[str, int]:
 
 
 _DOLO_BOOLEAN_OPERATOR_LOWERINGS_BY_OWNER = load_dolo_boolean_operator_lowerings()
+_DOLO_CLOSING_DELIMITERS_BY_OWNER = load_dolo_closing_delimiters()
 _HERBERT_BUILTIN_ARITIES_BY_OWNER = load_herbert_builtin_arities()
 _HERBERT_BUILTIN_KINDS_BY_OWNER = load_herbert_builtin_kinds()
 _HERBERT_TYPE_NAMES_BY_OWNER = load_herbert_type_names()
@@ -231,6 +276,10 @@ HERBERT_TYPE_NAMES = frozenset(_HERBERT_TYPE_NAMES_BY_OWNER)
 
 def dolo_boolean_operator_lowering(name: str) -> str | None:
     return _DOLO_BOOLEAN_OPERATOR_LOWERINGS_BY_OWNER.get(name)
+
+
+def dolo_opening_delimiter_for(name: str) -> str | None:
+    return _DOLO_CLOSING_DELIMITERS_BY_OWNER.get(name)
 
 
 def herbert_builtin_arity(name: str) -> int | None:
