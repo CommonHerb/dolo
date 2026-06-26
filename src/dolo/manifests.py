@@ -7,7 +7,6 @@ from pathlib import Path
 
 from .compiler import compile_source
 from .herbert_surface import (
-    DOLO_BOOLEAN_OPERATOR_LOWERINGS,
     HERBERT_TYPE_NAMES,
 )
 from .parser import parse_source
@@ -21,6 +20,7 @@ class ManifestError(ValueError):
 ARRAY_MUTATION_CANDIDATE = "experiments/herbert/array_mutation_candidate.herb"
 ARRAY_MUTATION_HERBERT_GOLDEN = "tests/fixtures/array_mutation.herb"
 BOOLEAN_OPERATOR_CANDIDATE = "experiments/herbert/boolean_operator_candidate.herb"
+BOOLEAN_OPERATOR_NAMES = frozenset({"!", "&&", "||"})
 BUILTIN_ARITY_CANDIDATE = "experiments/herbert/builtin_arity_candidate.herb"
 BUILTIN_KIND_CANDIDATE = "experiments/herbert/builtin_kind_candidate.herb"
 RECORD_FIELD_INDEX_CANDIDATE = "experiments/herbert/record_field_index_candidate.herb"
@@ -164,7 +164,7 @@ def validate_repository_manifests(root: Path) -> None:
         )
         _require_migration_candidate_note(root, source_rel, stdout_rel)
         _require_array_mutation_candidate_matches_emitted_fixture(root, source_rel)
-        _require_boolean_operator_candidate_matches_python_table(root, source_rel)
+        _require_boolean_operator_candidate_covers_operator_surface(root, source_rel)
         _require_builtin_arity_candidate_matches_oracle_golden(root, source_rel)
         _require_builtin_kind_candidate_matches_oracle_golden(root, source_rel)
         _require_record_field_index_candidate_matches_dolo_record(root, source_rel)
@@ -625,7 +625,7 @@ def _read_builtin_kind_golden(root: Path) -> dict[str, str]:
     return dict(sorted(found.items()))
 
 
-def _require_boolean_operator_candidate_matches_python_table(
+def _require_boolean_operator_candidate_covers_operator_surface(
     root: Path,
     source_rel: str,
 ) -> None:
@@ -633,33 +633,19 @@ def _require_boolean_operator_candidate_matches_python_table(
         return
 
     actual = _extract_boolean_operator_candidate_map((root / source_rel).read_text())
-    expected = dict(sorted(DOLO_BOOLEAN_OPERATOR_LOWERINGS.items()))
-    if actual == expected:
+    missing = sorted(BOOLEAN_OPERATOR_NAMES - set(actual))
+    unexpected = sorted(set(actual) - BOOLEAN_OPERATOR_NAMES)
+    if not missing and not unexpected:
         return
 
-    missing = sorted(set(expected) - set(actual))
-    unexpected = sorted(set(actual) - set(expected))
-    mismatched = sorted(
-        name
-        for name in set(expected) & set(actual)
-        if expected[name] != actual[name]
-    )
     details: list[str] = []
     if missing:
         details.append(f"missing {', '.join(missing)}")
     if unexpected:
         details.append(f"unexpected {', '.join(unexpected)}")
-    if mismatched:
-        details.append(
-            "mismatched "
-            + ", ".join(
-                f"{name} expected {expected[name]} got {actual[name]}"
-                for name in mismatched
-            )
-        )
     raise ManifestError(
-        "herbert_migration_manifest.tsv: boolean operator candidate must mirror "
-        "DOLO_BOOLEAN_OPERATOR_LOWERINGS "
+        "herbert_migration_manifest.tsv: boolean operator candidate must cover "
+        "Dolo boolean operators "
         f"({'; '.join(details)})"
     )
 

@@ -2219,7 +2219,7 @@ end
             ):
                 validate_repository_manifests(root)
 
-    def test_manifest_validator_requires_boolean_operator_candidate_to_mirror_python_table(self):
+    def test_manifest_validator_requires_boolean_operator_candidate_to_cover_operator_surface(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -2260,7 +2260,7 @@ end
                 "tests/fixtures/boolean_operator_candidate.stdout\n"
                 "Current Python behavior lives in DOLO_BOOLEAN_OPERATOR_LOWERINGS.\n"
                 "## Replacement Path\n"
-                "Compare this against DOLO_BOOLEAN_OPERATOR_LOWERINGS before wiring.\n"
+                "Compare this against the Dolo boolean operator surface before wiring.\n"
                 "## Authority Boundary\n"
                 "This candidate is not compiler authority and not paid debt.\n"
             )
@@ -2276,8 +2276,8 @@ end
 
             with self.assertRaisesRegex(
                 ManifestError,
-                r"herbert_migration_manifest.tsv: boolean operator candidate must mirror "
-                r"DOLO_BOOLEAN_OPERATOR_LOWERINGS \(missing !",
+                r"herbert_migration_manifest.tsv: boolean operator candidate must cover "
+                r"Dolo boolean operators \(missing !, \|\|",
             ):
                 validate_repository_manifests(root)
 
@@ -3106,13 +3106,26 @@ fn bad() {
         ):
             compile_source(source)
 
-    def test_bang_lowers_to_herbert_not(self):
-        source = """fn ready(flag) {
-  return !flag
+    def test_boolean_operators_lower_from_herbert_owner(self):
+        import dolo.herbert_surface as surface
+
+        self.assertEqual(
+            surface.DOLO_BOOLEAN_OPERATOR_OWNER,
+            "experiments/herbert/boolean_operator_candidate.herb",
+        )
+        lowerings = surface.load_dolo_boolean_operator_lowerings(ROOT)
+        self.assertEqual(lowerings, surface.DOLO_BOOLEAN_OPERATOR_LOWERINGS)
+        self.assertEqual(surface.dolo_boolean_operator_lowering("!"), "not")
+        self.assertEqual(surface.dolo_boolean_operator_lowering("&&"), "and")
+        self.assertEqual(surface.dolo_boolean_operator_lowering("||"), "or")
+        self.assertIsNone(surface.dolo_boolean_operator_lowering("+"))
+
+        source = """fn ready(a, b) {
+  return (!a, a && b, a || b)
 }
 """
-        expected = """func ready(flag):
-  return not flag
+        expected = """func ready(a, b):
+  return (not a, a and b, a or b)
 end
 """
 

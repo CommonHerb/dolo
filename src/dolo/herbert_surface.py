@@ -3,15 +3,54 @@ from __future__ import annotations
 from pathlib import Path
 
 
-DOLO_BOOLEAN_OPERATOR_LOWERINGS = {
-    "!": "not",
-    "&&": "and",
-    "||": "or",
-}
+DOLO_BOOLEAN_OPERATOR_OWNER = "experiments/herbert/boolean_operator_candidate.herb"
 HERBERT_BUILTIN_ARITY_OWNER = "experiments/herbert/builtin_arity_candidate.herb"
 HERBERT_BUILTIN_KIND_OWNER = "experiments/herbert/builtin_kind_candidate.herb"
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _VALID_BUILTIN_KINDS = frozenset({"value", "void"})
+
+
+def load_dolo_boolean_operator_lowerings(root: Path | str | None = None) -> dict[str, str]:
+    repo_root = Path(root) if root is not None else _REPO_ROOT
+    owner_path = repo_root / DOLO_BOOLEAN_OPERATOR_OWNER
+    try:
+        owner_text = owner_path.read_text()
+    except OSError as exc:
+        raise RuntimeError(
+            f"Dolo boolean operator owner is unreadable: {DOLO_BOOLEAN_OPERATOR_OWNER}"
+        ) from exc
+
+    lowerings = _extract_boolean_operator_owner_map(owner_text)
+    if not lowerings:
+        raise RuntimeError(
+            f"Dolo boolean operator owner declares no lowering data: {DOLO_BOOLEAN_OPERATOR_OWNER}"
+        )
+    return lowerings
+
+
+def _extract_boolean_operator_owner_map(text: str) -> dict[str, str]:
+    found: dict[str, str] = {}
+    seen_lookup_names: set[str] = set()
+    lines = text.splitlines()
+    prefix = 'if equal(name, "'
+    suffix = '"):'
+    for index, line in enumerate(lines[:-1]):
+        stripped = line.strip()
+        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
+            continue
+        name = stripped[len(prefix) : -len(suffix)]
+        if name in seen_lookup_names:
+            raise RuntimeError(
+                f"Dolo boolean operator owner repeats lookup name {name!r}"
+            )
+        seen_lookup_names.add(name)
+        return_line = lines[index + 1].strip()
+        if not return_line.startswith("return "):
+            continue
+        value_text = return_line.removeprefix("return ").strip()
+        if len(value_text) >= 2 and value_text[0] == '"' and value_text[-1] == '"':
+            found[name] = value_text[1:-1]
+    return dict(sorted(found.items()))
 
 
 def load_herbert_builtin_arities(root: Path | str | None = None) -> dict[str, int]:
@@ -112,8 +151,10 @@ def _extract_builtin_kind_owner_map(text: str) -> dict[str, str]:
     return dict(sorted(found.items()))
 
 
+_DOLO_BOOLEAN_OPERATOR_LOWERINGS_BY_OWNER = load_dolo_boolean_operator_lowerings()
 _HERBERT_BUILTIN_ARITIES_BY_OWNER = load_herbert_builtin_arities()
 _HERBERT_BUILTIN_KINDS_BY_OWNER = load_herbert_builtin_kinds()
+DOLO_BOOLEAN_OPERATOR_LOWERINGS = dict(_DOLO_BOOLEAN_OPERATOR_LOWERINGS_BY_OWNER)
 HERBERT_BUILTIN_ARITIES = dict(_HERBERT_BUILTIN_ARITIES_BY_OWNER)
 HERBERT_BUILTIN_KINDS = dict(_HERBERT_BUILTIN_KINDS_BY_OWNER)
 HERBERT_VALUE_BUILTINS = frozenset(
@@ -124,6 +165,10 @@ HERBERT_VOID_BUILTINS = frozenset(
 )
 HERBERT_BUILTINS = frozenset(_HERBERT_BUILTIN_KINDS_BY_OWNER)
 HERBERT_TYPE_NAMES = frozenset({"bool", "buffer", "int", "string"})
+
+
+def dolo_boolean_operator_lowering(name: str) -> str | None:
+    return _DOLO_BOOLEAN_OPERATOR_LOWERINGS_BY_OWNER.get(name)
 
 
 def herbert_builtin_arity(name: str) -> int | None:
