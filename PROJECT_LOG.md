@@ -155,3 +155,15 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 3 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Added `let` binding redeclaration validation: `let` now introduces only new
+  names in the current binding context, so attempts to shadow a parameter or
+  earlier local binding fail with a columned diagnostic. Assignment remains the
+  spelling for updating an existing binding.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 31 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 3 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

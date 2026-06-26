@@ -114,9 +114,10 @@ class Parser:
 
     def _parse_stmt(self) -> Stmt:
         if self._match_value("let"):
-            name = self._expect_kind("IDENT").value
+            name_token = self._expect_kind("IDENT")
+            name = name_token.value
             self._expect_value("=")
-            return LetStmt(name, self._expr_until_line())
+            return LetStmt(name, self._expr_until_line(), name_token)
         if self._match_value("return"):
             return ReturnStmt(self._expr_until_line())
         if self._match_value("if"):

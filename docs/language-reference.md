@@ -95,8 +95,10 @@ Implemented statements are:
 - `return expr`
 - `if expr { ... } else { ... }`
 
-`let` introduces a local binding. Assignment updates an existing parameter or
-local binding; it does not introduce a new name.
+`let` introduces a new local binding. A `let` name must not already name a
+parameter or earlier local binding in the current binding context. Assignment
+updates an existing parameter or local binding; it does not introduce a new
+name.
 
 `else` is optional. `elif`, loops, imports, modules, effects, methods, and
 pattern matching are not implemented.
@@ -163,6 +165,7 @@ Diagnostics are intentionally small:
 - unknown record fields report the record name, missing field, and field column
 - record constructor arity mismatches report expected and actual field counts
   at the constructor column
+- `let` binding redeclarations report the repeated binding column
 - assignment to an unbound name reports the assignment target column
 - unknown function call targets report the call target column
 - Dolo function call arity mismatches report expected and actual argument

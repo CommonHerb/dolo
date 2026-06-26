@@ -108,6 +108,19 @@ fn main() {
         ):
             compile_source(source)
 
+    def test_let_binding_must_be_new(self):
+        source = """fn bad(x) {
+  let x = 1
+  return x
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 7: let binding 'x' is already bound",
+        ):
+            compile_source(source)
+
     def test_function_call_target_must_be_known(self):
         source = """fn bad() {
   return missing(1)

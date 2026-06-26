@@ -53,6 +53,10 @@ class Emitter:
         for stmt in statements:
             prefix = "  " * indent
             if isinstance(stmt, LetStmt):
+                if stmt.name in context.bindings and stmt.name_token is not None:
+                    raise DoloSyntaxError(
+                        f"{_location(stmt.name_token)}: let binding {stmt.name!r} is already bound"
+                    )
                 lines.append(f"{prefix}let {stmt.name} = {self._emit_expr(stmt.expr, context)}")
                 context.bindings.add(stmt.name)
                 context.record_types[stmt.name] = self._record_from_constructor(stmt.expr)

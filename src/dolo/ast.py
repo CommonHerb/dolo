@@ -27,6 +27,7 @@ class RecordDecl:
 class LetStmt:
     name: str
     expr: Expr
+    name_token: Token | None = None
 
 
 @dataclass(frozen=True)
