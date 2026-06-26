@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .ast import (
     AssignStmt,
+    DoStmt,
     Expr,
     FunctionDecl,
     IfStmt,
@@ -125,6 +126,8 @@ class Parser:
             name = name_token.value
             self._expect_value("=")
             return LetStmt(name, self._expr_until_line(), name_token)
+        if self._match_value("do"):
+            return DoStmt(self._expr_until_line())
         if self._match_value("return"):
             return ReturnStmt(self._expr_until_line())
         if self._match_value("if"):

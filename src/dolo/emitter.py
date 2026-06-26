@@ -2,7 +2,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .ast import AssignStmt, Expr, FunctionDecl, IfStmt, LetStmt, Program, RecordDecl, ReturnStmt, Stmt
+from .ast import (
+    AssignStmt,
+    DoStmt,
+    Expr,
+    FunctionDecl,
+    IfStmt,
+    LetStmt,
+    Program,
+    RecordDecl,
+    ReturnStmt,
+    Stmt,
+)
 from .tokens import DoloSyntaxError, Token
 
 
@@ -67,6 +78,8 @@ class Emitter:
                     )
                 lines.append(f"{prefix}{stmt.name} = {self._emit_expr(stmt.expr, context)}")
                 context.record_types[stmt.name] = self._record_from_expr(stmt.expr, context)
+            elif isinstance(stmt, DoStmt):
+                lines.append(f"{prefix}do {self._emit_do_expr(stmt.expr, context)}")
             elif isinstance(stmt, ReturnStmt):
                 lines.append(f"{prefix}return {self._emit_expr(stmt.expr, context)}")
             elif isinstance(stmt, IfStmt):
@@ -87,7 +100,13 @@ class Emitter:
             return context.record_types.get(tokens[0].value)
         return None
 
-    def _emit_expr(self, expr: Expr, context: EmitContext) -> str:
+    def _emit_expr(
+        self,
+        expr: Expr,
+        context: EmitContext,
+        *,
+        allowed_void_call_indexes: frozenset[int] = frozenset(),
+    ) -> str:
         parts: list[str] = []
         new_array_type_indexes = self._new_array_type_indexes(expr)
         i = 0
@@ -115,7 +134,10 @@ class Emitter:
                 i += 1
                 continue
             if token.kind == "IDENT" and self._next_value(expr, i, "("):
-                self._validate_call_target(token)
+                self._validate_call_target(
+                    token,
+                    allow_void_call=i in allowed_void_call_indexes,
+                )
                 self._validate_call_arity(token, expr, i)
             elif token.kind == "IDENT":
                 self._validate_variable_reference(token, context)
@@ -123,6 +145,32 @@ class Emitter:
             parts.append(value)
             i += 1
         return _format_expr(parts)
+
+    def _emit_do_expr(self, expr: Expr, context: EmitContext) -> str:
+        call = expr.tokens[0]
+        if call.kind != "IDENT" or not self._next_value(expr, 0, "("):
+            raise DoloSyntaxError(f"{_location(call)}: do statement requires a call")
+        if call.value in self.functions:
+            raise DoloSyntaxError(
+                f"{_location(call)}: Dolo function {call.value!r} cannot be used as a do statement"
+            )
+        if call.value in HERBERT_VALUE_BUILTINS:
+            raise DoloSyntaxError(
+                f"{_location(call)}: do statement requires no-value Herbert built-in, got {call.value!r}"
+            )
+        if call.value not in HERBERT_VOID_BUILTINS:
+            raise DoloSyntaxError(f"{_location(call)}: unknown do statement call {call.value!r}")
+        close_index = self._call_close_index(expr, 0)
+        if close_index != len(expr.tokens) - 1:
+            token = expr.tokens[close_index + 1]
+            raise DoloSyntaxError(
+                f"{_location(token)}: do statement must contain exactly one call"
+            )
+        return self._emit_expr(
+            expr,
+            context,
+            allowed_void_call_indexes=frozenset({0}),
+        )
 
     def _validate_constructor(self, token: Token, expr: Expr, index: int) -> None:
         record = self.records[token.value]
@@ -295,13 +343,15 @@ class Emitter:
             ) from exc
         return f"{target.value}.{index}"
 
-    def _validate_call_target(self, token: Token) -> None:
+    def _validate_call_target(self, token: Token, *, allow_void_call: bool = False) -> None:
         if token.value in self.functions:
             return
         if token.value in HERBERT_VOID_BUILTINS:
+            if allow_void_call:
+                return
             raise DoloSyntaxError(
                 f"{_location(token)}: built-in {token.value} has no value; "
-                "Dolo do statements are not implemented"
+                "use a do statement"
             )
         if token.value in HERBERT_BUILTINS:
             return

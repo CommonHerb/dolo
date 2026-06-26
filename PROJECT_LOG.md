@@ -2,6 +2,33 @@
 
 ## 2026-06-26
 
+- Added a narrow `do` statement for observed no-value Herbert mutation built-ins
+  `add` and `append`. Dolo value expressions still reject those no-value calls,
+  now with a diagnostic that points users to `do`.
+- Added executable example `examples/array_mutation.dolo` with committed Herbert
+  and stdout fixtures, proving typed `new_array(int)`, `do add`, `get`,
+  `count`, `new_buffer`, `do append`, and `freeze` through the executable
+  manifest.
+- Verified the new RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_do_statement_emits_observed_no_value_herbert_builtin_calls tests.test_compiler.CompilerTests.test_do_statement_rejects_value_builtin_calls tests.test_compiler.CompilerTests.test_do_statement_rejects_unknown_calls tests.test_compiler.CompilerTests.test_do_statement_validates_no_value_builtin_arity`
+  (first observed failure: `do` parsed as an assignment target and reported
+  `line 2, column 6: expected '='`; after the parser/emitter change:
+  `Ran 4 tests`, `OK`).
+- Tightened the no-value built-in expression diagnostic after `do` landed:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_herbert_void_builtins_are_not_value_calls`
+  first failed because the message still said `Dolo do statements are not
+  implemented`; after the diagnostic update, the focused no-value and `do`
+  tests ran as `Ran 5 tests`, `OK`.
+- Verified locally with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 68 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the executable Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 8 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Added a narrow typed-array boundary for observed Herbert `new_array(...)`
   calls: the emitter now accepts primitive, nested `array(T)`, and tuple-shaped
   Herbert type expressions as type arguments instead of misreporting type names

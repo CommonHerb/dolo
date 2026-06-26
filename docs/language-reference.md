@@ -95,8 +95,7 @@ validates the observed Herbert type-expression argument: `int`, `bool`,
 `(int, bool)`.
 
 Observed Herbert no-value mutation built-ins such as `add` and `append` are not
-valid Dolo expression calls. They remain deferred until Dolo has an explicit
-`do` statement.
+valid Dolo expression calls. Use a `do` statement for those calls.
 
 ## Statements
 
@@ -104,6 +103,7 @@ Implemented statements are:
 
 - `let name = expr`
 - `name = expr`
+- `do call(args...)`
 - `return expr`
 - `if expr { ... } else { ... }`
 
@@ -112,7 +112,10 @@ parameter or earlier local binding in the current binding context. Assignment
 updates an existing parameter or local binding; it does not introduce a new
 name.
 
-`else` is optional. `do`, `else if`, `elif`, loops, imports, modules, effects,
+`do` is currently limited to observed no-value Herbert mutation built-ins such
+as `add` and `append`. The call must be the whole statement.
+
+`else` is optional. `else if`, `elif`, loops, imports, modules, effects,
 methods, and pattern matching are not implemented.
 
 ## Expressions
@@ -194,6 +197,7 @@ Diagnostics are intentionally small:
 - unknown `new_array(...)` Herbert type arguments report the type token column
 - observed Herbert no-value mutation built-ins report the call target column
   when used as Dolo expression calls
+- invalid `do` statements report the call target or first non-call token column
 - unknown variable references report the variable column
 - non-literal keywords in expressions report the keyword column; `true` and
   `false` are the only keyword literals today

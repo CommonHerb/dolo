@@ -305,14 +305,14 @@ end
   return add(a, 1)
 }
 """,
-                r"line 2, column 10: built-in add has no value; Dolo do statements are not implemented",
+                r"line 2, column 10: built-in add has no value; use a do statement",
             ),
             (
                 """fn bad(b) {
   return append(b, 'h')
 }
 """,
-                r"line 2, column 10: built-in append has no value; Dolo do statements are not implemented",
+                r"line 2, column 10: built-in append has no value; use a do statement",
             ),
         )
 
@@ -340,6 +340,81 @@ end
 """
 
         self.assertEqual(compile_source(source), expected)
+
+    def test_do_statement_emits_observed_no_value_herbert_builtin_calls(self):
+        source = """fn mutate(items, label) {
+  do add(items, 4)
+  do append(label, 'x')
+  return (count(items), freeze(label))
+}
+"""
+        expected = """func mutate(items, label):
+  do add(items, 4)
+  do append(label, 'x')
+  return (count(items), freeze(label))
+end
+"""
+
+        self.assertEqual(compile_source(source), expected)
+
+    def test_do_statement_rejects_value_builtin_calls(self):
+        source = """fn bad() {
+  do length("abc")
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 6: do statement requires no-value Herbert built-in, got 'length'",
+        ):
+            compile_source(source)
+
+    def test_do_statement_rejects_unknown_calls(self):
+        source = """fn bad() {
+  do missing(1)
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 6: unknown do statement call 'missing'",
+        ):
+            compile_source(source)
+
+    def test_do_statement_requires_one_whole_call(self):
+        cases = (
+            (
+                """fn bad(items) {
+  do items
+}
+""",
+                r"line 2, column 6: do statement requires a call",
+            ),
+            (
+                """fn bad(items) {
+  do add(items, 1) + 2
+}
+""",
+                r"line 2, column 20: do statement must contain exactly one call",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
+    def test_do_statement_validates_no_value_builtin_arity(self):
+        source = """fn bad(items) {
+  do add(items)
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 6: built-in add expects 2 arguments, got 1",
+        ):
+            compile_source(source)
 
     def test_record_constructor_and_if_else_lower_to_herbert(self):
         source = """record Citizen { name, hunger }

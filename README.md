@@ -16,7 +16,7 @@ current computers, but they do not define Dolo's semantics or authority.
 The first slice is deliberately small:
 
 - a tiny `.dolo` source language for functions, values, calls, records, simple
-  control flow, strings, and a narrow typed-array boundary
+  control flow, strings, and narrow typed-array and buffer mutation boundaries
 - a bootstrap compiler that emits a documented Herbert target subset
 - examples that show why Dolo is nicer for application code than raw Herbert
 - tests that prove emitted Herbert text for the current subset

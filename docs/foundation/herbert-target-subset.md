@@ -18,6 +18,7 @@ Dolo v0 may emit Herbert source using:
 - `func name(params): ... end`
 - `let name = expr`
 - `name = expr`
+- `do name(args)`
 - `return expr`
 - `if` / `else` / `end`
 - integer, boolean, string, and character literals
@@ -38,8 +39,8 @@ arity boundary only; Dolo does not yet claim a full type system for those
 built-ins.
 
 Observed no-value Herbert mutation built-ins such as `add` and `append` require
-Herbert `do` statements. Dolo does not emit them yet, and the bootstrap compiler
-rejects them in Dolo expressions.
+Herbert `do` statements. Dolo emits them only through explicit `do` statements
+and rejects them in value expressions.
 
 The initial compiler should generate conservative, readable Herbert text. It is
 better to emit boring Herbert that can be inspected than clever Herbert that
@@ -70,10 +71,10 @@ This is an honest v0 representation, not a permanent ABI.
 
 ## Arrays And Lists
 
-Dolo can currently pass observed Herbert type expressions to `new_array(...)`
-and can use value-level array readers such as `count(...)` and `get(...)`.
-Array mutation, list literals, and typed list builders are deferred until Dolo
-has an honest statement form for no-value built-ins such as `add`.
+Dolo can currently pass observed Herbert type expressions to `new_array(...)`,
+use value-level array readers such as `count(...)` and `get(...)`, and mutate
+arrays through `do add(...)`. List literals and typed list builders are still
+deferred rather than faked.
 
 ## Out Of Scope
 

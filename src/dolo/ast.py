@@ -38,6 +38,11 @@ class AssignStmt:
 
 
 @dataclass(frozen=True)
+class DoStmt:
+    expr: Expr
+
+
+@dataclass(frozen=True)
 class ReturnStmt:
     expr: Expr
 
@@ -49,7 +54,7 @@ class IfStmt:
     else_body: tuple[Stmt, ...] = ()
 
 
-Stmt = LetStmt | AssignStmt | ReturnStmt | IfStmt
+Stmt = LetStmt | AssignStmt | DoStmt | ReturnStmt | IfStmt
 
 
 @dataclass(frozen=True)

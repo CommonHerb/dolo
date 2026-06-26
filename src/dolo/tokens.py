@@ -15,7 +15,7 @@ class DoloSyntaxError(ValueError):
     pass
 
 
-KEYWORDS = {"record", "fn", "let", "return", "if", "else", "true", "false"}
+KEYWORDS = {"record", "fn", "let", "do", "return", "if", "else", "true", "false"}
 TWO_CHAR_OPS = {"==", "!=", "<=", ">=", "&&", "||"}
 ONE_CHAR = set("{}(),.:+-*/%<>=!")
 

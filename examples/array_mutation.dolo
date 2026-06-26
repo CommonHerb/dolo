@@ -1,0 +1,13 @@
+fn filled_summary() {
+  let ints = new_array(int)
+  do add(ints, 4)
+  do add(ints, 5)
+  let label = new_buffer()
+  do append(label, 'o')
+  do append(label, 'k')
+  return (count(ints), get(ints, 0) + get(ints, 1), freeze(label))
+}
+
+fn main() {
+  return filled_summary()
+}

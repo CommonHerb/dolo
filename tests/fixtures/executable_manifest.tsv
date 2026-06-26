@@ -1,4 +1,5 @@
 # source	herbert	stdout
+examples/array_mutation.dolo	tests/fixtures/array_mutation.herb	tests/fixtures/array_mutation.stdout
 examples/array_seed.dolo	tests/fixtures/array_seed.herb	tests/fixtures/array_seed.stdout
 examples/boolean_gate.dolo	tests/fixtures/boolean_gate.herb	tests/fixtures/boolean_gate.stdout
 examples/citizen.dolo	tests/fixtures/citizen.herb	tests/fixtures/citizen.stdout
