@@ -240,6 +240,16 @@ end
             expected = (ROOT / "tests" / "fixtures" / f"{stem}.herb").read_text()
             self.assertEqual(compile_source(source), expected)
 
+    def test_text_builtin_example_compiles_to_committed_herbert(self):
+        source_path = ROOT / "examples" / "text_probe.dolo"
+        expected_path = ROOT / "tests" / "fixtures" / "text_probe.herb"
+        self.assertTrue(source_path.is_file(), "text builtin example is required")
+        self.assertTrue(expected_path.is_file(), "text builtin Herbert golden is required")
+        source = source_path.read_text()
+        expected = expected_path.read_text()
+
+        self.assertEqual(compile_source(source), expected)
+
     def test_executable_manifest_examples_have_main_and_goldens(self):
         manifest = ROOT / "tests" / "fixtures" / "executable_manifest.tsv"
         self.assertTrue(manifest.is_file(), "executable manifest is required")

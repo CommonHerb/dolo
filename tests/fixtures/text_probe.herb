@@ -1,0 +1,10 @@
+func text_probe(label):
+  let first_is_h = index(label, 0) == 104
+  let last_is_b = index(label, length(label) - 1) == 98
+  let same_label = equal(label, "herb")
+  return (length(label), first_is_h, last_is_b, same_label)
+end
+
+func main():
+  return text_probe("herb")
+end
