@@ -1,0 +1,6 @@
+func main():
+  let a = new_array(string)
+  do add(a, "alpha")
+  do add(a, "beta")
+  return (get(a, count(a)), (length(a)), count(a))
+end

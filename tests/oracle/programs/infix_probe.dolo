@@ -1,0 +1,7 @@
+fn main() {
+  let p = 1
+  let q = 0
+  let r = p == !q
+  let s = p + q < !r
+  return (r, s)
+}

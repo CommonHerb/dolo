@@ -1,0 +1,7 @@
+func main():
+  let p = 1
+  let q = 0
+  let r = p == not q
+  let s = p + q < not r
+  return (r, s)
+end

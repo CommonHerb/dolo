@@ -87,18 +87,49 @@ POISON = {
         "    if hasattr(_m,'HERBERT_TYPE_NAMES'):\n"
         "        _m.HERBERT_TYPE_NAMES=frozenset()\n"
     ),
+    # empty the lexer's two-char-op set: `1 == 2` then lexes as `1,=,=,2` and the emitter rejects the bare `=`.
+    "two_char_ops": (
+        "import sys as _s\n"
+        "for _m in list(_s.modules.values()):\n"
+        "    if not getattr(_m,'__name__','').startswith('dolo'): continue\n"
+        "    if hasattr(_m,'TWO_CHAR_OPS'):\n"
+        "        _m.TWO_CHAR_OPS=set()\n"
+    ),
+    # swap the parser's closer->opener mapping: a `(...)` expression then mismatches -> rejected.
+    "closing_delimiters": (
+        "import sys as _s\n"
+        "for _m in list(_s.modules.values()):\n"
+        "    if not getattr(_m,'__name__','').startswith('dolo'): continue\n"
+        "    _c=getattr(_m,'CLOSING_DELIMITERS',None)\n"
+        "    if isinstance(_c,dict) and ')' in _c and '}' in _c:\n"
+        "        _m.CLOSING_DELIMITERS={')':_c['}'],'}':_c[')']}\n"
+    ),
+    # empty the emitter's infix-operator set: an infix op in the probe is then unrecognized -> error.
+    "infix_operators": (
+        "import sys as _s\n"
+        "for _m in list(_s.modules.values()):\n"
+        "    if not getattr(_m,'__name__','').startswith('dolo'): continue\n"
+        "    if hasattr(_m,'INFIX_OPERATORS'):\n"
+        "        _m.INFIX_OPERATORS=frozenset()\n"
+    ),
 }
 PROBE = {
     "builtin_kind":     ORACLE / "programs" / "kind_probe.dolo",
     "builtin_arity":    ORACLE / "programs" / "arity_probe.dolo",
     "boolean_operator": ORACLE / "programs" / "boolean_probe.dolo",
     "type_name":        ORACLE / "programs" / "type_probe.dolo",
+    "two_char_ops":      ORACLE / "programs" / "two_char_probe.dolo",
+    "closing_delimiters":ORACLE / "programs" / "closing_delim_probe.dolo",
+    "infix_operators":   ORACLE / "programs" / "infix_probe.dolo",
 }
 GOLDEN = {
     "builtin_kind":     ORACLE / "golden" / "kind_probe.herb",
     "builtin_arity":    ORACLE / "golden" / "arity_probe.herb",
     "boolean_operator": ORACLE / "golden" / "boolean_probe.herb",
     "type_name":        ORACLE / "golden" / "type_probe.herb",
+    "two_char_ops":      ORACLE / "golden" / "two_char_probe.herb",
+    "closing_delimiters":ORACLE / "golden" / "closing_delim_probe.herb",
+    "infix_operators":   ORACLE / "golden" / "infix_probe.herb",
 }
 # CHECK-3 (semantic perturbation): once an authority is wired, perturbing the owner's CONTENT must
 # change the emitted output -- proving the owner's content DRIVES the decision (not just load-bearing).
@@ -108,6 +139,9 @@ PERTURB = {
     "builtin_arity":    ("experiments/herbert/builtin_arity_candidate.herb", "count",     "return 2"),
     "boolean_operator": ("experiments/herbert/boolean_operator_candidate.herb", "&&",     'return "or"'),
     "type_name":        ("experiments/herbert/type_name_candidate.herb",     "string",    "return 0"),
+    "two_char_ops":      ("experiments/herbert/two_char_ops_candidate.herb",  "==",        "return 0"),
+    "closing_delimiters":("experiments/herbert/closing_delimiters_candidate.herb", ")",    'return "{"'),
+    "infix_operators":   ("experiments/herbert/infix_operators_candidate.herb", "==",      "return 0"),
 }
 
 

@@ -8,6 +8,7 @@ Format: `YYYY-MM-DD  <GREEN|RED|PROPOSE|NEEDS-SYNC>  <commit-or-—>  <one line>
 
 ---
 
+2026-06-26  ARMED  —  Orchestrator armed BATCH 2: two_char_ops, closing_delimiters, infix_operators (3 held-back referees, each bite-verified). Meter 2->5 (3 new Python authorities registered). NEXT.md queues them for a full-auto run. (lexer_keywords + unsupported_punctuation deferred -- contrived/reject-probe, need framework support; record_field_index + array_mutation are emitter-internal, need referees.)
 2026-06-26  GREEN  7aaeaec  Orchestrator ACCEPTED + merged the full-auto queue (builtin_arity + boolean_operator + type_name) via PR#6 -> meter 5->2 (4 authorities herbert-owned, all oracles WIRED in CI). Verified: no held-back-oracle edits, no test masking (5 removed = 5 renamed), 3 Python literals deleted, owners load-bearing. NOTE: the stacked PRs #3/#4/#5 had base=prior-branch (not main) so merging #5 didn't reach main; consolidated all 3 into PR#6 (base=main). Next 2 authorities (record_field_index/array_mutation) await orchestrator-authored oracles.
 2026-06-26  SLICE  —  FULL-AUTO queue complete locally: builtin_arity, boolean_operator, and type_name are wired; meter reads 2 with all three new wiring oracles WIRED.
 2026-06-26  SLICE  —  type_name is wired to experiments/herbert/type_name_candidate.herb; emitter new_array type-name validation consults the Herbert-family owner-derived set instead of the Python type-name literal.

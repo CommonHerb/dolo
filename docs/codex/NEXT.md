@@ -1,23 +1,30 @@
-# NEXT — orchestrator-authored task for Codex
+# NEXT — orchestrator-authored task queue for Codex
 
-> **Phase: QUEUE COMPLETE.** The 3-slice queue (builtin_arity, boolean_operator, type_name) is
-> LANDED. The sovereignty meter is at **2** (4 of 6 authorities herbert-owned, all oracle-verified
-> in CI). There is **no armed task right now.** Read `AGENTS.md`. Do not start a slice until armed.
+> **Phase: FULL-AUTO QUEUE (batch 2).** Three armed slices below. Work them **in order, one PR per slice,
+> WITHOUT stopping** for approval between them — the CI **sovereignty-gate** verifies each (a green PR is a
+> genuinely-wired slice). Read `AGENTS.md`. Do NOT edit `tests/oracle/*` or `HERBERT.lock`. Mark each PR
+> **ready** (not draft) when its checks pass, then immediately start the next.
 
-## Done — the full-auto queue
-- **builtin_kind, builtin_arity, boolean_operator, type_name** — each wired to a Herbert-family
-  `.herb` owner, its Python literal deleted, its held-back oracle WIRED (CI sovereignty-gate green),
-  orchestrator-reviewed (no oracle edits, no test masking). Merged.
+## How each slice works (the same shape as the 4 already landed)
+1. Author the Herbert-family owner `.herb` under `experiments/herbert/` — a `func <name>(x):` **if/equal
+   chain** returning the decision value (membership `1`/`0`, or the mapped string), with a sentinel fallback.
+2. Make the relevant module **DERIVE** the decision from that owner (parse it, like the landed slices do),
+   and **DELETE** the Python literal so it is no longer authoritative.
+3. Flip the row in `docs/sovereignty/ledger.tsv` to `status=herbert` and set `herbert_owner` to the `.herb` path.
+4. Accepted iff: `bash scripts/sovereignty_meter.sh` drops by one (exit 0); `python3 tests/oracle/oracle_wiring.py <id>`
+   exits 0 (WIRED = poison no-op + load-bearing owner + content-driving perturbation); truth loop green; CI green.
 
-## Remaining authorities — NOT yet armed
-- **`record_field_index`, `array_mutation`** — these are EMITTER-INTERNAL lowerings (not simple
-  `herbert_surface` tables), so their held-back oracles are harder to author and the orchestrator
-  owes them before either can be armed. **Hold** — a worker cannot grind an un-graded authority.
+## The queue (meter is at 5; each slice lowers it)
+1. **`two_char_ops`** → `experiments/herbert/two_char_ops_candidate.herb`. The LEXER (`tokens.py`) must derive
+   its greedy two-char operator set (`== != <= >= && ||`) from the owner instead of the Python `TWO_CHAR_OPS`.
+2. **`closing_delimiters`** → `experiments/herbert/closing_delimiters_candidate.herb`. The PARSER (`parser.py`)
+   must derive its closer→opener bracket-matching map from the owner (each entry returns the required opener string).
+3. **`infix_operators`** → `experiments/herbert/infix_operators_candidate.herb`. The EMITTER must derive its
+   recognized infix-operator set from the owner instead of the Python `INFIX_OPERATORS`.
 
-## Allowed now (optional, read-only)
-- You may READ and PROPOSE (in a comment, not a commit) how you would wire `record_field_index` or
-  `array_mutation` the same way. Commit nothing until this file arms one.
+When the queue is empty, **STOP and log it** in `docs/codex/LOG.md`. (Still Python but NOT yet armed:
+`record_field_index` + `array_mutation` are emitter-internal logic, and `lexer_keywords` +
+`unsupported_punctuation` need oracle-framework support — the orchestrator owes those referees.)
 
-> **Residual carried across all slices (a future slice, not now):** owners are Python-PARSED, not
-> yet SEED-EXECUTED. Moving the decision COMPUTATION through the pinned seed is the deeper sovereignty
-> step; the orchestrator will scope it.
+> **Residual carried across all slices (future, orchestrator-scoped):** owners are Python-PARSED, not yet
+> SEED-EXECUTED. Keep the if/equal-chain `.herb` format so that deeper step stays reachable.
