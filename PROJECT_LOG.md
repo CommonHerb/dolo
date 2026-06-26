@@ -401,10 +401,7 @@
   `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
   (`Ran 51 tests`, `OK`), plus
   `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
-- Verified the executable Herbert truth loop through the local stopped-after-use
-  `herbert-x86` Colima profile:
-  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
-  (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
-  candidate(s)`). A first retry attempt failed before Dolo ran because a
-  half-started Colima guest lacked the `/Users/ben` host mount; a clean stopped
-  start fixed the mount and passed.
+- Native truth-loop re-verification for this target-constraint slice remains
+  unresolved: the `herbert-x86` Colima host agent stopped during startup or
+  mid-loop (`host agent process has exited: signal: killed`; one retry dropped
+  SSH after 3 executable examples).
