@@ -55,3 +55,11 @@
 - Verified locally with:
   `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
   (`Ran 14 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 2 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).
+- Pushed `codex/dolo-stewardship-20260625` to origin at
+  `c392db6958ab6fd43148c02ff43cac962808a125` and observed GitHub Actions
+  `check` success for run `28212891134`.
