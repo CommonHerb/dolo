@@ -132,7 +132,9 @@ inside Dolo expressions.
 `do` is currently limited to observed no-value Herbert mutation built-ins such
 as `add` and `append`. The call must be the whole statement.
 
-`else` is optional. `else if`, `elif`, loops, imports, modules, effects,
+`else` is optional. Nested `if` statements inside an `else` block are
+implemented; this is the supported spelling when a program needs an
+`else if`-shaped branch. `else if`, `elif`, loops, imports, modules, effects,
 methods, and pattern matching are not implemented.
 
 ## Expressions

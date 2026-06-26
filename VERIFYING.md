@@ -18,7 +18,8 @@ This proves:
 - record type knowledge propagates through simple identifier bindings and
   record-valued assignments
 - `if` / `else`, `let`, assignment, `return`, calls, strings, booleans, and
-  arithmetic-like expressions emit readable Herbert source
+  arithmetic-like expressions emit readable Herbert source, including nested
+  `if` statements inside `else` blocks
 - `do` statements emit observed no-value Herbert mutation built-ins for the
   current `add` and `append` boundary
 - typed `new_array(...)` expressions require exactly one observed Herbert

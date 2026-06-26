@@ -1,0 +1,18 @@
+func status(o, stock):
+  if o.2:
+    return "rush"
+  else:
+    if stock < o.1:
+      return "wait"
+    else:
+      return "serve"
+    end
+  end
+end
+
+func main():
+  let low = ("seed", 5, false)
+  let rush = ("meal", 2, true)
+  let ready = ("tea", 1, false)
+  return (status(low, 3), status(rush, 0), status(ready, 3))
+end

@@ -1,0 +1,20 @@
+record Order { item, quantity, urgent }
+
+fn status(o: Order, stock) {
+  if o.urgent {
+    return "rush"
+  } else {
+    if stock < o.quantity {
+      return "wait"
+    } else {
+      return "serve"
+    }
+  }
+}
+
+fn main() {
+  let low = Order("seed", 5, false)
+  let rush = Order("meal", 2, true)
+  let ready = Order("tea", 1, false)
+  return (status(low, 3), status(rush, 0), status(ready, 3))
+}

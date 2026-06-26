@@ -2,6 +2,27 @@
 
 ## 2026-06-26
 
+- Added executable example `examples/order_triage.dolo` with committed
+  Herbert/stdout fixtures. The example proves the documented replacement for
+  unsupported `else if`: a nested `if` inside an `else` block, combined with
+  record field access and Dolo function calls, now runs through the executable
+  manifest instead of living only as a parser diagnostic hint.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` (first observed
+  failure: `source missing: examples/order_triage.dolo`; after adding the
+  source and fixtures: exit `0`), plus
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_examples_compile_to_committed_herbert tests.test_compiler.CompilerTests.test_executable_manifest_examples_have_main_and_goldens tests.test_compiler.CompilerTests.test_manifest_validator_accepts_repository_manifests`
+  (`Ran 3 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 101 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 12 Dolo executable example(s)`, `PASS: 3 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Hardened parser diagnostics for malformed `let` statements so `let = value`
   reports the binding-name boundary instead of the generic identifier parser
   fallback.
