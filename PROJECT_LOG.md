@@ -2,6 +2,29 @@
 
 ## 2026-06-26
 
+- Added expression adjacency validation so Dolo rejects adjacent value forms
+  that would otherwise emit invalid Herbert text: `return 1 2`,
+  `return flag true`, `return (1) 2`, `return 1(2)`, and
+  `return new_buffer() "x"`.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_adjacent_expression_values_require_an_operator`
+  (first observed failures: five adjacent-value forms did not raise
+  `DoloSyntaxError`; after the emitter change: `Ran 1 test`, `OK`).
+- Verified neighboring expression behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_zero_argument_calls_remain_valid_expressions tests.test_compiler.CompilerTests.test_observed_herbert_builtin_call_target_is_allowed tests.test_compiler.CompilerTests.test_record_field_access_lowers_to_tuple_index tests.test_compiler.CompilerTests.test_record_constructor_and_if_else_lower_to_herbert tests.test_compiler.CompilerTests.test_prefix_not_is_allowed_in_expressions tests.test_compiler.CompilerTests.test_prefix_not_requires_an_operand tests.test_compiler.CompilerTests.test_new_array_accepts_observed_herbert_type_expressions tests.test_compiler.CompilerTests.test_expression_formatting_keeps_space_before_group_after_comma`
+  (`Ran 8 tests`, `OK`).
+- Probed valid tuple and prefix forms after the change: `(x, 2)` still emits as
+  a tuple, `!(flag)` emits `not(flag)`, and `!!flag` emits `not not flag`.
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 86 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Tightened prefix `!` validation so it cannot emit bare or postfix Herbert
   `not` forms. `return !`, `return (!)`, `return (!, flag)`, and
   `return flag !` now fail before emission, while valid prefix use still emits

@@ -502,6 +502,50 @@ end
                 with self.assertRaisesRegex(DoloSyntaxError, expected):
                     compile_source(source)
 
+    def test_adjacent_expression_values_require_an_operator(self):
+        cases = (
+            (
+                """fn bad() {
+  return 1 2
+}
+""",
+                r"line 2, column 12: expected operator before '2'",
+            ),
+            (
+                """fn bad(flag) {
+  return flag true
+}
+""",
+                r"line 2, column 15: expected operator before 'true'",
+            ),
+            (
+                """fn bad() {
+  return (1) 2
+}
+""",
+                r"line 2, column 14: expected operator before '2'",
+            ),
+            (
+                """fn bad() {
+  return 1(2)
+}
+""",
+                r"line 2, column 11: expected operator before '\('",
+            ),
+            (
+                """fn bad() {
+  return new_buffer() "x"
+}
+""",
+                r"line 2, column 23: expected operator before '\"x\"'",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_parenthesized_expressions_must_not_be_empty(self):
         source = """fn bad() {
   return ()

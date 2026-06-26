@@ -408,6 +408,20 @@ class Emitter:
             previous = expr.tokens[i - 1] if i > 0 else None
             next_token = expr.tokens[i + 1] if i + 1 < len(expr.tokens) else None
             if (
+                previous is not None
+                and _is_expression_value_end(previous)
+                and _is_expression_value_start(token)
+                and not (
+                    previous.kind == "IDENT"
+                    and token.value in {"(", "."}
+                )
+                and previous.value not in {"(", ",", ".", "!"}
+                and previous.value not in INFIX_OPERATORS
+            ):
+                raise DoloSyntaxError(
+                    f"{_location(token)}: expected operator before {token.value!r}"
+                )
+            if (
                 token.value == "("
                 and next_token is not None
                 and next_token.value == ")"
@@ -516,6 +530,22 @@ def _operator_value(value: str) -> str:
     if value == "!":
         return "not"
     return value
+
+
+def _is_expression_value_start(token: Token) -> bool:
+    if token.kind in {"IDENT", "NUMBER", "STRING", "CHAR"}:
+        return True
+    if token.kind == "KEYWORD" and token.value in EXPRESSION_KEYWORDS:
+        return True
+    return token.value == "("
+
+
+def _is_expression_value_end(token: Token) -> bool:
+    if token.kind in {"IDENT", "NUMBER", "STRING", "CHAR"}:
+        return True
+    if token.kind == "KEYWORD" and token.value in EXPRESSION_KEYWORDS:
+        return True
+    return token.value == ")"
 
 
 def _location(token: Token) -> str:

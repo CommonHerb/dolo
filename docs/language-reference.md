@@ -166,6 +166,10 @@ Parenthesized expressions must contain an expression. Tuple and call commas
 must have an expression on both sides; trailing commas and empty tuple fields
 are not implemented.
 
+Adjacent expression values require an operator or comma between them. Forms such
+as `1 2`, `flag true`, `(1) 2`, `1(2)`, and `new_buffer() "x"` are not
+implemented.
+
 Binary operators must have operands on both sides. Prefix `!` is the only
 implemented unary operator today; it must have an operand and cannot follow an
 expression.
@@ -224,6 +228,7 @@ Diagnostics are intentionally small:
 - `let` binding redeclarations report the repeated binding column
 - assignment to an unbound name reports the assignment target column
 - assignment operators inside expressions report the operator column
+- adjacent expression values without an operator report the second value column
 - binary operators without a left or right operand report the operator column
 - malformed prefix `!` expressions report the operator column
 - empty parenthesized expressions report the opening parenthesis column
