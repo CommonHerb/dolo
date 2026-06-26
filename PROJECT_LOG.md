@@ -2,6 +2,29 @@
 
 ## 2026-06-26
 
+- Added dot-shape validation for record field access. Dolo now rejects malformed
+  forms such as `x.`, `.x`, `x.(1)`, and constructor-result field access before
+  emitting Herbert or drifting into an unrelated unknown-variable diagnostic.
+  The implemented field-access surface remains simple `identifier.field`
+  lowering.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_field_access_requires_identifier_target_and_field`
+  (first observed failures: three malformed dot forms did not raise
+  `DoloSyntaxError`, and constructor-result field access reported unknown
+  variable `left`; after the emitter change: `Ran 1 test`, `OK`).
+- Verified neighboring field-access behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_field_access_requires_identifier_target_and_field tests.test_compiler.CompilerTests.test_record_field_access_lowers_to_tuple_index tests.test_compiler.CompilerTests.test_record_type_propagates_through_identifier_binding tests.test_compiler.CompilerTests.test_record_constructor_and_if_else_lower_to_herbert`
+  (`Ran 4 tests`, `OK`).
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 84 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Rejected zero-field record declarations before they can lower to empty
   Herbert tuple-shaped values. `record Empty { }` now fails at the record name
   instead of allowing `Empty()` to emit `()`.

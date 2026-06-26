@@ -47,6 +47,45 @@ end
 
         self.assertEqual(emitted, expected)
 
+    def test_field_access_requires_identifier_target_and_field(self):
+        cases = (
+            (
+                """fn bad(x) {
+  return x.
+}
+""",
+                r"line 2, column 11: field access requires a field name",
+            ),
+            (
+                """fn bad(x) {
+  return .x
+}
+""",
+                r"line 2, column 10: field access requires an identifier target",
+            ),
+            (
+                """fn bad(x) {
+  return x.(1)
+}
+""",
+                r"line 2, column 11: field access requires a field name",
+            ),
+            (
+                """record Pair { left, right }
+
+fn bad() {
+  return Pair(1, 2).left
+}
+""",
+                r"line 4, column 20: field access requires an identifier target",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_record_declaration_rejects_duplicate_field_names(self):
         source = """record Citizen { name, hunger, name }
 

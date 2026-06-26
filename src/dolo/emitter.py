@@ -425,6 +425,15 @@ class Emitter:
                     raise DoloSyntaxError(
                         f"{_location(token)}: comma requires a following expression"
                     )
+            if token.value == ".":
+                if previous is None or previous.kind != "IDENT":
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: field access requires an identifier target"
+                    )
+                if next_token is None or next_token.kind != "IDENT":
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: field access requires a field name"
+                    )
 
     @staticmethod
     def _validate_variable_reference(token: Token, context: EmitContext) -> None:

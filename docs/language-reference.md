@@ -159,6 +159,9 @@ Implemented expression behavior includes:
 Variable references must name a parameter or a local binding introduced earlier
 with `let`.
 
+Field access is currently limited to a simple identifier target and identifier
+field name, such as `citizen.hunger`.
+
 Parenthesized expressions must contain an expression. Tuple and call commas
 must have an expression on both sides; trailing commas and empty tuple fields
 are not implemented.
@@ -212,6 +215,7 @@ Diagnostics are intentionally small:
 - `else if` reports the `if` column and `elif` reports its own column with an
   unsupported-form diagnostic
 - `else` without a matching `if` reports the `else` column
+- malformed field access reports the dot column
 - unresolved record field access reports the target, field, and target column
 - unknown record fields report the record name, missing field, and field column
 - record constructor arity mismatches report expected and actual field counts
