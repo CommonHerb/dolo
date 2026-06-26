@@ -33,6 +33,9 @@ candidates. Today they mirror narrow Python bootstrap compiler decisions:
   operator lowering table used by the emitter. Local manifest validation
   compares this candidate against Python-owned
   `DOLO_BOOLEAN_OPERATOR_LOWERINGS`.
+- `type_name_candidate.herb` mirrors the observed Herbert type-name set used
+  by typed `new_array(...)` validation. Local manifest validation compares
+  this candidate against Python-owned `HERBERT_TYPE_NAMES`.
 
 They run through pinned Herbert in CI. They are not yet wired into the Dolo
 compiler, so they are repayment candidates, not paid debt.

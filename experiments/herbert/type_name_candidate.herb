@@ -1,0 +1,30 @@
+func type_name(name):
+    if equal(name, "bool"):
+        return 1
+    else:
+        if equal(name, "buffer"):
+            return 1
+        else:
+            if equal(name, "int"):
+                return 1
+            else:
+                if equal(name, "string"):
+                    return 1
+                else:
+                    return 0
+                end
+            end
+        end
+    end
+end
+
+func main():
+    return (
+        "type-name-candidate",
+        type_name("bool"),
+        type_name("buffer"),
+        type_name("int"),
+        type_name("string"),
+        type_name("missing")
+    )
+end

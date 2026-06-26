@@ -2,6 +2,32 @@
 
 ## 2026-06-26
 
+- Added Herbert-family migration candidate 0005,
+  `experiments/herbert/type_name_candidate.herb`, plus its stdout golden and
+  candidate note. It mirrors the Python-owned `HERBERT_TYPE_NAMES` set for the
+  observed type names accepted by typed `new_array(...)` validation; local
+  manifest validation now compares that candidate against the bootstrap set
+  before native execution.
+- Strengthened the migration-candidate inventory test so candidates 0004 and
+  0005 must stay explicitly manifested alongside the earlier current
+  candidates.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_requires_type_name_candidate_to_mirror_python_table`
+  (first observed failure: `ManifestError not raised`; after the validator
+  change: `Ran 1 test`, `OK`).
+- Verified neighboring migration-candidate behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_requires_type_name_candidate_to_mirror_python_table tests.test_compiler.CompilerTests.test_manifest_validator_requires_boolean_operator_candidate_to_mirror_python_table tests.test_compiler.CompilerTests.test_manifest_validator_requires_builtin_arity_candidate_to_mirror_python_table tests.test_compiler.CompilerTests.test_manifest_validator_rejects_duplicate_record_field_candidate_lookup_names tests.test_compiler.CompilerTests.test_herbert_migration_candidates_are_manifested tests.test_compiler.CompilerTests.test_manifest_validator_accepts_repository_manifests`
+  (`Ran 6 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 110 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 13 Dolo executable example(s)`, `PASS: 5 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Added Herbert-family migration candidate 0004,
   `experiments/herbert/boolean_operator_candidate.herb`, plus its stdout
   golden and candidate note. It mirrors the Python-owned

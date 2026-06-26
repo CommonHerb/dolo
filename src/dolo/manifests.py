@@ -6,7 +6,11 @@ import sys
 from pathlib import Path
 
 from .compiler import compile_source
-from .herbert_surface import DOLO_BOOLEAN_OPERATOR_LOWERINGS, HERBERT_BUILTIN_ARITIES
+from .herbert_surface import (
+    DOLO_BOOLEAN_OPERATOR_LOWERINGS,
+    HERBERT_BUILTIN_ARITIES,
+    HERBERT_TYPE_NAMES,
+)
 from .parser import parse_source
 from .tokens import DoloSyntaxError
 
@@ -22,6 +26,7 @@ BUILTIN_ARITY_CANDIDATE = "experiments/herbert/builtin_arity_candidate.herb"
 RECORD_FIELD_INDEX_CANDIDATE = "experiments/herbert/record_field_index_candidate.herb"
 RECORD_FIELD_INDEX_EXAMPLE = "examples/citizen.dolo"
 RECORD_FIELD_INDEX_RECORD = "Citizen"
+TYPE_NAME_CANDIDATE = "experiments/herbert/type_name_candidate.herb"
 ARRAY_RETURN_CALL_PATTERN = re.compile(r"\b(?:count|get|freeze)\([^)]*\)")
 
 
@@ -162,6 +167,7 @@ def validate_repository_manifests(root: Path) -> None:
         _require_boolean_operator_candidate_matches_python_table(root, source_rel)
         _require_builtin_arity_candidate_matches_python_table(root, source_rel)
         _require_record_field_index_candidate_matches_dolo_record(root, source_rel)
+        _require_type_name_candidate_matches_python_table(root, source_rel)
     _require_migration_candidate_notes_are_manifested(
         root,
         set(migration_rows),
@@ -560,6 +566,53 @@ def _extract_boolean_operator_candidate_map(text: str) -> dict[str, str]:
     return _extract_equal_return_string_map(
         text,
         candidate_label="boolean operator candidate",
+        manifest_name="herbert_migration_manifest.tsv",
+    )
+
+
+def _require_type_name_candidate_matches_python_table(
+    root: Path,
+    source_rel: str,
+) -> None:
+    if source_rel != TYPE_NAME_CANDIDATE:
+        return
+
+    actual = _extract_type_name_candidate_map((root / source_rel).read_text())
+    expected = dict(sorted((name, 1) for name in HERBERT_TYPE_NAMES))
+    if actual == expected:
+        return
+
+    missing = sorted(set(expected) - set(actual))
+    unexpected = sorted(set(actual) - set(expected))
+    mismatched = sorted(
+        name
+        for name in set(expected) & set(actual)
+        if expected[name] != actual[name]
+    )
+    details: list[str] = []
+    if missing:
+        details.append(f"missing {', '.join(missing)}")
+    if unexpected:
+        details.append(f"unexpected {', '.join(unexpected)}")
+    if mismatched:
+        details.append(
+            "mismatched "
+            + ", ".join(
+                f"{name} expected {expected[name]} got {actual[name]}"
+                for name in mismatched
+            )
+        )
+    raise ManifestError(
+        "herbert_migration_manifest.tsv: type name candidate must mirror "
+        "HERBERT_TYPE_NAMES "
+        f"({'; '.join(details)})"
+    )
+
+
+def _extract_type_name_candidate_map(text: str) -> dict[str, int]:
+    return _extract_equal_return_map(
+        text,
+        candidate_label="type name candidate",
         manifest_name="herbert_migration_manifest.tsv",
     )
 

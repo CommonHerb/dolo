@@ -3,3 +3,4 @@ experiments/herbert/array_mutation_candidate.herb	tests/fixtures/array_mutation_
 experiments/herbert/boolean_operator_candidate.herb	tests/fixtures/boolean_operator_candidate.stdout
 experiments/herbert/builtin_arity_candidate.herb	tests/fixtures/builtin_arity_candidate.stdout
 experiments/herbert/record_field_index_candidate.herb	tests/fixtures/record_field_index_candidate.stdout
+experiments/herbert/type_name_candidate.herb	tests/fixtures/type_name_candidate.stdout
