@@ -183,3 +183,14 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 3 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Added executable example `examples/citizen_alias.dolo` with committed Herbert
+  and stdout fixtures, proving the record-alias field-access behavior through
+  the executable manifest instead of only the unit-level compiler test.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 32 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 4 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

@@ -1,0 +1,17 @@
+record Citizen { name, hunger, coins }
+
+fn alias_name(c: Citizen) {
+  let alias = c
+  return alias.name
+}
+
+fn alias_hunger(c: Citizen) {
+  let alias = c
+  return alias.hunger
+}
+
+fn main() {
+  let c = Citizen("Ada", 3, 12)
+  let alias = c
+  return (alias_name(alias), alias_hunger(alias), alias.coins, alias.hunger > 2)
+}
