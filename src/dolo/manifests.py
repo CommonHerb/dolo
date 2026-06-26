@@ -376,6 +376,11 @@ def _require_migration_candidate_note(
             "herbert_migration_manifest.tsv: migration candidate note must include "
             f"a replacement path for {source_rel}"
         )
+    if not any(_states_authority_boundary(note.read_text()) for note in stdout_notes):
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: migration candidate note must state "
+            f"the authority boundary for {source_rel}"
+        )
 
 
 def _require_migration_candidate_notes_are_manifested(
@@ -596,6 +601,19 @@ def _names_python_owner(text: str) -> bool:
 
 def _names_replacement_path(text: str) -> bool:
     return "## Replacement Path" in text or "## Wiring Path" in text
+
+
+def _states_authority_boundary(text: str) -> bool:
+    authority_phrases = (
+        "not compiler authority",
+        "not Dolo's compiler authority",
+        "not semantic authority",
+        "not Dolo's semantic authority",
+        "not paid debt",
+    )
+    return "## Authority Boundary" in text and any(
+        phrase in text for phrase in authority_phrases
+    )
 
 
 def _require_file(root: Path, relative_path: str, *, label: str) -> None:

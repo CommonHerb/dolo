@@ -48,3 +48,10 @@ arities against Python-owned `HERBERT_BUILTIN_ARITIES`.
 
 This proves the candidate can execute through Herbert. It does not prove the
 Dolo compiler has migrated away from Python yet.
+
+## Authority Boundary
+
+This candidate is not compiler authority and not paid debt. Dolo's compiler
+still uses Python-owned `HERBERT_BUILTIN_ARITIES` until a Herbert-family
+replacement is wired through the compiler path and verified by the full local
+and native truth gates.

@@ -61,8 +61,10 @@ This proves:
   manifested Herbert source and stdout golden, so executable candidates and
   their documentation cannot silently drift apart; each candidate note must
   also name the current Python/bootstrap owner it mirrors, include a
-  replacement path toward Herbert-family ownership, and notes under that
-  directory must link back to at least one manifested Herbert candidate
+  replacement path toward Herbert-family ownership, state the authority
+  boundary that keeps the candidate from being mistaken for compiler authority,
+  and notes under that directory must link back to at least one manifested
+  Herbert candidate
 - `experiments/herbert/record_field_index_candidate.herb` enumerates the same
   `Citizen` field names and tuple indexes parsed from `examples/citizen.dolo`,
   so the first record-field migration candidate is compared against the Dolo
@@ -141,9 +143,11 @@ point at `.herb` files with a visible `func main()` entry point, and rejects
 stdout goldens that do not use a `.stdout` suffix or end with a newline. When
 `docs/migration-candidates/` exists, local validation also requires a migration
 candidate note to mention the manifested Herbert source and stdout golden, name
-the current Python/bootstrap owner it mirrors, and include a replacement path.
-It also rejects orphaned migration candidate notes that do not link back to a
-manifest source. The record-field index candidate has one extra local check:
+the current Python/bootstrap owner it mirrors, include a replacement path, and
+state the authority boundary that keeps executable evidence distinct from
+compiler authority. It also rejects orphaned migration candidate notes that do
+not link back to a manifest source. The record-field index candidate has one
+extra local check:
 its Herbert lookup table must mirror the parsed `Citizen` fields in
 `examples/citizen.dolo`. The array mutation candidate has one extra local
 check: its mutation/read shape must mirror `tests/fixtures/array_mutation.herb`.
