@@ -29,7 +29,8 @@ This proves:
   tracebacks
 - committed examples match committed Herbert goldens
 - repository manifests have sorted rows, the expected tab-separated fields,
-  expected file suffixes, unique source rows, existing file targets, and every
+  expected file suffixes, unique source rows, unique executable and migration
+  output targets, existing repository-relative file targets, and every
   `examples/*.dolo` file is either executable with a no-argument `fn main()` or
   explicitly non-executable with a reason
 - Herbert migration manifest sources are `.herb` files with a visible
@@ -66,8 +67,10 @@ This proves, for the executable manifest in
 The harness stages a temporary executable copy of Herbert's tracked
 `bootstrap/seed/gen1.seed`; it does not chmod or modify the Herbert checkout.
 Before staging the seed, the harness runs the same manifest validator used by
-the local bootstrap tests so malformed manifests and executable rows without a
-no-argument Dolo `main` fail before native execution.
+the local bootstrap tests so malformed manifests, duplicate executable output
+targets, and executable rows without a no-argument Dolo `main` fail before
+native execution. Manifest file targets must stay repository-relative; absolute
+paths and parent-directory traversal are rejected before native execution.
 
 Examples intentionally excluded from the executable truth loop must be listed
 with a reason in `tests/fixtures/non_executable_examples.tsv`; the local

@@ -53,6 +53,24 @@ def validate_repository_manifests(root: Path) -> None:
         non_executable_rows,
         manifest_name="non_executable_examples.tsv",
     )
+    _reject_duplicate_field(
+        executable_rows,
+        field_index=1,
+        manifest_name="executable_manifest.tsv",
+        label="Herbert golden",
+    )
+    _reject_duplicate_field(
+        executable_rows,
+        field_index=2,
+        manifest_name="executable_manifest.tsv",
+        label="stdout golden",
+    )
+    _reject_duplicate_field(
+        migration_rows,
+        field_index=1,
+        manifest_name="herbert_migration_manifest.tsv",
+        label="stdout golden",
+    )
 
     if not executable_rows:
         raise ManifestError(
@@ -159,6 +177,21 @@ def _reject_duplicate_sources(
         seen.add(source)
 
 
+def _reject_duplicate_field(
+    rows: list[tuple[str, ...]],
+    *,
+    field_index: int,
+    manifest_name: str,
+    label: str,
+) -> None:
+    seen: set[str] = set()
+    for row in rows:
+        value = row[field_index]
+        if value in seen:
+            raise ManifestError(f"{manifest_name}: duplicate {label} {value}")
+        seen.add(value)
+
+
 def _require_suffix(
     relative_path: str,
     *,
@@ -213,8 +246,15 @@ def _require_migration_main(root: Path, source_rel: str) -> None:
 
 
 def _require_file(root: Path, relative_path: str, *, label: str) -> None:
+    _require_repository_relative_path(relative_path, label=label)
     if not (root / relative_path).is_file():
         raise ManifestError(f"{label} missing: {relative_path}")
+
+
+def _require_repository_relative_path(relative_path: str, *, label: str) -> None:
+    path = Path(relative_path)
+    if path.is_absolute() or ".." in path.parts:
+        raise ManifestError(f"{label} must be repository-relative: {relative_path}")
 
 
 def main(argv: list[str] | None = None) -> int:

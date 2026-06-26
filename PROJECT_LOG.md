@@ -392,3 +392,19 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Hardened repository manifest validation so generated Herbert/stdout output
+  targets cannot be reused across executable rows or migration rows, and so
+  manifest file targets must remain repository-relative; absolute paths and
+  parent-directory traversal are rejected before the native truth loop can read
+  or execute outside Dolo's tree.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 51 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`). A first retry attempt failed before Dolo ran because a
+  half-started Colima guest lacked the `/Users/ben` host mount; a clean stopped
+  start fixed the mount and passed.
