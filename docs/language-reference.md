@@ -244,6 +244,8 @@ Diagnostics are intentionally small:
   at the constructor column
 - `let` statements without a binding name report the token where the binding
   name was expected
+- `let` and assignment statements without `=` after the binding or target name
+  report the token where the assignment marker was expected
 - `let`, assignment, `return`, `do`, and `if` statements without the expected
   expression, call, or condition report the token where that form was expected
 - `let` binding redeclarations report the repeated binding column

@@ -171,7 +171,10 @@ class Parser:
                 self._fail("let statement expects a binding name")
             name_token = self._expect_kind("IDENT")
             name = name_token.value
-            self._expect_value("=")
+            self._expect_value(
+                "=",
+                message="let statement expects '=' after binding name",
+            )
             return LetStmt(
                 name,
                 self._expr_until_line("let statement expects an expression"),
@@ -213,7 +216,10 @@ class Parser:
 
         name_token = self._expect_kind("IDENT")
         name = name_token.value
-        self._expect_value("=")
+        self._expect_value(
+            "=",
+            message="assignment statement expects '=' after target",
+        )
         return AssignStmt(
             name,
             self._expr_until_line("assignment statement expects an expression"),
@@ -298,9 +304,9 @@ class Parser:
     def _peek_value(self, value: str) -> bool:
         return self._peek().value == value
 
-    def _expect_value(self, value: str) -> Token:
+    def _expect_value(self, value: str, *, message: str | None = None) -> Token:
         if not self._peek_value(value):
-            self._fail(f"expected {value!r}")
+            self._fail(message or f"expected {value!r}")
         return self._advance()
 
     def _expect_kind(self, kind: str) -> Token:

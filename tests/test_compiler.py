@@ -480,6 +480,32 @@ end
         ):
             compile_source(source)
 
+    def test_statement_assignments_require_equal_marker(self):
+        cases = (
+            (
+                """fn bad() {
+  let x 1
+  return x
+}
+""",
+                r"line 2, column 9: let statement expects '=' after binding name",
+            ),
+            (
+                """fn bad() {
+  let x = 1
+  x 2
+  return x
+}
+""",
+                r"line 3, column 5: assignment statement expects '=' after target",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_statements_require_expected_expression_forms(self):
         cases = (
             (
