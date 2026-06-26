@@ -321,3 +321,6 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Fixed a stale `docs/language-reference.md` Functions paragraph that still
+  described observed Herbert built-ins as name-validated only after the compiler
+  gained observed arity diagnostics.

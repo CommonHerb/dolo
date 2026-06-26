@@ -87,8 +87,10 @@ The annotation is used by the Dolo compiler and is not emitted into Herbert.
 An annotation must name a record declared in the same source file.
 
 Dolo-to-Dolo function calls must pass the declared number of arguments. Calls
-to observed Herbert built-ins are allowed by name, but Dolo does not yet claim
-or validate their arity.
+to observed Herbert built-ins are allowed by name; for value-level built-ins
+that Dolo can emit directly, the compiler also validates observed argument
+counts before Herbert emission. This remains an arity boundary, not a claim
+that Dolo owns a full type system for those built-ins.
 
 ## Statements
 
