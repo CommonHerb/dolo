@@ -120,8 +120,14 @@ class Parser:
                 type_name = type_token.value
             params.append(Param(name, type_name, type_token))
             seen_params.add(name)
-            if not self._match_value(","):
+            if not self._peek_value(","):
                 return params
+            comma = self._advance()
+            if self._peek_value(")"):
+                self._fail_at(
+                    comma,
+                    f"function {function_name} parameter list cannot end with ','",
+                )
 
     def _validate_record_annotations(self, program: Program) -> None:
         for function in program.functions:

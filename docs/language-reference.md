@@ -22,7 +22,7 @@ Top-level declaration names must be unique within the source file; a record and
 a function cannot share the same name. Records must declare at least one field.
 Record field names must be unique within a record, and function parameter names
 must be unique within a function. Trailing commas in record field declarations
-are not implemented.
+and function parameter lists are not implemented.
 
 ## Records
 
@@ -214,6 +214,7 @@ Diagnostics are intentionally small:
   name column
 - records with no fields report the record name column
 - record field declaration trailing commas report the comma column
+- function parameter list trailing commas report the comma column
 - function declarations that reuse observed Herbert built-in names report the
   function name column
 - `main` declarations with parameters report the `main` name column

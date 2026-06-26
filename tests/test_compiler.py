@@ -156,6 +156,31 @@ fn main() {
         ):
             compile_source(source)
 
+    def test_function_declaration_rejects_trailing_parameter_comma(self):
+        cases = (
+            (
+                """fn id(a,) {
+  return a
+}
+""",
+                r"line 1, column 8: function id parameter list cannot end with ','",
+            ),
+            (
+                """record Box { value }
+
+fn id(a: Box,) {
+  return a.value
+}
+""",
+                r"line 3, column 13: function id parameter list cannot end with ','",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_record_declaration_rejects_duplicate_record_names(self):
         source = """record Citizen { name }
 record Citizen { hunger }

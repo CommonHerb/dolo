@@ -2,6 +2,30 @@
 
 ## 2026-06-26
 
+- Tightened function parameter list trailing-comma diagnostics. `fn id(a,)`
+  and typed forms such as `fn id(a: Box,)` now fail at the comma with a
+  parameter-list diagnostic instead of drifting to `expected ident` at the
+  closing parenthesis.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_function_declaration_rejects_trailing_parameter_comma`
+  (first observed failures: both trailing parameter comma forms reported
+  `expected ident` at `)`; after the parser change: `Ran 1 test`, `OK`).
+- Verified neighboring parameter behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_function_declaration_rejects_duplicate_parameter_names tests.test_compiler.CompilerTests.test_main_function_must_take_no_parameters tests.test_compiler.CompilerTests.test_function_parameter_annotation_must_name_a_record tests.test_compiler.CompilerTests.test_record_field_access_lowers_to_tuple_index`
+  (`Ran 4 tests`, `OK`).
+- Probed leading and doubled parameter commas after the change; they still fail
+  with the existing `expected ident` diagnostics, while two-parameter functions
+  still compile.
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 90 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Rejected trailing commas in record field declarations. `record Pair { left, }`
   now fails at the comma instead of compiling as though the trailing comma were
   absent.
