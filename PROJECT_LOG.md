@@ -2,6 +2,9 @@
 
 ## 2026-06-26
 
+- Hardened the bootstrap migration-candidate test so it explicitly keeps both
+  current Herbert candidates manifested: record field indexing and array
+  mutation.
 - Added Herbert-family migration candidate 0002,
   `experiments/herbert/array_mutation_candidate.herb`, plus its stdout golden
   and candidate note. It mirrors the pinned typed-array and `do` mutation

@@ -1665,13 +1665,26 @@ end
         self.assertNotIn(f"ref: {lock_commit}", workflow_text)
         self.assertNotIn(f"repository: {lock_repository}", workflow_text)
 
-    def test_first_herbert_migration_candidate_is_manifested(self):
+    def test_herbert_migration_candidates_are_manifested(self):
         from dolo.manifests import read_manifest_rows
 
         manifest = ROOT / "tests" / "fixtures" / "herbert_migration_manifest.tsv"
         self.assertTrue(manifest.is_file(), "Herbert migration manifest is required")
         rows = read_manifest_rows(manifest, columns=2)
         self.assertGreaterEqual(len(rows), 1)
+        self.assertTrue(
+            {
+                (
+                    "experiments/herbert/array_mutation_candidate.herb",
+                    "tests/fixtures/array_mutation_candidate.stdout",
+                ),
+                (
+                    "experiments/herbert/record_field_index_candidate.herb",
+                    "tests/fixtures/record_field_index_candidate.stdout",
+                ),
+            }.issubset(rows),
+            "current Herbert migration candidates must stay manifested",
+        )
 
         for source_rel, stdout_rel in rows:
             with self.subTest(source=source_rel):
