@@ -429,6 +429,18 @@ end
         ):
             compile_source(source)
 
+    def test_function_parameter_annotation_requires_record_name(self):
+        source = """fn id(a:) {
+  return a
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 1, column 9: function id parameter a annotation expects a record name",
+        ):
+            compile_source(source)
+
     def test_assignment_target_must_already_be_bound(self):
         source = """fn bad() {
   spare = 1

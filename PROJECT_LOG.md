@@ -2,6 +2,26 @@
 
 ## 2026-06-26
 
+- Hardened function parameter annotation diagnostics so `fn id(a:)` reports the
+  missing annotation record-name boundary instead of the generic identifier
+  parser fallback.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_function_parameter_annotation_requires_record_name`
+  (first observed failure: `expected ident`; after the parser change:
+  `Ran 1 test`, `OK`).
+- Verified neighboring annotation and parameter diagnostics with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_function_parameter_annotation_requires_record_name tests.test_compiler.CompilerTests.test_function_parameter_annotation_must_name_a_record tests.test_compiler.CompilerTests.test_function_declaration_rejects_missing_parameter_names_between_commas tests.test_compiler.CompilerTests.test_function_declaration_rejects_trailing_parameter_comma tests.test_compiler.CompilerTests.test_function_declaration_rejects_duplicate_parameter_names`
+  (`Ran 5 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 104 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 12 Dolo executable example(s)`, `PASS: 3 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Hardened top-level declaration diagnostics so `record` and `fn`
   declarations without names report the declaration-name boundary instead of
   the generic identifier parser fallback.

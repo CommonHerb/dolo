@@ -127,7 +127,12 @@ class Parser:
             type_name = None
             type_token = None
             if self._match_value(":"):
-                type_token = self._expect_kind("IDENT")
+                if not self._at("IDENT"):
+                    self._fail(
+                        f"function {function_name} parameter {name} "
+                        "annotation expects a record name"
+                    )
+                type_token = self._advance()
                 type_name = type_token.value
             params.append(Param(name, type_name, type_token))
             seen_params.add(name)

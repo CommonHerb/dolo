@@ -222,6 +222,8 @@ Diagnostics are intentionally small:
 - record field declaration trailing commas report the comma column
 - function parameter list commas without parameter names report the comma column
 - function parameter list trailing commas report the comma column
+- function parameter annotations without a record name after `:` report the
+  token where the annotation name was expected
 - function declarations that reuse observed Herbert built-in names report the
   function name column
 - `main` declarations with parameters report the `main` name column
