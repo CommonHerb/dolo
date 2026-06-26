@@ -14,5 +14,5 @@ type_name	herbert	src/dolo/herbert_surface.py:HERBERT_TYPE_NAMES	experiments/her
 record_field_index	python	src/dolo/emitter.py:record-field lowering	experiments/herbert/record_field_index_candidate.herb		(pending)	record field name -> tuple index lowering
 array_mutation	python	src/dolo/emitter.py:array-mutation lowering	experiments/herbert/array_mutation_candidate.herb		(pending)	array mutation built-in lowering boundary
 two_char_ops	herbert	src/dolo/tokens.py:TWO_CHAR_OPS	experiments/herbert/two_char_ops_candidate.herb	experiments/herbert/two_char_ops_candidate.herb	oracle_wiring.py two_char_ops	the lexer's greedy two-char operator set (== != <= >= && ||)
-closing_delimiters	python	src/dolo/parser.py:CLOSING_DELIMITERS			oracle_wiring.py closing_delimiters	the parser's closer->opener bracket-matching map
-infix_operators	python	src/dolo/emitter.py:INFIX_OPERATORS			oracle_wiring.py infix_operators	the emitter's recognized infix-operator set
+closing_delimiters	herbert	src/dolo/parser.py:CLOSING_DELIMITERS	experiments/herbert/closing_delimiters_candidate.herb	experiments/herbert/closing_delimiters_candidate.herb	oracle_wiring.py closing_delimiters	the parser's closer->opener bracket-matching map
+infix_operators	herbert	src/dolo/emitter.py:INFIX_OPERATORS	experiments/herbert/infix_operators_candidate.herb	experiments/herbert/infix_operators_candidate.herb	oracle_wiring.py infix_operators	the emitter's recognized infix-operator set

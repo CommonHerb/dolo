@@ -13,11 +13,8 @@ from .ast import (
     ReturnStmt,
     Stmt,
 )
-from .herbert_surface import HERBERT_BUILTINS
+from .herbert_surface import HERBERT_BUILTINS, dolo_opening_delimiter_for
 from .tokens import DoloSyntaxError, Token, tokenize
-
-
-CLOSING_DELIMITERS = {")": "(", "}": "{"}
 
 
 class Parser:
@@ -243,13 +240,12 @@ class Parser:
                 self._fail_at(opener, f"unterminated {opener.value!r} in expression")
             if token.value in ("(", "{"):
                 openers.append(token)
-            elif token.value in CLOSING_DELIMITERS:
-                if (
-                    not openers
-                    or openers[-1].value != CLOSING_DELIMITERS[token.value]
-                ):
-                    self._fail_at(token, f"unexpected {token.value!r} in expression")
-                openers.pop()
+            else:
+                expected_opener = dolo_opening_delimiter_for(token.value)
+                if expected_opener is not None:
+                    if not openers or openers[-1].value != expected_opener:
+                        self._fail_at(token, f"unexpected {token.value!r} in expression")
+                    openers.pop()
             collected.append(self._advance())
         if not collected:
             self._fail(empty_message)
@@ -277,13 +273,12 @@ class Parser:
                 break
             if token.value == "(":
                 openers.append(token)
-            elif token.value in CLOSING_DELIMITERS:
-                if (
-                    not openers
-                    or openers[-1].value != CLOSING_DELIMITERS[token.value]
-                ):
-                    self._fail_at(token, f"unexpected {token.value!r} in expression")
-                openers.pop()
+            else:
+                expected_opener = dolo_opening_delimiter_for(token.value)
+                if expected_opener is not None:
+                    if not openers or openers[-1].value != expected_opener:
+                        self._fail_at(token, f"unexpected {token.value!r} in expression")
+                    openers.pop()
             if token.kind != "NEWLINE":
                 collected.append(token)
             self._advance()
