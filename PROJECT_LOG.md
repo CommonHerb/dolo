@@ -2,6 +2,27 @@
 
 ## 2026-06-26
 
+- Added a comparison-backed check for migration candidate 0002. Local manifest
+  validation now compares the array/buffer mutation and read shape in
+  `experiments/herbert/array_mutation_candidate.herb` against emitted
+  `tests/fixtures/array_mutation.herb`, ignoring only the candidate's marker
+  tag in its returned tuple.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_requires_array_mutation_candidate_to_mirror_emitted_fixture`
+  (first observed failure: `ManifestError not raised`; after the validator
+  change: `Ran 1 test`, `OK`).
+- Verified neighboring migration-note and manifest behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_requires_array_mutation_candidate_to_mirror_emitted_fixture tests.test_compiler.CompilerTests.test_manifest_validator_requires_record_field_candidate_to_mirror_citizen_record tests.test_compiler.CompilerTests.test_manifest_validator_requires_builtin_arity_candidate_to_mirror_python_table tests.test_compiler.CompilerTests.test_herbert_migration_candidates_are_manifested tests.test_compiler.CompilerTests.test_manifest_validator_requires_migration_candidate_note_links tests.test_compiler.CompilerTests.test_manifest_validator_requires_migration_candidate_python_owner tests.test_compiler.CompilerTests.test_manifest_validator_requires_migration_candidate_replacement_path tests.test_compiler.CompilerTests.test_manifest_validator_rejects_orphaned_migration_candidate_notes`
+  (`Ran 8 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 98 tests`, `OK`) and `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 10 Dolo executable example(s)`, `PASS: 3 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Added a comparison-backed check for migration candidate 0001. Local manifest
   validation now parses `examples/citizen.dolo`, extracts the `Citizen` record
   field order, and compares it against the table-shaped lookup in

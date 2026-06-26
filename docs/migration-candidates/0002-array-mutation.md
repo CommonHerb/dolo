@@ -31,11 +31,12 @@ than introducing new Dolo syntax.
 This candidate can only replace Python bootstrap behavior after Dolo has
 Herbert-family ownership of the observed built-in surface validation and
 lowering path for `new_array(...)`, `do add(...)`, `do append(...)`,
-`count(...)`, `get(...)`, and `freeze(...)`. The first wiring step should
-compare this executable Herbert pattern against the emitted Herbert fixtures
-that already prove Dolo's array mutation boundary. Until then, the Python
-emitter remains the compiler authority and this candidate remains migration
-evidence.
+`count(...)`, `get(...)`, and `freeze(...)`. Local manifest validation now
+compares this executable Herbert pattern against the emitted
+`tests/fixtures/array_mutation.herb` mutation/read shape, ignoring only the
+candidate's marker tag in its returned tuple. Until a replacement is wired and
+verified through the compiler path, the Python emitter remains the compiler
+authority and this candidate remains migration evidence.
 
 ## Verification
 
@@ -43,6 +44,9 @@ The candidate is listed in `tests/fixtures/herbert_migration_manifest.tsv`.
 `scripts/verify_herbert_truth.sh` compiles it directly with the pinned Herbert
 seed on Linux/x86_64, runs the resulting ELF, and compares stdout with
 `tests/fixtures/array_mutation_candidate.stdout`.
+
+Local manifest validation also compares the candidate's array/buffer mutation
+and read shape against `tests/fixtures/array_mutation.herb`.
 
 This proves the candidate can execute through Herbert. It does not prove the
 Dolo compiler has migrated away from Python yet.

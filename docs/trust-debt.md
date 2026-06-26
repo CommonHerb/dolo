@@ -23,7 +23,9 @@ candidates. Today they mirror narrow Python bootstrap compiler decisions:
   Local manifest validation compares this candidate against the parsed
   `Citizen` record fields in `examples/citizen.dolo`.
 - `array_mutation_candidate.herb` mirrors the typed array and no-value mutation
-  boundary used by Dolo's emitted Herbert.
+  boundary used by Dolo's emitted Herbert. Local manifest validation compares
+  this candidate against the emitted `tests/fixtures/array_mutation.herb`
+  mutation/read shape.
 - `builtin_arity_candidate.herb` mirrors the observed Herbert built-in arity
   table used by Dolo before emission. Local manifest validation compares this
   candidate against Python-owned `HERBERT_BUILTIN_ARITIES`.

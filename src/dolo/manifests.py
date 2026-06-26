@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -14,10 +15,13 @@ class ManifestError(ValueError):
     pass
 
 
+ARRAY_MUTATION_CANDIDATE = "experiments/herbert/array_mutation_candidate.herb"
+ARRAY_MUTATION_HERBERT_GOLDEN = "tests/fixtures/array_mutation.herb"
 BUILTIN_ARITY_CANDIDATE = "experiments/herbert/builtin_arity_candidate.herb"
 RECORD_FIELD_INDEX_CANDIDATE = "experiments/herbert/record_field_index_candidate.herb"
 RECORD_FIELD_INDEX_EXAMPLE = "examples/citizen.dolo"
 RECORD_FIELD_INDEX_RECORD = "Citizen"
+ARRAY_RETURN_CALL_PATTERN = re.compile(r"\b(?:count|get|freeze)\([^)]*\)")
 
 
 def read_manifest_rows(path: Path, *, columns: int) -> list[tuple[str, ...]]:
@@ -153,6 +157,7 @@ def validate_repository_manifests(root: Path) -> None:
             manifest_name="herbert_migration_manifest.tsv",
         )
         _require_migration_candidate_note(root, source_rel, stdout_rel)
+        _require_array_mutation_candidate_matches_emitted_fixture(root, source_rel)
         _require_builtin_arity_candidate_matches_python_table(root, source_rel)
         _require_record_field_index_candidate_matches_dolo_record(root, source_rel)
     _require_migration_candidate_notes_are_manifested(
@@ -433,6 +438,58 @@ def _require_builtin_arity_candidate_matches_python_table(
         "HERBERT_BUILTIN_ARITIES "
         f"({'; '.join(details)})"
     )
+
+
+def _require_array_mutation_candidate_matches_emitted_fixture(
+    root: Path,
+    source_rel: str,
+) -> None:
+    if source_rel != ARRAY_MUTATION_CANDIDATE:
+        return
+
+    golden_path = root / ARRAY_MUTATION_HERBERT_GOLDEN
+    if not golden_path.is_file():
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: array mutation comparison fixture "
+            f"missing: {ARRAY_MUTATION_HERBERT_GOLDEN}"
+        )
+
+    expected = _extract_array_mutation_shape(golden_path.read_text())
+    actual = _extract_array_mutation_shape((root / source_rel).read_text())
+    if actual == expected:
+        return
+
+    missing = [item for item in expected if item not in actual]
+    unexpected = [item for item in actual if item not in expected]
+    details: list[str] = []
+    if missing:
+        details.append(f"missing {', '.join(missing)}")
+    if unexpected:
+        details.append(f"unexpected {', '.join(unexpected)}")
+    if not details:
+        details.append("sequence differed")
+    raise ManifestError(
+        "herbert_migration_manifest.tsv: array mutation candidate must mirror "
+        f"{ARRAY_MUTATION_HERBERT_GOLDEN} ({'; '.join(details)})"
+    )
+
+
+def _extract_array_mutation_shape(text: str) -> list[str]:
+    shape: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if (
+            stripped.startswith("let ")
+            and ("= new_array(" in stripped or "= new_buffer()" in stripped)
+        ):
+            shape.append(stripped)
+        elif stripped.startswith("do add(") or stripped.startswith("do append("):
+            shape.append(stripped)
+        elif stripped.startswith("return "):
+            calls = ARRAY_RETURN_CALL_PATTERN.findall(stripped)
+            if calls:
+                shape.append("return " + ", ".join(calls))
+    return shape
 
 
 def _extract_builtin_arity_candidate_map(text: str) -> dict[str, int]:

@@ -67,6 +67,9 @@ This proves:
   `Citizen` field names and tuple indexes parsed from `examples/citizen.dolo`,
   so the first record-field migration candidate is compared against the Dolo
   record metadata it intends to replace
+- `experiments/herbert/array_mutation_candidate.herb` preserves the same
+  array/buffer mutation and read shape as `tests/fixtures/array_mutation.herb`,
+  ignoring only the candidate's marker tag in its returned tuple
 - `experiments/herbert/builtin_arity_candidate.herb` enumerates the same
   built-in names and arities as Python-owned `HERBERT_BUILTIN_ARITIES`, so the
   first arity migration candidate is compared against the bootstrap table it
@@ -142,9 +145,10 @@ the current Python/bootstrap owner it mirrors, and include a replacement path.
 It also rejects orphaned migration candidate notes that do not link back to a
 manifest source. The record-field index candidate has one extra local check:
 its Herbert lookup table must mirror the parsed `Citizen` fields in
-`examples/citizen.dolo`. The built-in arity candidate has one extra local
-check: its Herbert lookup table must mirror Python-owned
-`HERBERT_BUILTIN_ARITIES`.
+`examples/citizen.dolo`. The array mutation candidate has one extra local
+check: its mutation/read shape must mirror `tests/fixtures/array_mutation.herb`.
+The built-in arity candidate has one extra local check: its Herbert lookup
+table must mirror Python-owned `HERBERT_BUILTIN_ARITIES`.
 
 This does not prove arbitrary Dolo program correctness, arbitrary Herbert
 compiler correctness, or removal of bootstrap trust debt. It proves only the

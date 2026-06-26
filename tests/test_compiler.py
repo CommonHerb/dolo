@@ -1966,6 +1966,81 @@ end
             ):
                 validate_repository_manifests(root)
 
+    def test_manifest_validator_requires_array_mutation_candidate_to_mirror_emitted_fixture(self):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixtures = root / "tests" / "fixtures"
+            examples = root / "examples"
+            experiments = root / "experiments" / "herbert"
+            notes = root / "docs" / "migration-candidates"
+            fixtures.mkdir(parents=True)
+            examples.mkdir()
+            experiments.mkdir(parents=True)
+            notes.mkdir(parents=True)
+            (examples / "a.dolo").write_text(
+                """fn main() {
+  return 1
+}
+"""
+            )
+            (fixtures / "a.herb").write_text("func main():\n  return 1\nend\n")
+            (fixtures / "a.stdout").write_text("1\n")
+            (fixtures / "array_mutation.herb").write_text(
+                """func filled_summary():
+  let ints = new_array(int)
+  do add(ints, 4)
+  do add(ints, 5)
+  let label = new_buffer()
+  do append(label, 'o')
+  do append(label, 'k')
+  return (count(ints), get(ints, 0) + get(ints, 1), freeze(label))
+end
+"""
+            )
+            (experiments / "array_mutation_candidate.herb").write_text(
+                """func filled_summary():
+    let ints = new_array(int)
+    do add(ints, 4)
+    do add(ints, 5)
+    let label = new_buffer()
+    do append(label, 'o')
+    return ("array-mutation-candidate", count(ints), get(ints, 0) + get(ints, 1), freeze(label))
+end
+
+func main():
+    return filled_summary()
+end
+"""
+            )
+            (fixtures / "array_mutation_candidate.stdout").write_text(
+                '("array-mutation-candidate", 2, 9, "o")\n'
+            )
+            (notes / "0001-array.md").write_text(
+                "experiments/herbert/array_mutation_candidate.herb\n"
+                "tests/fixtures/array_mutation_candidate.stdout\n"
+                "Current Python behavior lives in the emitter's do statement lowering.\n"
+                "## Replacement Path\n"
+                "Compare this against the emitted array mutation fixture before wiring.\n"
+            )
+            (fixtures / "executable_manifest.tsv").write_text(
+                "examples/a.dolo\ttests/fixtures/a.herb\t"
+                "tests/fixtures/a.stdout\n"
+            )
+            (fixtures / "non_executable_examples.tsv").write_text("")
+            (fixtures / "herbert_migration_manifest.tsv").write_text(
+                "experiments/herbert/array_mutation_candidate.herb\t"
+                "tests/fixtures/array_mutation_candidate.stdout\n"
+            )
+
+            with self.assertRaisesRegex(
+                ManifestError,
+                r"herbert_migration_manifest.tsv: array mutation candidate must mirror "
+                r"tests/fixtures/array_mutation.herb \(missing do append\(label, 'k'\)",
+            ):
+                validate_repository_manifests(root)
+
     def test_manifest_validator_rejects_orphaned_migration_candidate_notes(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
