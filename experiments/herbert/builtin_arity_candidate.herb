@@ -1,0 +1,56 @@
+func builtin_arity(name):
+    if equal(name, "add"):
+        return 2
+    else:
+        if equal(name, "append"):
+            return 2
+        else:
+            if equal(name, "count"):
+                return 1
+            else:
+                if equal(name, "equal"):
+                    return 2
+                else:
+                    if equal(name, "freeze"):
+                        return 1
+                    else:
+                        if equal(name, "get"):
+                            return 2
+                        else:
+                            if equal(name, "index"):
+                                return 2
+                            else:
+                                if equal(name, "length"):
+                                    return 1
+                                else:
+                                    if equal(name, "new_array"):
+                                        return 1
+                                    else:
+                                        if equal(name, "new_buffer"):
+                                            return 0
+                                        else:
+                                            return 999
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+func main():
+    return (
+        "builtin-arity-candidate",
+        builtin_arity("new_buffer"),
+        builtin_arity("length"),
+        builtin_arity("equal"),
+        builtin_arity("new_array"),
+        builtin_arity("add"),
+        builtin_arity("append"),
+        builtin_arity("missing")
+    )
+end

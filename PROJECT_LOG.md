@@ -2,6 +2,28 @@
 
 ## 2026-06-26
 
+- Added Herbert-family migration candidate 0003,
+  `experiments/herbert/builtin_arity_candidate.herb`, plus its stdout golden
+  and documentation. It mirrors Dolo's current Python-owned
+  `HERBERT_BUILTIN_ARITIES` table for observed Herbert built-ins without
+  claiming the compiler has migrated away from Python yet.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_herbert_migration_candidates_are_manifested`
+  (first observed failure: the expected built-in arity candidate row was absent
+  from the manifest; after adding the candidate row/source/stdout/note:
+  `Ran 1 test`, `OK`).
+- Verified manifest integration with:
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 93 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 10 Dolo executable example(s)`, `PASS: 3 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Added executable application-shaped example `examples/market_day.dolo` with
   committed Herbert and stdout fixtures. It combines two records, annotated
   record parameters, record aliases, assignment, boolean branching, buffer

@@ -2322,6 +2322,10 @@ end
         self.assertTrue(
             {
                 (
+                    "experiments/herbert/builtin_arity_candidate.herb",
+                    "tests/fixtures/builtin_arity_candidate.stdout",
+                ),
+                (
                     "experiments/herbert/array_mutation_candidate.herb",
                     "tests/fixtures/array_mutation_candidate.stdout",
                 ),

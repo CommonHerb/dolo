@@ -22,6 +22,8 @@ candidates. Today they mirror narrow Python bootstrap compiler decisions:
 - `record_field_index_candidate.herb` mirrors record-field-index selection.
 - `array_mutation_candidate.herb` mirrors the typed array and no-value mutation
   boundary used by Dolo's emitted Herbert.
+- `builtin_arity_candidate.herb` mirrors the observed Herbert built-in arity
+  table used by Dolo before emission.
 
 They run through pinned Herbert in CI. They are not yet wired into the Dolo
 compiler, so they are repayment candidates, not paid debt.
