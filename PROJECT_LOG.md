@@ -416,3 +416,22 @@
   `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
   (`Ran 53 tests`, `OK`), plus
   `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Hardened CI so both the Herbert repository and commit are read from
+  `HERBERT.lock`, eliminating the workflow's remaining duplicate Herbert
+  checkout target. Added `scripts/verify_herbert_truth_colima.sh` as a local
+  wrapper that starts the existing Colima profile, runs the pinned truth loop,
+  attempts to stop the profile on exit, bounds cleanup stop commands, and names
+  the profile logs to inspect when local Colima verification fails.
+- Verified locally with:
+  `bash -n scripts/verify_herbert_truth_colima.sh`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 54 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Local wrapper execution did not complete the truth loop in this slice:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  failed during Colima startup. The wrapper exited instead of hanging, and the
+  profile was verified stopped afterward (`colima list`: `herbert-x86
+  Stopped`); inspect
+  `/Users/ben/.colima/_lima/colima-herbert-x86/ha.stderr.log` and `serial.log`
+  for local Colima details. GitHub Actions remains the Linux/x86_64 truth
+  source for this checkpoint.

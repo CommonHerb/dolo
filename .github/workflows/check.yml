@@ -31,12 +31,15 @@ jobs:
         run: |
           set -euo pipefail
           source HERBERT.lock
+          herbert_repository="${HERBERT_REPOSITORY#https://github.com/}"
+          herbert_repository="${herbert_repository%.git}"
           echo "commit=$HERBERT_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "repository=$herbert_repository" >> "$GITHUB_OUTPUT"
 
       - name: Check out pinned Herbert
         uses: actions/checkout@v7
         with:
-          repository: CommonHerb/herbert
+          repository: ${{ steps.herbert-lock.outputs.repository }}
           ref: ${{ steps.herbert-lock.outputs.commit }}
           path: herbert
 

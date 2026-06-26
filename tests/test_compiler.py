@@ -1252,14 +1252,29 @@ end
             for line in lock_text.splitlines()
             if line.startswith("HERBERT_COMMIT=")
         )
+        lock_repository_url = next(
+            line.split("=", 1)[1]
+            for line in lock_text.splitlines()
+            if line.startswith("HERBERT_REPOSITORY=")
+        )
+        lock_repository = (
+            lock_repository_url.removeprefix("https://github.com/")
+            .removesuffix(".git")
+        )
 
         self.assertIn("id: herbert-lock", workflow_text)
         self.assertIn('echo "commit=$HERBERT_COMMIT" >> "$GITHUB_OUTPUT"', workflow_text)
+        self.assertIn('echo "repository=$herbert_repository" >> "$GITHUB_OUTPUT"', workflow_text)
         self.assertIn(
             "ref: ${{ steps.herbert-lock.outputs.commit }}",
             workflow_text,
         )
+        self.assertIn(
+            "repository: ${{ steps.herbert-lock.outputs.repository }}",
+            workflow_text,
+        )
         self.assertNotIn(f"ref: {lock_commit}", workflow_text)
+        self.assertNotIn(f"repository: {lock_repository}", workflow_text)
 
     def test_first_herbert_migration_candidate_is_manifested(self):
         from dolo.manifests import read_manifest_rows
@@ -1284,6 +1299,27 @@ end
 
         self.assertIn("herbert_migration_manifest.tsv", harness_text)
         self.assertIn("python3 -m dolo.manifests", harness_text)
+
+    def test_colima_truth_wrapper_keeps_profile_stopped_and_names_logs(self):
+        wrapper = ROOT / "scripts" / "verify_herbert_truth_colima.sh"
+
+        self.assertTrue(wrapper.is_file(), "Colima truth wrapper is required")
+        wrapper_text = wrapper.read_text()
+
+        self.assertIn('PROFILE="${PROFILE:-herbert-x86}"', wrapper_text)
+        self.assertIn('HERBERT_DIR="${HERBERT_DIR:-../herbert}"', wrapper_text)
+        self.assertIn('STOP_GRACE_SECONDS="${STOP_GRACE_SECONDS:-20}"', wrapper_text)
+        self.assertIn('trap stop_profile EXIT', wrapper_text)
+        self.assertIn("run_stop_command", wrapper_text)
+        self.assertIn('label="colima stop -f"', wrapper_text)
+        self.assertIn('stop_pid="$!"', wrapper_text)
+        self.assertIn("timed out after", wrapper_text)
+        self.assertIn('kill "$stop_pid"', wrapper_text)
+        self.assertIn('kill -9 "$stop_pid"', wrapper_text)
+        self.assertIn('colima stop -f "$PROFILE"', wrapper_text)
+        self.assertIn("scripts/verify_herbert_truth.sh --herbert-dir", wrapper_text)
+        self.assertIn("ha.stderr.log", wrapper_text)
+        self.assertIn("serial.log", wrapper_text)
 
 
 if __name__ == "__main__":

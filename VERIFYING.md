@@ -38,8 +38,9 @@ This proves:
   `func main()` entry point and `.stdout` goldens
 - executable and migration stdout goldens end with a newline, matching the
   shape the truth loop compares after native execution
-- the Herbert truth harness is pinned, stages a temporary seed copy, and
-  includes the migration-candidate manifest
+- the Herbert truth harness is pinned, stages a temporary seed copy, includes
+  the migration-candidate manifest, and has a Colima wrapper that attempts to
+  stop the profile and names local logs on failure
 
 This does not prove:
 
@@ -65,8 +66,20 @@ This proves, for the executable manifest in
 - generated Herbert compiles through the pinned Herbert seed to an ELF `a.out`
 - the ELF runs and its stdout matches the committed `.stdout` file
 
-In GitHub Actions, the Herbert checkout ref is read from `HERBERT.lock` before
-checkout so the workflow does not carry a second hard-coded Herbert commit.
+In GitHub Actions, the Herbert checkout repository and ref are read from
+`HERBERT.lock` before checkout so the workflow does not carry a second
+hard-coded Herbert target.
+
+For local Linux/x86_64 verification through Colima, run:
+
+```bash
+scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert
+```
+
+The wrapper starts the profile, runs `scripts/verify_herbert_truth.sh` inside
+it, attempts a graceful stop on exit, forces a stop if the profile is still
+running, bounds cleanup stop commands so interrupted startups cannot hang
+forever, and names the profile's `ha.stderr.log` and `serial.log` on failure.
 
 The harness stages a temporary executable copy of Herbert's tracked
 `bootstrap/seed/gen1.seed`; it does not chmod or modify the Herbert checkout.
