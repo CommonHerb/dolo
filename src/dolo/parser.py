@@ -46,6 +46,8 @@ class Parser:
         name = name_token.value
         if name in self.record_names:
             self._fail_at(name_token, f"duplicate record {name}")
+        if name in self.function_names:
+            self._fail_at(name_token, f"duplicate top-level declaration {name}")
         self.record_names.add(name)
         self._expect_value("{")
         fields: list[str] = []
@@ -67,6 +69,8 @@ class Parser:
         name = name_token.value
         if name in self.function_names:
             self._fail_at(name_token, f"duplicate function {name}")
+        if name in self.record_names:
+            self._fail_at(name_token, f"duplicate top-level declaration {name}")
         self.function_names.add(name)
         self._expect_value("(")
         params = self._parse_params(name)

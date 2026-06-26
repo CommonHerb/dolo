@@ -17,9 +17,9 @@ fn hunger_of(c: Citizen) {
 
 Comments start with `#` and run to the end of the line.
 
-Top-level record names and function names must be unique within the source
-file. Record field names must be unique within a record, and function parameter
-names must be unique within a function.
+Top-level declaration names must be unique within the source file; a record and
+a function cannot share the same name. Record field names must be unique within
+a record, and function parameter names must be unique within a function.
 
 ## Records
 

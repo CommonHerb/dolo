@@ -324,3 +324,14 @@
 - Fixed a stale `docs/language-reference.md` Functions paragraph that still
   described observed Herbert built-ins as name-validated only after the compiler
   gained observed arity diagnostics.
+- Rejected cross-kind top-level declaration duplicates, so a record and function
+  can no longer share a name that would be ambiguous between constructor and
+  call lowering.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 43 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

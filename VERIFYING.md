@@ -18,11 +18,12 @@ This proves:
 - record type knowledge propagates through simple identifier bindings
 - `if` / `else`, `let`, assignment, `return`, calls, strings, booleans, and
   arithmetic-like expressions emit readable Herbert source
-- duplicate declarations, record annotation errors, unbound variables,
-  unbound assignment targets, duplicate `let` bindings, unknown call targets,
-  Dolo function arity mismatches, observed Herbert built-in arity mismatches,
-  expression delimiter errors, and non-literal expression keywords fail with
-  focused `DoloSyntaxError` diagnostics
+- duplicate declarations, including record/function name overlaps, record
+  annotation errors, unbound variables, unbound assignment targets, duplicate
+  `let` bindings, unknown call targets, Dolo function arity mismatches,
+  observed Herbert built-in arity mismatches, expression delimiter errors, and
+  non-literal expression keywords fail with focused `DoloSyntaxError`
+  diagnostics
 - the CLI writes Herbert to stdout
 - the CLI reports syntax and source-file read failures without Python
   tracebacks

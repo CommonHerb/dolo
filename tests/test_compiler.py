@@ -104,6 +104,33 @@ fn main() {
         ):
             compile_source(source)
 
+    def test_top_level_declaration_names_must_not_overlap(self):
+        cases = (
+            (
+                """record Thing { value }
+
+fn Thing() {
+  return 1
+}
+""",
+                r"line 3, column 4: duplicate top-level declaration Thing",
+            ),
+            (
+                """fn Thing() {
+  return 1
+}
+
+record Thing { value }
+""",
+                r"line 5, column 8: duplicate top-level declaration Thing",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_function_parameter_annotation_must_name_a_record(self):
         source = """fn bad(c: Missing) {
   return c
