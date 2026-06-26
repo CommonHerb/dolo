@@ -2,6 +2,29 @@
 
 ## 2026-06-26
 
+- Added expression-shape validation for empty parenthesized value expressions
+  and malformed comma fields. Dolo now rejects `return ()`, `return (,1)`,
+  `return (1,)`, `return (1,,2)`, and bad function-call comma forms before
+  emitting Herbert; valid zero-argument calls such as `new_buffer()` remain
+  valid.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_parenthesized_expressions_must_not_be_empty tests.test_compiler.CompilerTests.test_expression_commas_require_values_on_both_sides tests.test_compiler.CompilerTests.test_zero_argument_calls_remain_valid_expressions`
+  (first observed failures: direct tuple/group cases did not raise
+  `DoloSyntaxError`, while bad call commas failed later as arity errors at the
+  call target; after the emitter change: `Ran 3 tests`, `OK`).
+- Verified neighboring expression behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_new_array_accepts_observed_herbert_type_expressions tests.test_compiler.CompilerTests.test_expression_formatting_keeps_space_before_group_after_comma tests.test_compiler.CompilerTests.test_record_constructor_and_if_else_lower_to_herbert tests.test_compiler.CompilerTests.test_do_statement_emits_observed_no_value_herbert_builtin_calls tests.test_compiler.CompilerTests.test_observed_herbert_builtin_call_requires_observed_arity`
+  (`Ran 5 tests`, `OK`).
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 82 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Added binary-operator shape validation for Dolo expressions, so malformed
   forms such as `return 1 +`, `return + 1`, `return 1 + * 2`, and
   `if flag &&` fail before Dolo emits Herbert with dangling or misplaced

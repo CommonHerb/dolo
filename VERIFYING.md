@@ -28,7 +28,8 @@ This proves:
   annotation errors, function names that reuse observed Herbert built-ins,
   `main` declarations with parameters, functions that may complete without
   returning, unbound variables, unbound assignment targets, duplicate `let`
-  bindings, assignment operators inside expressions, unknown call targets, Dolo
+  bindings, assignment operators inside expressions, empty parenthesized value
+  expressions, commas without values on both sides, unknown call targets, Dolo
   function arity mismatches, binary operators without both operands, observed
   Herbert built-in arity mismatches, invalid `new_array` argument counts,
   unknown `new_array` type arguments, invalid singleton Herbert tuple type

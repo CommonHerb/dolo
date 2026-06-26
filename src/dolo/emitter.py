@@ -116,6 +116,7 @@ class Emitter:
     ) -> str:
         parts: list[str] = []
         new_array_type_indexes = self._new_array_type_indexes(expr)
+        self._validate_expression_shape(expr, new_array_type_indexes)
         i = 0
         while i < len(expr.tokens):
             token = expr.tokens[i]
@@ -398,6 +399,32 @@ class Emitter:
             raise DoloSyntaxError(
                 f"{_location(token)}: {subject} expects {want} {_argument_word(want)}, got {got}"
             )
+
+    @staticmethod
+    def _validate_expression_shape(expr: Expr, skipped_indexes: set[int]) -> None:
+        for i, token in enumerate(expr.tokens):
+            if i in skipped_indexes:
+                continue
+            previous = expr.tokens[i - 1] if i > 0 else None
+            next_token = expr.tokens[i + 1] if i + 1 < len(expr.tokens) else None
+            if (
+                token.value == "("
+                and next_token is not None
+                and next_token.value == ")"
+                and (previous is None or previous.kind != "IDENT")
+            ):
+                raise DoloSyntaxError(
+                    f"{_location(token)}: empty parenthesized expression is not implemented"
+                )
+            if token.value == ",":
+                if previous is None or previous.value in {"(", ","}:
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: comma requires a preceding expression"
+                    )
+                if next_token is None or next_token.value == ")":
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: comma requires a following expression"
+                    )
 
     @staticmethod
     def _validate_variable_reference(token: Token, context: EmitContext) -> None:

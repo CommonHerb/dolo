@@ -412,6 +412,80 @@ end
 
         self.assertEqual(compile_source(source), expected)
 
+    def test_parenthesized_expressions_must_not_be_empty(self):
+        source = """fn bad() {
+  return ()
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 10: empty parenthesized expression is not implemented",
+        ):
+            compile_source(source)
+
+    def test_expression_commas_require_values_on_both_sides(self):
+        cases = (
+            (
+                """fn bad() {
+  return (,1)
+}
+""",
+                r"line 2, column 11: comma requires a preceding expression",
+            ),
+            (
+                """fn bad() {
+  return (1,)
+}
+""",
+                r"line 2, column 12: comma requires a following expression",
+            ),
+            (
+                """fn bad() {
+  return (1,,2)
+}
+""",
+                r"line 2, column 13: comma requires a preceding expression",
+            ),
+            (
+                """fn f(x) {
+  return x
+}
+fn bad() {
+  return f(,1)
+}
+""",
+                r"line 5, column 12: comma requires a preceding expression",
+            ),
+            (
+                """fn f(x) {
+  return x
+}
+fn bad() {
+  return f(1,)
+}
+""",
+                r"line 5, column 13: comma requires a following expression",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
+    def test_zero_argument_calls_remain_valid_expressions(self):
+        source = """fn ok() {
+  return new_buffer()
+}
+"""
+        expected = """func ok():
+  return new_buffer()
+end
+"""
+
+        self.assertEqual(compile_source(source), expected)
+
     def test_observed_herbert_builtin_call_target_is_allowed(self):
         source = """fn same(a, b) {
   return equal(a, b)
