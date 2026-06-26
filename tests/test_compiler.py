@@ -108,6 +108,35 @@ fn main() {
         ):
             compile_source(source)
 
+    def test_function_call_target_must_be_known(self):
+        source = """fn bad() {
+  return missing(1)
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 10: unknown function call 'missing'",
+        ):
+            compile_source(source)
+
+    def test_observed_herbert_builtin_call_target_is_allowed(self):
+        source = """fn same(a, b) {
+  return equal(a, b)
+}
+"""
+        expected = """func same(a, b):
+  return equal(a, b)
+end
+"""
+
+        try:
+            emitted = compile_source(source)
+        except DoloSyntaxError as exc:
+            self.fail(f"observed Herbert builtin should be allowed: {exc}")
+
+        self.assertEqual(emitted, expected)
+
     def test_record_constructor_and_if_else_lower_to_herbert(self):
         source = """record Citizen { name, hunger }
 

@@ -106,7 +106,9 @@ Implemented expression behavior includes:
 
 - integer, boolean, string, and character literals
 - variable references
-- function calls
+- function calls to Dolo functions declared in the same source file
+- calls to the observed Herbert built-ins named in
+  `docs/foundation/herbert-target-subset.md`
 - tuple construction
 - arithmetic and comparison operators accepted by Herbert
 - `&&` lowering to Herbert `and`
@@ -154,6 +156,7 @@ Diagnostics are intentionally small:
 - record constructor arity mismatches report expected and actual field counts
   at the constructor column
 - assignment to an unbound name reports the assignment target column
+- unknown function call targets report the call target column
 - the bootstrap CLI prints `DoloSyntaxError` and source-file read failures as
   `dolo: ...` on stderr and exits with status 1, without a Python traceback
 

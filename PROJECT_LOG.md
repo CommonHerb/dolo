@@ -120,3 +120,15 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 3 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Added function call target validation: calls now target Dolo functions
+  declared in the same source file or the observed Herbert built-ins documented
+  in `docs/foundation/herbert-target-subset.md`; unknown call targets fail with
+  a columned `DoloSyntaxError`.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 28 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 3 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

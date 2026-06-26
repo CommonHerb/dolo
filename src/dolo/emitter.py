@@ -8,6 +8,7 @@ class Emitter:
     def __init__(self, program: Program):
         self.program = program
         self.records = {record.name: record for record in program.records}
+        self.functions = {function.name for function in program.functions}
 
     def emit(self) -> str:
         chunks = [self._emit_function(function) for function in self.program.functions]
@@ -89,6 +90,8 @@ class Emitter:
                 self._validate_constructor(token, expr, i)
                 i += 1
                 continue
+            if token.kind == "IDENT" and self._next_value(expr, i, "("):
+                self._validate_call_target(token)
             value = _operator_value(token.value)
             parts.append(value)
             i += 1
@@ -137,6 +140,11 @@ class Emitter:
             ) from exc
         return f"{target.value}.{index}"
 
+    def _validate_call_target(self, token: Token) -> None:
+        if token.value in self.functions or token.value in HERBERT_BUILTINS:
+            return
+        raise DoloSyntaxError(f"{_location(token)}: unknown function call {token.value!r}")
+
     @staticmethod
     def _next_value(expr: Expr, index: int, value: str) -> bool:
         return index + 1 < len(expr.tokens) and expr.tokens[index + 1].value == value
@@ -181,6 +189,22 @@ def _operator_value(value: str) -> str:
 
 def _location(token: Token) -> str:
     return f"line {token.line}, column {token.column}"
+
+
+HERBERT_BUILTINS = frozenset(
+    {
+        "add",
+        "append",
+        "count",
+        "equal",
+        "freeze",
+        "get",
+        "index",
+        "length",
+        "new_array",
+        "new_buffer",
+    }
+)
 
 
 def emit_program(program: Program) -> str:
