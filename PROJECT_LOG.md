@@ -2,6 +2,26 @@
 
 ## 2026-06-26
 
+- Hardened top-level declaration diagnostics so `record` and `fn`
+  declarations without names report the declaration-name boundary instead of
+  the generic identifier parser fallback.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_top_level_declarations_require_names`
+  (first observed failures: `expected ident` for both missing record and
+  function names; after the parser change: `Ran 1 test`, `OK`).
+- Verified neighboring declaration diagnostics with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_top_level_declarations_require_names tests.test_compiler.CompilerTests.test_record_declaration_rejects_duplicate_record_names tests.test_compiler.CompilerTests.test_function_declaration_rejects_duplicate_function_names tests.test_compiler.CompilerTests.test_top_level_declaration_names_must_not_overlap tests.test_compiler.CompilerTests.test_function_declaration_rejects_observed_herbert_builtin_names`
+  (`Ran 5 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 103 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 12 Dolo executable example(s)`, `PASS: 3 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Tightened duplicate lookup validation further so table-shaped migration
   candidates reject a repeated branch name before numeric-return extraction,
   including repeats whose `return` line would otherwise be skipped from the

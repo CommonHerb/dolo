@@ -46,7 +46,7 @@ class Parser:
         return program
 
     def _parse_record_after_keyword(self) -> RecordDecl:
-        name_token = self._expect_kind("IDENT")
+        name_token = self._expect_declaration_name("record")
         name = name_token.value
         if name in self.record_names:
             self._fail_at(name_token, f"duplicate record {name}")
@@ -79,7 +79,7 @@ class Parser:
         return RecordDecl(name, tuple(fields))
 
     def _parse_function_after_keyword(self) -> FunctionDecl:
-        name_token = self._expect_kind("IDENT")
+        name_token = self._expect_declaration_name("function")
         name = name_token.value
         if name in self.function_names:
             self._fail_at(name_token, f"duplicate function {name}")
@@ -104,6 +104,11 @@ class Parser:
                 f"function {name!r} may complete without returning",
             )
         return FunctionDecl(name, tuple(params), tuple(body))
+
+    def _expect_declaration_name(self, kind: str) -> Token:
+        if not self._at("IDENT"):
+            self._fail(f"{kind} declaration expects a name")
+        return self._advance()
 
     def _parse_params(self, function_name: str) -> list[Param]:
         params: list[Param] = []

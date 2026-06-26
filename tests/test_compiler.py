@@ -42,6 +42,31 @@ end
 
         self.assertEqual(compile_source(source), expected)
 
+    def test_top_level_declarations_require_names(self):
+        cases = (
+            (
+                """record { value }
+
+fn main() {
+  return 1
+}
+""",
+                r"line 1, column 8: record declaration expects a name",
+            ),
+            (
+                """fn () {
+  return 1
+}
+""",
+                r"line 1, column 4: function declaration expects a name",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_record_type_propagates_through_identifier_binding(self):
         source = """record Citizen { name, hunger }
 

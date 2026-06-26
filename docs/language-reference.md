@@ -212,6 +212,8 @@ Diagnostics are intentionally small:
   noticed the issue
 - sources without top-level declarations report the EOF column after leading
   whitespace, comments, or newlines
+- top-level `record` and `fn` declarations without names report the token where
+  the declaration name was expected
 - duplicate top-level record names, top-level function names, record/function
   name overlaps, record fields, and function parameters report the repeated
   name column

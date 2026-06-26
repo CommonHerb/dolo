@@ -27,10 +27,11 @@ This proves:
   before Herbert emission, while no-value Herbert mutation built-ins remain
   rejected from Dolo value expressions
 - sources without top-level declarations, duplicate declarations, including
-  record/function name overlaps, empty record declarations, record annotation
-  errors, record field declaration missing-name commas, record field
-  declaration trailing commas, function parameter missing-name commas, function
-  parameter trailing commas, function names that reuse observed Herbert
+  record/function name overlaps, missing top-level declaration names, empty
+  record declarations, record annotation errors, record field declaration
+  missing-name commas, record field declaration trailing commas, function
+  parameter missing-name commas, function parameter trailing commas, function
+  names that reuse observed Herbert
   built-ins, `main` declarations with parameters, functions that may complete
   without returning, unbound variables, unbound assignment targets, duplicate
   `let` bindings, `let` statements without binding names, assignment operators
