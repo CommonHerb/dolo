@@ -57,6 +57,10 @@ got_seed="$(sha256sum "$seed" | awk '{print $1}')"
 
 manifest="$ROOT/tests/fixtures/executable_manifest.tsv"
 [[ -f "$manifest" ]] || fail "manifest missing at $manifest"
+migration_manifest="$ROOT/tests/fixtures/herbert_migration_manifest.tsv"
+[[ -f "$migration_manifest" ]] || fail "migration manifest missing at $migration_manifest"
+
+PYTHONPATH="$ROOT/src" python3 -m dolo.manifests --root "$ROOT" verify || fail "manifest validation failed"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -119,9 +123,6 @@ done <"$manifest"
 
 [[ "$case_count" -gt 0 ]] || fail "manifest contained no executable examples"
 note "PASS: $case_count Dolo executable example(s) ran through pinned Herbert $HERBERT_COMMIT"
-
-migration_manifest="$ROOT/tests/fixtures/herbert_migration_manifest.tsv"
-[[ -f "$migration_manifest" ]] || fail "migration manifest missing at $migration_manifest"
 
 migration_count=0
 while IFS=$'\t' read -r source_rel stdout_rel extra; do

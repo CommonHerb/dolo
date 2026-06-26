@@ -26,8 +26,9 @@ This proves:
 - the CLI reports syntax and source-file read failures without Python
   tracebacks
 - committed examples match committed Herbert goldens
-- every `examples/*.dolo` file is either in the executable manifest or listed
-  in the non-executable example manifest with a reason
+- repository manifests have sorted rows, the expected tab-separated fields,
+  existing file targets, and every `examples/*.dolo` file is either executable
+  or explicitly non-executable with a reason
 - the Herbert truth harness is pinned, stages a temporary seed copy, and
   includes the migration-candidate manifest
 
@@ -57,6 +58,8 @@ This proves, for the executable manifest in
 
 The harness stages a temporary executable copy of Herbert's tracked
 `bootstrap/seed/gen1.seed`; it does not chmod or modify the Herbert checkout.
+Before staging the seed, the harness runs the same manifest validator used by
+the local bootstrap tests so malformed manifests fail before native execution.
 
 Examples intentionally excluded from the executable truth loop must be listed
 with a reason in `tests/fixtures/non_executable_examples.tsv`; the local

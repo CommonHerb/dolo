@@ -7,7 +7,7 @@ ledger names the borrowed substrate used by the current repository.
 
 | Substrate | Current Use | Why Allowed Now | Exit Direction |
 | --- | --- | --- | --- |
-| Python 3.13 standard library | Bootstrap parser, emitter, CLI, unit tests | Small, readable, dependency-free first compiler | Replace narrow pieces with Herbert-family implementation after behavior is pinned |
+| Python 3.13 standard library | Bootstrap parser, emitter, CLI, manifest validator, unit tests | Small, readable, dependency-free first compiler | Replace narrow pieces with Herbert-family implementation after behavior is pinned |
 | Bash | Native truth harness | Expresses the Linux/x86_64 seed compile/run loop plainly | Replace with a Herbert-family verifier when the toolchain can host it |
 | GitHub Actions | Public Linux/x86_64 verification | Runs the pinned Herbert seed on the platform it targets | Move toward owned CI or Herbert-native verification when available |
 | Ubuntu/Linux x86_64 | Executes Herbert gen-1 seed and generated ELFs | Current seed is a Linux/x86_64 ELF | Herbert OS/native execution |

@@ -265,6 +265,31 @@ end
                 self.assertEqual(compile_source(source), herb_path.read_text())
                 self.assertTrue(stdout_path.read_text().endswith("\n"))
 
+    def test_manifest_reader_rejects_malformed_rows(self):
+        from dolo.manifests import ManifestError, read_manifest_rows
+
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = Path(tmp) / "bad.tsv"
+            manifest.write_text("examples/citizen.dolo\ttests/fixtures/citizen.herb\n")
+
+            with self.assertRaisesRegex(
+                ManifestError,
+                r"bad.tsv:1: expected 3 tab-separated fields, got 2",
+            ):
+                read_manifest_rows(manifest, columns=3)
+
+    def test_manifest_validator_accepts_repository_manifests(self):
+        result = subprocess.run(
+            [sys.executable, "-m", "dolo.manifests", "--root", str(ROOT), "verify"],
+            env={"PYTHONPATH": str(ROOT / "src")},
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(result.stderr, "")
+
     def test_all_examples_are_classified_for_execution(self):
         executable_manifest = (
             ROOT / "tests" / "fixtures" / "executable_manifest.tsv"
@@ -583,13 +608,11 @@ end
         self.assertNotIn('"$seed" <"$generated"', harness_text)
 
     def test_first_herbert_migration_candidate_is_manifested(self):
+        from dolo.manifests import read_manifest_rows
+
         manifest = ROOT / "tests" / "fixtures" / "herbert_migration_manifest.tsv"
         self.assertTrue(manifest.is_file(), "Herbert migration manifest is required")
-        rows = [
-            tuple(line.split("\t"))
-            for line in manifest.read_text().splitlines()
-            if line and not line.startswith("#")
-        ]
+        rows = read_manifest_rows(manifest, columns=2)
         self.assertGreaterEqual(len(rows), 1)
 
         for source_rel, stdout_rel in rows:
@@ -603,8 +626,10 @@ end
 
     def test_herbert_truth_harness_runs_migration_candidates(self):
         harness = ROOT / "scripts" / "verify_herbert_truth.sh"
+        harness_text = harness.read_text()
 
-        self.assertIn("herbert_migration_manifest.tsv", harness.read_text())
+        self.assertIn("herbert_migration_manifest.tsv", harness_text)
+        self.assertIn("python3 -m dolo.manifests", harness_text)
 
 
 if __name__ == "__main__":

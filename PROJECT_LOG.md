@@ -278,3 +278,20 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 5 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Added a Python-standard-library manifest validator that rejects malformed TSV
+  rows, unsorted manifests, missing file targets, duplicate executable versus
+  non-executable example classifications, and unclassified examples before the
+  slower Herbert execution loop runs.
+- Wired `scripts/verify_herbert_truth.sh` to run the same manifest validator
+  before staging the pinned Herbert seed, keeping local and Linux/x86_64
+  manifest contracts aligned.
+- Updated `VERIFYING.md` and `docs/trust-debt.md` to document the new
+  validation proof and its Python bootstrap-substrate status.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 40 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 5 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).
