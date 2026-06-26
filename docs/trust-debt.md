@@ -14,13 +14,17 @@ ledger names the borrowed substrate used by the current repository.
 | `CommonHerb/herbert` gen-1 seed | Production Herbert compiler for the proof loop | Herbert currently treats this seed as the C-free production toolchain | Continue following Herbert's sovereignty roadmap toward textual seed hardening and OS lineage |
 | macOS/Apple Silicon | Local editing and bootstrap tests | Development host only | Never treat as proof of Herbert native execution for this seed |
 
-## First Repayment Candidate
+## Repayment Candidates
 
-`experiments/herbert/record_field_index_candidate.herb` is the first tiny
-Herbert-family implementation candidate. It mirrors a narrow record-field-index
-decision from the Python bootstrap compiler and is run through pinned Herbert in
-CI. It is not yet wired into the Dolo compiler, so it is a repayment candidate,
-not a paid debt.
+The `experiments/herbert/` programs are tiny Herbert-family implementation
+candidates. Today they mirror narrow Python bootstrap compiler decisions:
+
+- `record_field_index_candidate.herb` mirrors record-field-index selection.
+- `array_mutation_candidate.herb` mirrors the typed array and no-value mutation
+  boundary used by Dolo's emitted Herbert.
+
+They run through pinned Herbert in CI. They are not yet wired into the Dolo
+compiler, so they are repayment candidates, not paid debt.
 
 ## Current Pin
 

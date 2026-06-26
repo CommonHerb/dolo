@@ -2,6 +2,23 @@
 
 ## 2026-06-26
 
+- Added Herbert-family migration candidate 0002,
+  `experiments/herbert/array_mutation_candidate.herb`, plus its stdout golden
+  and candidate note. It mirrors the pinned typed-array and `do` mutation
+  behavior from `examples/array_mutation.dolo` without claiming any Python
+  compiler replacement yet.
+- Updated `ROADMAP.md` and `docs/trust-debt.md` so they describe the current
+  migration-candidate set rather than only candidate 0001.
+- Verified the candidate slice with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 69 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 8 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Tightened the built-in `new_array(...)` boundary so it now reports a focused
   diagnostic when the call has zero or multiple Herbert type arguments. This
   preserves Dolo function precedence for a user-defined `new_array` function.

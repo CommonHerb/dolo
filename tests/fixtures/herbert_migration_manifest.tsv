@@ -1,2 +1,3 @@
 # source	stdout
+experiments/herbert/array_mutation_candidate.herb	tests/fixtures/array_mutation_candidate.stdout
 experiments/herbert/record_field_index_candidate.herb	tests/fixtures/record_field_index_candidate.stdout
