@@ -48,3 +48,10 @@
   `experiments/herbert/record_field_index_candidate.herb`, plus
   `docs/migration-candidates/0001-record-field-index.md` and a CI manifest so
   the candidate runs through the same pinned Herbert seed.
+- Started Dolo stewardship branch `codex/dolo-stewardship-20260625`.
+- Tightened tokenizer diagnostics so unexpected characters and unterminated
+  string or character literals report line and column, with focused RED-first
+  tests.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 14 tests`, `OK`).

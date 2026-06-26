@@ -123,6 +123,42 @@ end
 
         self.assertEqual(compile_source(source), expected)
 
+    def test_unexpected_character_diagnostic_reports_line_and_column(self):
+        source = """fn bad() {
+  return @
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 10: unexpected character '@'",
+        ):
+            compile_source(source)
+
+    def test_unterminated_string_diagnostic_reports_start_line_and_column(self):
+        source = """fn bad() {
+  return "open
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 10: unterminated string literal",
+        ):
+            compile_source(source)
+
+    def test_unterminated_character_diagnostic_reports_start_line_and_column(self):
+        source = """fn bad() {
+  return 'x
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 10: unterminated character literal",
+        ):
+            compile_source(source)
+
     def test_herbert_truth_harness_is_pinned(self):
         lock = ROOT / "HERBERT.lock"
         harness = ROOT / "scripts" / "verify_herbert_truth.sh"

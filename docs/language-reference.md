@@ -132,7 +132,10 @@ ints, bools, strings, and supported tuples of renderable values.
 The compiler currently reports syntax and lowering errors as `DoloSyntaxError`.
 Diagnostics are intentionally small:
 
-- malformed source reports line and column where the parser noticed the issue
+- malformed source reports line and column where the tokenizer or parser
+  noticed the issue
+- unexpected characters and unterminated string or character literals report
+  the offending or opening column
 - unresolved record field access reports the target and field
 - unknown record fields report the record name and missing field
 - record constructor arity mismatches report expected and actual field counts

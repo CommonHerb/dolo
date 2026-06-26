@@ -66,6 +66,7 @@ def tokenize(source: str) -> list[Token]:
             continue
         if ch in ('"', "'"):
             quote = ch
+            literal_name = "string" if quote == '"' else "character"
             start = i
             start_line = line
             start_column = column
@@ -75,7 +76,9 @@ def tokenize(source: str) -> list[Token]:
             while i < len(source):
                 cur = source[i]
                 if cur == "\n":
-                    raise DoloSyntaxError(f"line {line}: unterminated literal")
+                    raise DoloSyntaxError(
+                        f"line {start_line}, column {start_column}: unterminated {literal_name} literal"
+                    )
                 i += 1
                 column += 1
                 if escaped:
@@ -87,7 +90,9 @@ def tokenize(source: str) -> list[Token]:
                     add(kind, source[start:i], start_line, start_column)
                     break
             else:
-                raise DoloSyntaxError(f"line {start_line}: unterminated literal")
+                raise DoloSyntaxError(
+                    f"line {start_line}, column {start_column}: unterminated {literal_name} literal"
+                )
             continue
         two = source[i : i + 2]
         if two in TWO_CHAR_OPS:
@@ -101,7 +106,7 @@ def tokenize(source: str) -> list[Token]:
             i += 1
             column += 1
             continue
-        raise DoloSyntaxError(f"line {line}: unexpected character {ch!r}")
+        raise DoloSyntaxError(f"line {line}, column {column}: unexpected character {ch!r}")
 
     tokens.append(Token("EOF", "", line, column))
     return tokens
