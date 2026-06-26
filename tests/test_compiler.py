@@ -120,6 +120,18 @@ fn main() {
         ):
             compile_source(source)
 
+    def test_expression_variable_must_be_bound(self):
+        source = """fn bad() {
+  return spare
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 10: unknown variable 'spare'",
+        ):
+            compile_source(source)
+
     def test_observed_herbert_builtin_call_target_is_allowed(self):
         source = """fn same(a, b) {
   return equal(a, b)

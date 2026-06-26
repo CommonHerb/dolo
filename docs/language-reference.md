@@ -117,6 +117,9 @@ Implemented expression behavior includes:
 - record constructors lowering to tuples
 - record field access lowering to tuple indexes
 
+Variable references must name a parameter or a local binding introduced earlier
+with `let`.
+
 The compiler does not yet own a full Dolo type system, precedence table, module
 system, or runtime.
 
@@ -157,6 +160,7 @@ Diagnostics are intentionally small:
   at the constructor column
 - assignment to an unbound name reports the assignment target column
 - unknown function call targets report the call target column
+- unknown variable references report the variable column
 - the bootstrap CLI prints `DoloSyntaxError` and source-file read failures as
   `dolo: ...` on stderr and exits with status 1, without a Python traceback
 

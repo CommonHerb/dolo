@@ -1,7 +1,18 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from .ast import AssignStmt, Expr, FunctionDecl, IfStmt, LetStmt, Program, RecordDecl, ReturnStmt, Stmt
 from .tokens import DoloSyntaxError, Token
+
+
+@dataclass
+class EmitContext:
+    record_types: dict[str, str | None]
+    bindings: set[str]
+
+    def branch(self) -> EmitContext:
+        return EmitContext(dict(self.record_types), set(self.bindings))
 
 
 class Emitter:
@@ -21,47 +32,41 @@ class Emitter:
             if param.type_name in self.records
         }
         bindings = {param.name for param in function.params}
+        context = EmitContext(record_types, bindings)
         params = ", ".join(param.name for param in function.params)
         lines = [f"func {function.name}({params}):"]
-        self._emit_block(function.body, record_types, bindings, lines, 1)
+        self._emit_block(function.body, context, lines, 1)
         lines.append("end")
         return "\n".join(lines)
 
     def _emit_block(
         self,
         statements: tuple[Stmt, ...],
-        record_types: dict[str, str | None],
-        bindings: set[str],
+        context: EmitContext,
         lines: list[str],
         indent: int,
     ) -> None:
         for stmt in statements:
             prefix = "  " * indent
             if isinstance(stmt, LetStmt):
-                lines.append(f"{prefix}let {stmt.name} = {self._emit_expr(stmt.expr, record_types)}")
-                bindings.add(stmt.name)
-                record_types[stmt.name] = self._record_from_constructor(stmt.expr)
+                lines.append(f"{prefix}let {stmt.name} = {self._emit_expr(stmt.expr, context)}")
+                context.bindings.add(stmt.name)
+                context.record_types[stmt.name] = self._record_from_constructor(stmt.expr)
             elif isinstance(stmt, AssignStmt):
-                if stmt.name not in bindings and stmt.name_token is not None:
+                if stmt.name not in context.bindings and stmt.name_token is not None:
                     raise DoloSyntaxError(
                         f"{_location(stmt.name_token)}: assignment target {stmt.name!r} is not bound"
                     )
-                lines.append(f"{prefix}{stmt.name} = {self._emit_expr(stmt.expr, record_types)}")
-                record_types[stmt.name] = self._record_from_constructor(stmt.expr)
+                lines.append(f"{prefix}{stmt.name} = {self._emit_expr(stmt.expr, context)}")
+                context.record_types[stmt.name] = self._record_from_constructor(stmt.expr)
             elif isinstance(stmt, ReturnStmt):
-                lines.append(f"{prefix}return {self._emit_expr(stmt.expr, record_types)}")
+                lines.append(f"{prefix}return {self._emit_expr(stmt.expr, context)}")
             elif isinstance(stmt, IfStmt):
-                lines.append(f"{prefix}if {self._emit_expr(stmt.condition, record_types)}:")
-                self._emit_block(stmt.then_body, dict(record_types), set(bindings), lines, indent + 1)
+                lines.append(f"{prefix}if {self._emit_expr(stmt.condition, context)}:")
+                self._emit_block(stmt.then_body, context.branch(), lines, indent + 1)
                 if stmt.else_body:
                     lines.append(f"{prefix}else:")
-                    self._emit_block(
-                        stmt.else_body,
-                        dict(record_types),
-                        set(bindings),
-                        lines,
-                        indent + 1,
-                    )
+                    self._emit_block(stmt.else_body, context.branch(), lines, indent + 1)
                 lines.append(f"{prefix}end")
             else:
                 raise TypeError(f"unknown statement {stmt!r}")
@@ -72,7 +77,7 @@ class Emitter:
             return tokens[0].value
         return None
 
-    def _emit_expr(self, expr: Expr, env: dict[str, str | None]) -> str:
+    def _emit_expr(self, expr: Expr, context: EmitContext) -> str:
         parts: list[str] = []
         i = 0
         while i < len(expr.tokens):
@@ -83,7 +88,7 @@ class Emitter:
                 and expr.tokens[i + 1].value == "."
                 and expr.tokens[i + 2].kind == "IDENT"
             ):
-                parts.append(self._emit_field_access(token, expr.tokens[i + 2], env))
+                parts.append(self._emit_field_access(token, expr.tokens[i + 2], context.record_types))
                 i += 3
                 continue
             if token.kind == "IDENT" and token.value in self.records and self._next_value(expr, i, "("):
@@ -92,6 +97,8 @@ class Emitter:
                 continue
             if token.kind == "IDENT" and self._next_value(expr, i, "("):
                 self._validate_call_target(token)
+            elif token.kind == "IDENT":
+                self._validate_variable_reference(token, context)
             value = _operator_value(token.value)
             parts.append(value)
             i += 1
@@ -144,6 +151,12 @@ class Emitter:
         if token.value in self.functions or token.value in HERBERT_BUILTINS:
             return
         raise DoloSyntaxError(f"{_location(token)}: unknown function call {token.value!r}")
+
+    @staticmethod
+    def _validate_variable_reference(token: Token, context: EmitContext) -> None:
+        if token.kind != "IDENT" or token.value in context.bindings:
+            return
+        raise DoloSyntaxError(f"{_location(token)}: unknown variable {token.value!r}")
 
     @staticmethod
     def _next_value(expr: Expr, index: int, value: str) -> bool:
