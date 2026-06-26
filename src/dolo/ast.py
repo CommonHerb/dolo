@@ -33,6 +33,7 @@ class LetStmt:
 class AssignStmt:
     name: str
     expr: Expr
+    name_token: Token | None = None
 
 
 @dataclass(frozen=True)

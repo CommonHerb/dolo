@@ -130,9 +130,10 @@ class Parser:
                 else_body = tuple(self._parse_block())
             return IfStmt(condition, then_body, else_body)
 
-        name = self._expect_kind("IDENT").value
+        name_token = self._expect_kind("IDENT")
+        name = name_token.value
         self._expect_value("=")
-        return AssignStmt(name, self._expr_until_line())
+        return AssignStmt(name, self._expr_until_line(), name_token)
 
     def _expr_until_line(self) -> Expr:
         collected: list[Token] = []

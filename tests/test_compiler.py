@@ -95,6 +95,19 @@ fn main() {
         ):
             compile_source(source)
 
+    def test_assignment_target_must_already_be_bound(self):
+        source = """fn bad() {
+  spare = 1
+  return spare
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 3: assignment target 'spare' is not bound",
+        ):
+            compile_source(source)
+
     def test_record_constructor_and_if_else_lower_to_herbert(self):
         source = """record Citizen { name, hunger }
 

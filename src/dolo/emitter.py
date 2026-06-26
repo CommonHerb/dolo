@@ -14,40 +14,53 @@ class Emitter:
         return "\n\n".join(chunks) + ("\n" if chunks else "")
 
     def _emit_function(self, function: FunctionDecl) -> str:
-        env = {
+        record_types = {
             param.name: param.type_name
             for param in function.params
             if param.type_name in self.records
         }
+        bindings = {param.name for param in function.params}
         params = ", ".join(param.name for param in function.params)
         lines = [f"func {function.name}({params}):"]
-        self._emit_block(function.body, env, lines, 1)
+        self._emit_block(function.body, record_types, bindings, lines, 1)
         lines.append("end")
         return "\n".join(lines)
 
     def _emit_block(
         self,
         statements: tuple[Stmt, ...],
-        env: dict[str, str | None],
+        record_types: dict[str, str | None],
+        bindings: set[str],
         lines: list[str],
         indent: int,
     ) -> None:
         for stmt in statements:
             prefix = "  " * indent
             if isinstance(stmt, LetStmt):
-                lines.append(f"{prefix}let {stmt.name} = {self._emit_expr(stmt.expr, env)}")
-                env[stmt.name] = self._record_from_constructor(stmt.expr)
+                lines.append(f"{prefix}let {stmt.name} = {self._emit_expr(stmt.expr, record_types)}")
+                bindings.add(stmt.name)
+                record_types[stmt.name] = self._record_from_constructor(stmt.expr)
             elif isinstance(stmt, AssignStmt):
-                lines.append(f"{prefix}{stmt.name} = {self._emit_expr(stmt.expr, env)}")
-                env[stmt.name] = self._record_from_constructor(stmt.expr)
+                if stmt.name not in bindings and stmt.name_token is not None:
+                    raise DoloSyntaxError(
+                        f"{_location(stmt.name_token)}: assignment target {stmt.name!r} is not bound"
+                    )
+                lines.append(f"{prefix}{stmt.name} = {self._emit_expr(stmt.expr, record_types)}")
+                record_types[stmt.name] = self._record_from_constructor(stmt.expr)
             elif isinstance(stmt, ReturnStmt):
-                lines.append(f"{prefix}return {self._emit_expr(stmt.expr, env)}")
+                lines.append(f"{prefix}return {self._emit_expr(stmt.expr, record_types)}")
             elif isinstance(stmt, IfStmt):
-                lines.append(f"{prefix}if {self._emit_expr(stmt.condition, env)}:")
-                self._emit_block(stmt.then_body, dict(env), lines, indent + 1)
+                lines.append(f"{prefix}if {self._emit_expr(stmt.condition, record_types)}:")
+                self._emit_block(stmt.then_body, dict(record_types), set(bindings), lines, indent + 1)
                 if stmt.else_body:
                     lines.append(f"{prefix}else:")
-                    self._emit_block(stmt.else_body, dict(env), lines, indent + 1)
+                    self._emit_block(
+                        stmt.else_body,
+                        dict(record_types),
+                        set(bindings),
+                        lines,
+                        indent + 1,
+                    )
                 lines.append(f"{prefix}end")
             else:
                 raise TypeError(f"unknown statement {stmt!r}")

@@ -91,6 +91,9 @@ Implemented statements are:
 - `return expr`
 - `if expr { ... } else { ... }`
 
+`let` introduces a local binding. Assignment updates an existing parameter or
+local binding; it does not introduce a new name.
+
 `else` is optional. `elif`, loops, imports, modules, effects, methods, and
 pattern matching are not implemented.
 
@@ -150,6 +153,7 @@ Diagnostics are intentionally small:
 - unknown record fields report the record name, missing field, and field column
 - record constructor arity mismatches report expected and actual field counts
   at the constructor column
+- assignment to an unbound name reports the assignment target column
 - the bootstrap CLI prints `DoloSyntaxError` and source-file read failures as
   `dolo: ...` on stderr and exits with status 1, without a Python traceback
 
