@@ -86,6 +86,11 @@ class Parser:
         self._expect_value(")")
         self._expect_value("{")
         body = self._parse_block()
+        if not _block_guarantees_return(tuple(body)):
+            self._fail_at(
+                name_token,
+                f"function {name!r} may complete without returning",
+            )
         return FunctionDecl(name, tuple(params), tuple(body))
 
     def _parse_params(self, function_name: str) -> list[Param]:
@@ -273,3 +278,20 @@ class Parser:
 
 def parse_source(source: str) -> Program:
     return Parser(source).parse()
+
+
+def _block_guarantees_return(statements: tuple[Stmt, ...]) -> bool:
+    for stmt in statements:
+        if _stmt_guarantees_return(stmt):
+            return True
+    return False
+
+
+def _stmt_guarantees_return(stmt: Stmt) -> bool:
+    if isinstance(stmt, ReturnStmt):
+        return True
+    if isinstance(stmt, IfStmt):
+        return bool(stmt.else_body) and _block_guarantees_return(
+            stmt.then_body
+        ) and _block_guarantees_return(stmt.else_body)
+    return False

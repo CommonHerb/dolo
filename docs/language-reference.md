@@ -100,6 +100,12 @@ requires exactly one observed Herbert type-expression argument: `int`, `bool`,
 `string`, `buffer`, `array(T)`, and tuple type expressions with at least two
 fields such as `(int, bool)`.
 
+Every function must return on all paths the current control-flow checker can
+represent. A direct `return` satisfies the current block. An `if` satisfies the
+current block only when it has an `else` and both arms themselves guarantee a
+return. A single-arm `if` may fall through and is rejected unless a later
+statement returns.
+
 Observed Herbert no-value mutation built-ins such as `add` and `append` are not
 valid Dolo expression calls. Use a `do` statement for those calls.
 
@@ -186,6 +192,7 @@ Diagnostics are intentionally small:
 - function declarations that reuse observed Herbert built-in names report the
   function name column
 - `main` declarations with parameters report the `main` name column
+- functions that may complete without returning report the function name column
 - unknown record annotations report the annotation column
 - unexpected characters and unterminated string or character literals report
   the offending or opening column

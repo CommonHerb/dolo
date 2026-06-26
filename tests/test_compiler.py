@@ -173,6 +173,67 @@ record Thing { value }
         ):
             compile_source(source)
 
+    def test_functions_must_return_on_all_paths(self):
+        cases = (
+            (
+                """fn helper() {
+  let x = 1
+}
+""",
+                r"line 1, column 4: function 'helper' may complete without returning",
+            ),
+            (
+                """fn main() {
+  let x = 1
+}
+""",
+                r"line 1, column 4: function 'main' may complete without returning",
+            ),
+            (
+                """fn main() {
+  if true {
+    return 1
+  }
+}
+""",
+                r"line 1, column 4: function 'main' may complete without returning",
+            ),
+            (
+                """fn maybe(flag) {
+  if flag {
+    return 1
+  }
+}
+""",
+                r"line 1, column 4: function 'maybe' may complete without returning",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
+    def test_if_else_return_in_both_arms_satisfies_function_return(self):
+        source = """fn choose(flag) {
+  if flag {
+    return 1
+  } else {
+    return 2
+  }
+}
+"""
+        expected = """func choose(flag):
+  if flag:
+    return 1
+  else:
+    return 2
+  end
+end
+"""
+
+        self.assertEqual(compile_source(source), expected)
+
     def test_function_parameter_annotation_must_name_a_record(self):
         source = """fn bad(c: Missing) {
   return c
@@ -430,6 +491,7 @@ end
     def test_do_statement_rejects_value_builtin_calls(self):
         source = """fn bad() {
   do length("abc")
+  return 0
 }
 """
 
@@ -442,6 +504,7 @@ end
     def test_do_statement_rejects_unknown_calls(self):
         source = """fn bad() {
   do missing(1)
+  return 0
 }
 """
 
@@ -456,6 +519,7 @@ end
             (
                 """fn bad(items) {
   do items
+  return 0
 }
 """,
                 r"line 2, column 6: do statement requires a call",
@@ -463,6 +527,7 @@ end
             (
                 """fn bad(items) {
   do add(items, 1) + 2
+  return 0
 }
 """,
                 r"line 2, column 20: do statement must contain exactly one call",
@@ -477,6 +542,7 @@ end
     def test_do_statement_validates_no_value_builtin_arity(self):
         source = """fn bad(items) {
   do add(items)
+  return 0
 }
 """
 
@@ -1539,6 +1605,7 @@ fn bad() {
 
 fn bad() {
   let c = Citizen("Ada")
+  return c
 }
 """
 

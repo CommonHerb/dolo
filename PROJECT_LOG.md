@@ -2,6 +2,31 @@
 
 ## 2026-06-26
 
+- Added conservative return-completeness validation for Dolo functions: a
+  function must reach a direct `return`, or an `if` with an `else` where both
+  arms guarantee a return, before Dolo emits Herbert. This matches the pinned
+  Herbert target's `function '<name>' may complete without returning` boundary
+  for the no-loop control-flow forms Dolo currently has.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_functions_must_return_on_all_paths tests.test_compiler.CompilerTests.test_if_else_return_in_both_arms_satisfies_function_return`
+  (first observed failures: four fallthrough functions did not raise
+  `DoloSyntaxError`; after the parser change: `Ran 2 tests`, `OK`).
+- Updated stale diagnostics fixtures that were testing invalid `do` statements
+  or constructor arity inside functions that also fell off the end; each now has
+  a trailing `return` so the intended diagnostic remains isolated.
+- Verified the formerly masked diagnostics with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_do_statement_rejects_value_builtin_calls tests.test_compiler.CompilerTests.test_do_statement_rejects_unknown_calls tests.test_compiler.CompilerTests.test_do_statement_requires_one_whole_call tests.test_compiler.CompilerTests.test_do_statement_validates_no_value_builtin_arity tests.test_compiler.CompilerTests.test_record_constructor_arity_diagnostic_reports_column`
+  (`Ran 5 tests`, `OK`).
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 76 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Enforced the pinned Herbert executable-entry boundary for Dolo `main`: when a
   source declares `fn main`, it must take zero parameters before the compiler
   will emit Herbert.

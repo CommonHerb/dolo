@@ -34,7 +34,10 @@ Dolo v0 may emit Herbert source using:
 - no-argument `func main()` returning a value that Herbert's native renderer can
   print on Linux/x86_64
 
-Dolo enforces the no-argument `main` boundary when `main` is declared.
+Dolo enforces the no-argument `main` boundary when `main` is declared. It also
+rejects functions that may complete without returning, matching the pinned
+Herbert target's current return-completeness boundary for the control-flow
+forms Dolo can express today.
 
 For value-level built-ins that Dolo can currently emit directly, the bootstrap
 compiler validates observed argument counts before Herbert emission. This is an
