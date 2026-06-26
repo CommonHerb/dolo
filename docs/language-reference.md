@@ -158,6 +158,9 @@ Implemented expression behavior includes:
 Variable references must name a parameter or a local binding introduced earlier
 with `let`.
 
+Binary operators must have operands on both sides. Prefix `!` is the only
+implemented unary operator today.
+
 The compiler does not yet own a full Dolo type system, precedence table, module
 system, or runtime.
 
@@ -210,6 +213,7 @@ Diagnostics are intentionally small:
 - `let` binding redeclarations report the repeated binding column
 - assignment to an unbound name reports the assignment target column
 - assignment operators inside expressions report the operator column
+- binary operators without a left or right operand report the operator column
 - unknown function call targets report the call target column
 - Dolo function call arity mismatches report expected and actual argument
   counts at the call target column

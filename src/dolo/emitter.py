@@ -127,6 +127,8 @@ class Emitter:
                 raise DoloSyntaxError(
                     f"{_location(token)}: unexpected keyword {token.value!r} in expression"
                 )
+            if token.value in INFIX_OPERATORS:
+                self._validate_infix_operator(expr, i)
             if (
                 token.kind == "IDENT"
                 and i + 2 < len(expr.tokens)
@@ -407,6 +409,24 @@ class Emitter:
     def _next_value(expr: Expr, index: int, value: str) -> bool:
         return index + 1 < len(expr.tokens) and expr.tokens[index + 1].value == value
 
+    @staticmethod
+    def _validate_infix_operator(expr: Expr, index: int) -> None:
+        token = expr.tokens[index]
+        previous = expr.tokens[index - 1] if index > 0 else None
+        next_token = expr.tokens[index + 1] if index + 1 < len(expr.tokens) else None
+        if previous is None or previous.value in INFIX_OPERATORS or previous.value in {"(", ","}:
+            raise DoloSyntaxError(
+                f"{_location(token)}: binary operator {token.value!r} requires a left operand"
+            )
+        if (
+            next_token is None
+            or next_token.value in INFIX_OPERATORS
+            or next_token.value in {")", ","}
+        ):
+            raise DoloSyntaxError(
+                f"{_location(token)}: binary operator {token.value!r} requires a right operand"
+            )
+
 
 def _format_expr(parts: list[str]) -> str:
     out = ""
@@ -454,6 +474,9 @@ def _argument_word(count: int) -> str:
 
 
 EXPRESSION_KEYWORDS = frozenset({"false", "true"})
+INFIX_OPERATORS = frozenset(
+    {"+", "-", "*", "/", "%", "<", ">", "<=", ">=", "==", "!=", "&&", "||"}
+)
 
 
 def emit_program(program: Program) -> str:

@@ -359,6 +359,59 @@ fn bad() {
                 with self.assertRaisesRegex(DoloSyntaxError, expected):
                     compile_source(source)
 
+    def test_binary_operators_require_operands(self):
+        cases = (
+            (
+                """fn bad() {
+  return 1 +
+}
+""",
+                r"line 2, column 12: binary operator '\+' requires a right operand",
+            ),
+            (
+                """fn bad() {
+  return + 1
+}
+""",
+                r"line 2, column 10: binary operator '\+' requires a left operand",
+            ),
+            (
+                """fn bad() {
+  return 1 + * 2
+}
+""",
+                r"line 2, column 12: binary operator '\+' requires a right operand",
+            ),
+            (
+                """fn bad(flag) {
+  if flag && {
+    return 1
+  } else {
+    return 0
+  }
+}
+""",
+                r"line 2, column 11: binary operator '&&' requires a right operand",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
+    def test_prefix_not_is_allowed_in_expressions(self):
+        source = """fn ok(flag) {
+  return !flag
+}
+"""
+        expected = """func ok(flag):
+  return not flag
+end
+"""
+
+        self.assertEqual(compile_source(source), expected)
+
     def test_observed_herbert_builtin_call_target_is_allowed(self):
         source = """fn same(a, b) {
   return equal(a, b)

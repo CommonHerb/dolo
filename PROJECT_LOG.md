@@ -2,6 +2,27 @@
 
 ## 2026-06-26
 
+- Added binary-operator shape validation for Dolo expressions, so malformed
+  forms such as `return 1 +`, `return + 1`, `return 1 + * 2`, and
+  `if flag &&` fail before Dolo emits Herbert with dangling or misplaced
+  operators. Prefix `!` remains valid and lowers to Herbert `not`.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_binary_operators_require_operands tests.test_compiler.CompilerTests.test_prefix_not_is_allowed_in_expressions`
+  (first observed failures: four malformed binary-operator expressions did not
+  raise `DoloSyntaxError`; after the emitter change: `Ran 2 tests`, `OK`).
+- Verified neighboring expression/example behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_record_constructor_and_if_else_lower_to_herbert tests.test_compiler.CompilerTests.test_examples_compile_to_committed_herbert tests.test_compiler.CompilerTests.test_text_builtin_example_compiles_to_committed_herbert`
+  (`Ran 3 tests`, `OK`).
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 79 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Tightened Dolo's assignment boundary so `=` remains statement syntax only.
   Expressions such as `return x = 1`, `let y = x = 1`, and `if flag = true`
   now fail with a Dolo diagnostic instead of emitting Herbert assignment-shaped
