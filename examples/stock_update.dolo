@@ -1,0 +1,10 @@
+fn reduce(stock) {
+  stock = stock - 2
+  return stock
+}
+
+fn main() {
+  let stock = 7
+  stock = reduce(stock)
+  return (stock, stock == 5)
+}

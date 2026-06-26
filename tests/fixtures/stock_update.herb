@@ -1,0 +1,10 @@
+func reduce(stock):
+  stock = stock - 2
+  return stock
+end
+
+func main():
+  let stock = 7
+  stock = reduce(stock)
+  return (stock, stock == 5)
+end
