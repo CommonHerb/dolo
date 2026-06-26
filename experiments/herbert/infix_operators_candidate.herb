@@ -1,0 +1,75 @@
+func infix_operator(name):
+    if equal(name, "!="):
+        return 1
+    else:
+        if equal(name, "%"):
+            return 1
+        else:
+            if equal(name, "&&"):
+                return 1
+            else:
+                if equal(name, "*"):
+                    return 1
+                else:
+                    if equal(name, "+"):
+                        return 1
+                    else:
+                        if equal(name, "-"):
+                            return 1
+                        else:
+                            if equal(name, "/"):
+                                return 1
+                            else:
+                                if equal(name, "<"):
+                                    return 1
+                                else:
+                                    if equal(name, "<="):
+                                        return 1
+                                    else:
+                                        if equal(name, "=="):
+                                            return 1
+                                        else:
+                                            if equal(name, ">"):
+                                                return 1
+                                            else:
+                                                if equal(name, ">="):
+                                                    return 1
+                                                else:
+                                                    if equal(name, "||"):
+                                                        return 1
+                                                    else:
+                                                        return 0
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+func main():
+    return (
+        "infix-operators-candidate",
+        infix_operator("!="),
+        infix_operator("%"),
+        infix_operator("&&"),
+        infix_operator("*"),
+        infix_operator("+"),
+        infix_operator("-"),
+        infix_operator("/"),
+        infix_operator("<"),
+        infix_operator("<="),
+        infix_operator("=="),
+        infix_operator(">"),
+        infix_operator(">="),
+        infix_operator("||"),
+        infix_operator("missing")
+    )
+end

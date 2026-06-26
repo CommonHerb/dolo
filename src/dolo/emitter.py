@@ -18,6 +18,7 @@ from .herbert_surface import (
     dolo_boolean_operator_lowering,
     herbert_builtin_arity,
     herbert_builtin_kind,
+    is_dolo_infix_operator,
     is_herbert_type_name,
 )
 from .tokens import DoloSyntaxError, Token
@@ -127,7 +128,8 @@ class Emitter:
                 raise DoloSyntaxError(
                     f"{_location(token)}: unexpected keyword {token.value!r} in expression"
                 )
-            if token.value in INFIX_OPERATORS:
+            is_infix_operator = is_dolo_infix_operator(token.value)
+            if is_infix_operator:
                 self._validate_infix_operator(expr, i)
             if (
                 token.kind == "IDENT"
@@ -138,10 +140,15 @@ class Emitter:
                 parts.append(self._emit_field_access(token, expr.tokens[i + 2], context.record_types))
                 i += 3
                 continue
-            if token.value == "=":
-                raise DoloSyntaxError(
-                    f"{_location(token)}: unexpected assignment operator in expression"
-                )
+            if not is_infix_operator:
+                if token.value == "=":
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: unexpected assignment operator in expression"
+                    )
+                if token.kind == "OP" and token.value != "!":
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: unexpected operator {token.value!r} in expression"
+                    )
             if token.kind == "IDENT" and token.value in self.records and self._next_value(expr, i, "("):
                 self._validate_constructor(token, expr, i)
                 i += 1
@@ -424,7 +431,7 @@ class Emitter:
                     and token.value in {"(", "."}
                 )
                 and previous.value not in {"(", ",", ".", "!"}
-                and previous.value not in INFIX_OPERATORS
+                and not is_dolo_infix_operator(previous.value)
             ):
                 raise DoloSyntaxError(
                     f"{_location(token)}: expected operator before {token.value!r}"
@@ -467,7 +474,7 @@ class Emitter:
             if token.value == "!":
                 if (
                     previous is not None
-                    and previous.value not in INFIX_OPERATORS
+                    and not is_dolo_infix_operator(previous.value)
                     and previous.value not in {"(", ",", "!"}
                 ):
                     raise DoloSyntaxError(
@@ -475,7 +482,7 @@ class Emitter:
                     )
                 if (
                     next_token is None
-                    or next_token.value in INFIX_OPERATORS
+                    or is_dolo_infix_operator(next_token.value)
                     or next_token.value in {")", ",", ".", "="}
                 ):
                     raise DoloSyntaxError(
@@ -497,13 +504,17 @@ class Emitter:
         token = expr.tokens[index]
         previous = expr.tokens[index - 1] if index > 0 else None
         next_token = expr.tokens[index + 1] if index + 1 < len(expr.tokens) else None
-        if previous is None or previous.value in INFIX_OPERATORS or previous.value in {"(", ","}:
+        if (
+            previous is None
+            or is_dolo_infix_operator(previous.value)
+            or previous.value in {"(", ","}
+        ):
             raise DoloSyntaxError(
                 f"{_location(token)}: binary operator {token.value!r} requires a left operand"
             )
         if (
             next_token is None
-            or next_token.value in INFIX_OPERATORS
+            or is_dolo_infix_operator(next_token.value)
             or next_token.value in {")", ","}
         ):
             raise DoloSyntaxError(
@@ -567,9 +578,6 @@ def _argument_word(count: int) -> str:
 
 
 EXPRESSION_KEYWORDS = frozenset({"false", "true"})
-INFIX_OPERATORS = frozenset(
-    {"+", "-", "*", "/", "%", "<", ">", "<=", ">=", "==", "!=", "&&", "||"}
-)
 UNSUPPORTED_EXPRESSION_PUNCTUATION = frozenset({":", "{", "}"})
 
 

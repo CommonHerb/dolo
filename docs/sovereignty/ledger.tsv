@@ -15,4 +15,4 @@ record_field_index	python	src/dolo/emitter.py:record-field lowering	experiments/
 array_mutation	python	src/dolo/emitter.py:array-mutation lowering	experiments/herbert/array_mutation_candidate.herb		(pending)	array mutation built-in lowering boundary
 two_char_ops	python	src/dolo/tokens.py:TWO_CHAR_OPS			oracle_wiring.py two_char_ops	the lexer's greedy two-char operator set (== != <= >= && ||)
 closing_delimiters	python	src/dolo/parser.py:CLOSING_DELIMITERS			oracle_wiring.py closing_delimiters	the parser's closer->opener bracket-matching map
-infix_operators	python	src/dolo/emitter.py:INFIX_OPERATORS			oracle_wiring.py infix_operators	the emitter's recognized infix-operator set
+infix_operators	herbert	src/dolo/emitter.py:INFIX_OPERATORS	experiments/herbert/infix_operators_candidate.herb	experiments/herbert/infix_operators_candidate.herb	oracle_wiring.py infix_operators	the emitter's recognized infix-operator set
