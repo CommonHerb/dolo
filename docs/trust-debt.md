@@ -23,7 +23,8 @@ candidates. Today they mirror narrow Python bootstrap compiler decisions:
 - `array_mutation_candidate.herb` mirrors the typed array and no-value mutation
   boundary used by Dolo's emitted Herbert.
 - `builtin_arity_candidate.herb` mirrors the observed Herbert built-in arity
-  table used by Dolo before emission.
+  table used by Dolo before emission. Local manifest validation compares this
+  candidate against Python-owned `HERBERT_BUILTIN_ARITIES`.
 
 They run through pinned Herbert in CI. They are not yet wired into the Dolo
 compiler, so they are repayment candidates, not paid debt.
@@ -32,6 +33,10 @@ Each migration candidate note must name the current Python/bootstrap owner it
 mirrors and include a replacement path that says how the executable proof could
 eventually displace that owner. A candidate without both is not precise enough
 to count as a trust-debt repayment path.
+
+Comparison against a Python/bootstrap owner is evidence, not authority transfer.
+The Dolo compiler still uses Python-owned bootstrap code until a replacement is
+wired and verified through the full gates.
 
 ## Current Pin
 

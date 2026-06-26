@@ -18,9 +18,9 @@ This roadmap is a living map. It separates what is proven from what is intended.
 - `scripts/verify_herbert_truth.sh` proves manifested examples by compiling
   `.dolo -> .herb -> ELF` through the pinned Herbert seed on Linux/x86_64 and
   comparing native stdout.
-- Herbert-family migration candidates for record field indexing and array
-  mutation run through the same pinned Herbert seed and are tracked as
-  candidates 0001 and 0002.
+- Herbert-family migration candidates for record field indexing, array
+  mutation, and built-in arity lookup run through the same pinned Herbert seed
+  and are tracked as candidates 0001, 0002, and 0003.
 
 ## First Foundation
 
@@ -43,6 +43,8 @@ This roadmap is a living map. It separates what is proven from what is intended.
 - Grow the executable manifest one behavior at a time.
 - Turn migration candidates into real replacements only after the Dolo compiler
   behavior they mirror has stronger diagnostic and type boundaries.
+- Keep migration candidates compared against the Python/bootstrap owners they
+  intend to replace before any compiler authority moves.
 - Replace bootstrap pieces with Herbert-family implementations when they become
   small and well-specified enough.
 

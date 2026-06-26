@@ -1831,6 +1831,66 @@ end
             ):
                 validate_repository_manifests(root)
 
+    def test_manifest_validator_requires_builtin_arity_candidate_to_mirror_python_table(self):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixtures = root / "tests" / "fixtures"
+            examples = root / "examples"
+            experiments = root / "experiments" / "herbert"
+            notes = root / "docs" / "migration-candidates"
+            fixtures.mkdir(parents=True)
+            examples.mkdir()
+            experiments.mkdir(parents=True)
+            notes.mkdir(parents=True)
+            (examples / "a.dolo").write_text(
+                """fn main() {
+  return 1
+}
+"""
+            )
+            (fixtures / "a.herb").write_text("func main():\n  return 1\nend\n")
+            (fixtures / "a.stdout").write_text("1\n")
+            (experiments / "builtin_arity_candidate.herb").write_text(
+                """func builtin_arity(name):
+    if equal(name, "add"):
+        return 2
+    else:
+        return 999
+    end
+end
+
+func main():
+    return builtin_arity("add")
+end
+"""
+            )
+            (fixtures / "builtin_arity_candidate.stdout").write_text("2\n")
+            (notes / "0001-builtin.md").write_text(
+                "experiments/herbert/builtin_arity_candidate.herb\n"
+                "tests/fixtures/builtin_arity_candidate.stdout\n"
+                "Current Python behavior lives in src/dolo/herbert_surface.py.\n"
+                "## Replacement Path\n"
+                "Compare this against HERBERT_BUILTIN_ARITIES before wiring.\n"
+            )
+            (fixtures / "executable_manifest.tsv").write_text(
+                "examples/a.dolo\ttests/fixtures/a.herb\t"
+                "tests/fixtures/a.stdout\n"
+            )
+            (fixtures / "non_executable_examples.tsv").write_text("")
+            (fixtures / "herbert_migration_manifest.tsv").write_text(
+                "experiments/herbert/builtin_arity_candidate.herb\t"
+                "tests/fixtures/builtin_arity_candidate.stdout\n"
+            )
+
+            with self.assertRaisesRegex(
+                ManifestError,
+                r"herbert_migration_manifest.tsv: builtin arity candidate must mirror "
+                r"HERBERT_BUILTIN_ARITIES \(missing append",
+            ):
+                validate_repository_manifests(root)
+
     def test_manifest_validator_rejects_orphaned_migration_candidate_notes(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 

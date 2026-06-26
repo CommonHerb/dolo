@@ -63,6 +63,10 @@ This proves:
   also name the current Python/bootstrap owner it mirrors, include a
   replacement path toward Herbert-family ownership, and notes under that
   directory must link back to at least one manifested Herbert candidate
+- `experiments/herbert/builtin_arity_candidate.herb` enumerates the same
+  built-in names and arities as Python-owned `HERBERT_BUILTIN_ARITIES`, so the
+  first arity migration candidate is compared against the bootstrap table it
+  intends to replace
 - executable and migration stdout goldens end with a newline, matching the
   shape the truth loop compares after native execution
 - the Herbert truth harness is pinned, stages a temporary seed copy, includes
@@ -132,7 +136,8 @@ stdout goldens that do not use a `.stdout` suffix or end with a newline. When
 candidate note to mention the manifested Herbert source and stdout golden, name
 the current Python/bootstrap owner it mirrors, and include a replacement path.
 It also rejects orphaned migration candidate notes that do not link back to a
-manifest source.
+manifest source. The built-in arity candidate has one extra local check: its
+Herbert lookup table must mirror Python-owned `HERBERT_BUILTIN_ARITIES`.
 
 This does not prove arbitrary Dolo program correctness, arbitrary Herbert
 compiler correctness, or removal of bootstrap trust debt. It proves only the

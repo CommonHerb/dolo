@@ -5,12 +5,16 @@ import sys
 from pathlib import Path
 
 from .compiler import compile_source
+from .herbert_surface import HERBERT_BUILTIN_ARITIES
 from .parser import parse_source
 from .tokens import DoloSyntaxError
 
 
 class ManifestError(ValueError):
     pass
+
+
+BUILTIN_ARITY_CANDIDATE = "experiments/herbert/builtin_arity_candidate.herb"
 
 
 def read_manifest_rows(path: Path, *, columns: int) -> list[tuple[str, ...]]:
@@ -146,6 +150,7 @@ def validate_repository_manifests(root: Path) -> None:
             manifest_name="herbert_migration_manifest.tsv",
         )
         _require_migration_candidate_note(root, source_rel, stdout_rel)
+        _require_builtin_arity_candidate_matches_python_table(root, source_rel)
     _require_migration_candidate_notes_are_manifested(
         root,
         {source_rel for source_rel, _ in migration_rows},
@@ -385,6 +390,64 @@ def _require_migration_candidate_notes_are_manifested(
                 "herbert_migration_manifest.tsv: migration candidate note "
                 f"is not linked to a manifest source: {note_rel}"
             )
+
+
+def _require_builtin_arity_candidate_matches_python_table(
+    root: Path,
+    source_rel: str,
+) -> None:
+    if source_rel != BUILTIN_ARITY_CANDIDATE:
+        return
+
+    actual = _extract_builtin_arity_candidate_map((root / source_rel).read_text())
+    expected = dict(sorted(HERBERT_BUILTIN_ARITIES.items()))
+    if actual == expected:
+        return
+
+    missing = sorted(set(expected) - set(actual))
+    unexpected = sorted(set(actual) - set(expected))
+    mismatched = sorted(
+        name
+        for name in set(expected) & set(actual)
+        if expected[name] != actual[name]
+    )
+    details: list[str] = []
+    if missing:
+        details.append(f"missing {', '.join(missing)}")
+    if unexpected:
+        details.append(f"unexpected {', '.join(unexpected)}")
+    if mismatched:
+        details.append(
+            "mismatched "
+            + ", ".join(
+                f"{name} expected {expected[name]} got {actual[name]}"
+                for name in mismatched
+            )
+        )
+    raise ManifestError(
+        "herbert_migration_manifest.tsv: builtin arity candidate must mirror "
+        "HERBERT_BUILTIN_ARITIES "
+        f"({'; '.join(details)})"
+    )
+
+
+def _extract_builtin_arity_candidate_map(text: str) -> dict[str, int]:
+    found: dict[str, int] = {}
+    lines = text.splitlines()
+    prefix = 'if equal(name, "'
+    suffix = '"):'
+    for index, line in enumerate(lines[:-1]):
+        stripped = line.strip()
+        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
+            continue
+        name = stripped[len(prefix) : -len(suffix)]
+        return_line = lines[index + 1].strip()
+        if not return_line.startswith("return "):
+            continue
+        arity_text = return_line.removeprefix("return ").strip()
+        if arity_text.isdigit():
+            found[name] = int(arity_text)
+    return dict(sorted(found.items()))
 
 
 def _names_python_owner(text: str) -> bool:

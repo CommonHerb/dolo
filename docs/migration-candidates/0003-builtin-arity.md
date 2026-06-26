@@ -30,9 +30,11 @@ placeholder for this candidate program's first executable shape.
 The lowest-risk replacement path is to mirror, then replace, the Python
 `HERBERT_BUILTIN_ARITIES` table with a Herbert-family arity table that can be
 executed and compared against the current Python-owned table before compiler
-wiring changes. Until that comparison exists and passes for every observed
-built-in Dolo can emit, `src/dolo/herbert_surface.py` remains the compiler
-authority and this candidate remains executable migration evidence.
+wiring changes. Local manifest validation now compares this candidate's lookup
+table against every observed built-in in `HERBERT_BUILTIN_ARITIES`. Until a
+replacement is wired and verified through the compiler path,
+`src/dolo/herbert_surface.py` remains the compiler authority and this candidate
+remains executable migration evidence.
 
 ## Verification
 
@@ -40,6 +42,9 @@ The candidate is listed in `tests/fixtures/herbert_migration_manifest.tsv`.
 `scripts/verify_herbert_truth.sh` compiles it directly with the pinned Herbert
 seed on Linux/x86_64, runs the resulting ELF, and compares stdout with
 `tests/fixtures/builtin_arity_candidate.stdout`.
+
+Local manifest validation also compares the candidate's built-in names and
+arities against Python-owned `HERBERT_BUILTIN_ARITIES`.
 
 This proves the candidate can execute through Herbert. It does not prove the
 Dolo compiler has migrated away from Python yet.
