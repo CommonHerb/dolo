@@ -2,6 +2,27 @@
 
 ## 2026-06-26
 
+- Hardened missing statement-expression diagnostics so bare `return`, `let x =`,
+  `x =`, `do`, and `if {` forms report the statement-specific expression,
+  call, or condition boundary instead of the generic `expected expression`
+  fallback.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_statements_require_expected_expression_forms`
+  (first observed failures: all five cases reported `expected expression`;
+  after the parser change: `Ran 1 test`, `OK`).
+- Verified neighboring statement diagnostics with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_statements_require_expected_expression_forms tests.test_compiler.CompilerTests.test_let_statement_requires_binding_name tests.test_compiler.CompilerTests.test_assignment_target_must_already_be_bound tests.test_compiler.CompilerTests.test_do_statement_requires_one_whole_call tests.test_compiler.CompilerTests.test_do_statement_validates_no_value_builtin_arity tests.test_compiler.CompilerTests.test_binary_operators_require_operands tests.test_compiler.CompilerTests.test_unclosed_condition_delimiter_reports_opening_column`
+  (`Ran 7 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 105 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 12 Dolo executable example(s)`, `PASS: 3 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Hardened function parameter annotation diagnostics so `fn id(a:)` reports the
   missing annotation record-name boundary instead of the generic identifier
   parser fallback.

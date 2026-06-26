@@ -480,6 +480,58 @@ end
         ):
             compile_source(source)
 
+    def test_statements_require_expected_expression_forms(self):
+        cases = (
+            (
+                """fn bad() {
+  return
+}
+""",
+                r"line 2, column 9: return statement expects an expression",
+            ),
+            (
+                """fn bad() {
+  let x =
+  return x
+}
+""",
+                r"line 2, column 10: let statement expects an expression",
+            ),
+            (
+                """fn bad() {
+  let x = 1
+  x =
+  return x
+}
+""",
+                r"line 3, column 6: assignment statement expects an expression",
+            ),
+            (
+                """fn bad() {
+  do
+  return 1
+}
+""",
+                r"line 2, column 5: do statement expects a call",
+            ),
+            (
+                """fn bad() {
+  if {
+    return 1
+  } else {
+    return 0
+  }
+}
+""",
+                r"line 2, column 6: if statement expects a condition",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_function_call_target_must_be_known(self):
         source = """fn bad() {
   return missing(1)

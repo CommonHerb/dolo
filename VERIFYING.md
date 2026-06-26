@@ -34,7 +34,8 @@ This proves:
   function parameter annotation names, function names that reuse observed Herbert
   built-ins, `main` declarations with parameters, functions that may complete
   without returning, unbound variables, unbound assignment targets, duplicate
-  `let` bindings, `let` statements without binding names, assignment operators
+  `let` bindings, `let` statements without binding names, statement forms
+  missing their required expression, call, or condition, assignment operators
   inside expressions, empty parenthesized value expressions, commas without
   values on both sides, unknown call targets,
   malformed field access, adjacent expression values without an operator, Dolo

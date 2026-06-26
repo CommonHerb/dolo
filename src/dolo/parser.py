@@ -172,13 +172,22 @@ class Parser:
             name_token = self._expect_kind("IDENT")
             name = name_token.value
             self._expect_value("=")
-            return LetStmt(name, self._expr_until_line(), name_token)
+            return LetStmt(
+                name,
+                self._expr_until_line("let statement expects an expression"),
+                name_token,
+            )
         if self._match_value("do"):
-            return DoStmt(self._expr_until_line())
+            return DoStmt(self._expr_until_line("do statement expects a call"))
         if self._match_value("return"):
-            return ReturnStmt(self._expr_until_line())
+            return ReturnStmt(
+                self._expr_until_line("return statement expects an expression")
+            )
         if self._match_value("if"):
-            condition = self._expr_until_value("{")
+            condition = self._expr_until_value(
+                "{",
+                empty_message="if statement expects a condition",
+            )
             self._expect_value("{")
             then_body = tuple(self._parse_block())
             self._skip_newlines()
@@ -205,9 +214,13 @@ class Parser:
         name_token = self._expect_kind("IDENT")
         name = name_token.value
         self._expect_value("=")
-        return AssignStmt(name, self._expr_until_line(), name_token)
+        return AssignStmt(
+            name,
+            self._expr_until_line("assignment statement expects an expression"),
+            name_token,
+        )
 
-    def _expr_until_line(self) -> Expr:
+    def _expr_until_line(self, empty_message: str = "expected expression") -> Expr:
         collected: list[Token] = []
         openers: list[Token] = []
         while True:
@@ -233,10 +246,15 @@ class Parser:
                 openers.pop()
             collected.append(self._advance())
         if not collected:
-            self._fail("expected expression")
+            self._fail(empty_message)
         return Expr(tuple(collected))
 
-    def _expr_until_value(self, value: str) -> Expr:
+    def _expr_until_value(
+        self,
+        value: str,
+        *,
+        empty_message: str = "expected expression",
+    ) -> Expr:
         collected: list[Token] = []
         openers: list[Token] = []
         while True:
@@ -264,7 +282,7 @@ class Parser:
                 collected.append(token)
             self._advance()
         if not collected:
-            self._fail("expected expression")
+            self._fail(empty_message)
         return Expr(tuple(collected))
 
     def _skip_newlines(self) -> None:
