@@ -164,17 +164,21 @@ class Parser:
 
     def _expr_until_value(self, value: str) -> Expr:
         collected: list[Token] = []
-        depth = 0
+        openers: list[Token] = []
         while True:
             token = self._peek()
             if token.kind == "EOF":
+                if openers:
+                    opener = openers[-1]
+                    self._fail_at(opener, f"unterminated {opener.value!r} in expression")
                 self._fail(f"expected {value!r}")
-            if depth == 0 and token.value == value:
+            if not openers and token.value == value:
                 break
             if token.value == "(":
-                depth += 1
+                openers.append(token)
             elif token.value == ")":
-                depth -= 1
+                if openers:
+                    openers.pop()
             if token.kind != "NEWLINE":
                 collected.append(token)
             self._advance()
