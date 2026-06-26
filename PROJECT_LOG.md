@@ -356,3 +356,5 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Updated `docs/language-reference.md` diagnostics to name the already-enforced
+  record/function top-level declaration overlap check.

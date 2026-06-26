@@ -161,8 +161,9 @@ Diagnostics are intentionally small:
 
 - malformed source reports line and column where the tokenizer or parser
   noticed the issue
-- duplicate top-level record names, top-level function names, record fields, and
-  function parameters report the repeated name column
+- duplicate top-level record names, top-level function names, record/function
+  name overlaps, record fields, and function parameters report the repeated
+  name column
 - unknown record annotations report the annotation column
 - unexpected characters and unterminated string or character literals report
   the offending or opening column
