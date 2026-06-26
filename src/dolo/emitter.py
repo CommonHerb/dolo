@@ -20,6 +20,10 @@ class Emitter:
         self.program = program
         self.records = {record.name: record for record in program.records}
         self.functions = {function.name for function in program.functions}
+        self.function_arities = {
+            function.name: len(function.params)
+            for function in program.functions
+        }
 
     def emit(self) -> str:
         chunks = [self._emit_function(function) for function in self.program.functions]
@@ -97,6 +101,7 @@ class Emitter:
                 continue
             if token.kind == "IDENT" and self._next_value(expr, i, "("):
                 self._validate_call_target(token)
+                self._validate_call_arity(token, expr, i)
             elif token.kind == "IDENT":
                 self._validate_variable_reference(token, context)
             value = _operator_value(token.value)
@@ -151,6 +156,16 @@ class Emitter:
         if token.value in self.functions or token.value in HERBERT_BUILTINS:
             return
         raise DoloSyntaxError(f"{_location(token)}: unknown function call {token.value!r}")
+
+    def _validate_call_arity(self, token: Token, expr: Expr, index: int) -> None:
+        want = self.function_arities.get(token.value)
+        if want is None:
+            return
+        got = self._constructor_arg_count(expr, index)
+        if got != want:
+            raise DoloSyntaxError(
+                f"{_location(token)}: function {token.value} expects {want} arguments, got {got}"
+            )
 
     @staticmethod
     def _validate_variable_reference(token: Token, context: EmitContext) -> None:

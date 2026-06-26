@@ -120,6 +120,21 @@ fn main() {
         ):
             compile_source(source)
 
+    def test_function_call_requires_declared_arity(self):
+        source = """fn need_two(a, b) {
+  return a
+}
+fn bad() {
+  return need_two(1)
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 5, column 10: function need_two expects 2 arguments, got 1",
+        ):
+            compile_source(source)
+
     def test_expression_variable_must_be_bound(self):
         source = """fn bad() {
   return spare

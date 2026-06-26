@@ -143,3 +143,15 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 3 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Added Dolo function call arity validation: calls to Dolo functions declared
+  in the same source now require the declared number of arguments and fail with
+  a columned diagnostic when the count differs. Observed Herbert built-in calls
+  remain target-validated by name only; Dolo still does not claim their arity.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 30 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 3 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

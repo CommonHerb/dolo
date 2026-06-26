@@ -82,6 +82,10 @@ fn hunger_of(c: Citizen) {
 The annotation is used by the Dolo compiler and is not emitted into Herbert.
 An annotation must name a record declared in the same source file.
 
+Dolo-to-Dolo function calls must pass the declared number of arguments. Calls
+to observed Herbert built-ins are allowed by name, but Dolo does not yet claim
+or validate their arity.
+
 ## Statements
 
 Implemented statements are:
@@ -106,7 +110,8 @@ Implemented expression behavior includes:
 
 - integer, boolean, string, and character literals
 - variable references
-- function calls to Dolo functions declared in the same source file
+- function calls to Dolo functions declared in the same source file, with
+  declared arity checking
 - calls to the observed Herbert built-ins named in
   `docs/foundation/herbert-target-subset.md`
 - tuple construction
@@ -160,6 +165,8 @@ Diagnostics are intentionally small:
   at the constructor column
 - assignment to an unbound name reports the assignment target column
 - unknown function call targets report the call target column
+- Dolo function call arity mismatches report expected and actual argument
+  counts at the call target column
 - unknown variable references report the variable column
 - the bootstrap CLI prints `DoloSyntaxError` and source-file read failures as
   `dolo: ...` on stderr and exits with status 1, without a Python traceback
