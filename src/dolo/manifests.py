@@ -162,7 +162,7 @@ def validate_repository_manifests(root: Path) -> None:
         _require_record_field_index_candidate_matches_dolo_record(root, source_rel)
     _require_migration_candidate_notes_are_manifested(
         root,
-        {source_rel for source_rel, _ in migration_rows},
+        set(migration_rows),
     )
 
     non_executable_sources = set()
@@ -385,7 +385,7 @@ def _require_migration_candidate_note(
 
 def _require_migration_candidate_notes_are_manifested(
     root: Path,
-    migration_sources: set[str],
+    migration_pairs: set[tuple[str, str]],
 ) -> None:
     docs_dir = root / "docs"
     if not docs_dir.exists():
@@ -396,6 +396,7 @@ def _require_migration_candidate_notes_are_manifested(
             "herbert_migration_manifest.tsv: migration candidate notes must live under "
             "docs/migration-candidates/"
         )
+    migration_sources = {source_rel for source_rel, _ in migration_pairs}
     for note in sorted(notes_dir.glob("*.md")):
         text = note.read_text()
         if not any(source in text for source in migration_sources):
@@ -403,6 +404,15 @@ def _require_migration_candidate_notes_are_manifested(
             raise ManifestError(
                 "herbert_migration_manifest.tsv: migration candidate note "
                 f"is not linked to a manifest source: {note_rel}"
+            )
+        if not any(
+            source_rel in text and stdout_rel in text
+            for source_rel, stdout_rel in migration_pairs
+        ):
+            note_rel = note.relative_to(root)
+            raise ManifestError(
+                "herbert_migration_manifest.tsv: migration candidate note "
+                f"is not linked to a manifest source/stdout pair: {note_rel}"
             )
 
 

@@ -63,8 +63,8 @@ This proves:
   also name the current Python/bootstrap owner it mirrors, include a
   replacement path toward Herbert-family ownership, state the authority
   boundary that keeps the candidate from being mistaken for compiler authority,
-  and notes under that directory must link back to at least one manifested
-  Herbert candidate
+  and every note under that directory must link back to a manifested Herbert
+  source/stdout pair
 - `experiments/herbert/record_field_index_candidate.herb` enumerates the same
   `Citizen` field names and tuple indexes parsed from `examples/citizen.dolo`,
   so the first record-field migration candidate is compared against the Dolo
@@ -146,8 +146,8 @@ candidate note to mention the manifested Herbert source and stdout golden, name
 the current Python/bootstrap owner it mirrors, include a replacement path, and
 state the authority boundary that keeps executable evidence distinct from
 compiler authority. It also rejects orphaned migration candidate notes that do
-not link back to a manifest source. The record-field index candidate has one
-extra local check:
+not link back to a manifest source/stdout pair. The record-field index candidate
+has one extra local check:
 its Herbert lookup table must mirror the parsed `Citizen` fields in
 `examples/citizen.dolo`. The array mutation candidate has one extra local
 check: its mutation/read shape must mirror `tests/fixtures/array_mutation.herb`.

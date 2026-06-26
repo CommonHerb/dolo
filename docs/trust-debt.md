@@ -34,10 +34,11 @@ They run through pinned Herbert in CI. They are not yet wired into the Dolo
 compiler, so they are repayment candidates, not paid debt.
 
 Each migration candidate note must name the current Python/bootstrap owner it
-mirrors and include a replacement path that says how the executable proof could
-eventually displace that owner. It must also state the authority boundary that
-keeps executable/comparison proof distinct from compiler authority. A candidate
-without all three is not precise enough to count as a trust-debt repayment path.
+mirrors, link to a manifested Herbert source/stdout pair, and include a
+replacement path that says how the executable proof could eventually displace
+that owner. It must also state the authority boundary that keeps
+executable/comparison proof distinct from compiler authority. A candidate
+without all four is not precise enough to count as a trust-debt repayment path.
 
 Comparison against a Dolo/Python bootstrap owner is evidence, not authority
 transfer. The Dolo compiler still uses Python-owned bootstrap code until a

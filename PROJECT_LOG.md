@@ -2,6 +2,27 @@
 
 ## 2026-06-26
 
+- Hardened migration-candidate note validation so every note under
+  `docs/migration-candidates/` must link back to a manifested source/stdout
+  pair, not just mention a manifested Herbert source with a stale or unrelated
+  stdout path.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_rejects_stale_migration_candidate_stdout_notes`
+  (first observed failure: `ManifestError not raised`; after the validator
+  change: `Ran 1 test`, `OK`).
+- Verified neighboring migration-note behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_rejects_stale_migration_candidate_stdout_notes tests.test_compiler.CompilerTests.test_manifest_validator_rejects_orphaned_migration_candidate_notes tests.test_compiler.CompilerTests.test_manifest_validator_requires_migration_candidate_note_links tests.test_compiler.CompilerTests.test_manifest_validator_requires_migration_candidate_python_owner tests.test_compiler.CompilerTests.test_manifest_validator_requires_migration_candidate_replacement_path tests.test_compiler.CompilerTests.test_manifest_validator_requires_migration_candidate_authority_boundary tests.test_compiler.CompilerTests.test_herbert_migration_candidates_are_manifested`
+  (`Ran 7 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 100 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 10 Dolo executable example(s)`, `PASS: 3 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Hardened migration-candidate note validation so every manifested Herbert
   candidate must state its authority boundary in addition to linking source,
   stdout, Python/bootstrap ownership, and a replacement path. The current
