@@ -2,6 +2,26 @@
 
 ## 2026-06-26
 
+- Rejected unsupported expression punctuation before Herbert emission. Dolo now
+  fails `return :`, `return 1:2`, `return {1}`, and `return ({1}, 2)` instead
+  of preserving colon or brace-shaped expression text.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_expression_rejects_unsupported_punctuation`
+  (first observed failures: four punctuation forms did not raise
+  `DoloSyntaxError`; after the emitter change: `Ran 1 test`, `OK`).
+- Verified neighboring parser-owned delimiter behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_unmatched_expression_closer_reports_closer_column tests.test_compiler.CompilerTests.test_unclosed_expression_delimiter_reports_opening_column tests.test_compiler.CompilerTests.test_unclosed_expression_delimiter_at_eof_reports_opening_column tests.test_compiler.CompilerTests.test_if_else_return_in_both_arms_satisfies_function_return tests.test_compiler.CompilerTests.test_record_constructor_and_if_else_lower_to_herbert`
+  (`Ran 5 tests`, `OK`).
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 87 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Added expression adjacency validation so Dolo rejects adjacent value forms
   that would otherwise emit invalid Herbert text: `return 1 2`,
   `return flag true`, `return (1) 2`, `return 1(2)`, and

@@ -170,6 +170,8 @@ Adjacent expression values require an operator or comma between them. Forms such
 as `1 2`, `flag true`, `(1) 2`, `1(2)`, and `new_buffer() "x"` are not
 implemented.
 
+Colon and brace punctuation are not implemented in expressions.
+
 Binary operators must have operands on both sides. Prefix `!` is the only
 implemented unary operator today; it must have an operand and cannot follow an
 expression.
@@ -247,6 +249,7 @@ Diagnostics are intentionally small:
 - unknown variable references report the variable column
 - non-literal keywords in expressions report the keyword column; `true` and
   `false` are the only keyword literals today
+- unsupported expression punctuation reports the punctuation column
 - the bootstrap CLI prints `DoloSyntaxError` and source-file read failures as
   `dolo: ...` on stderr and exits with status 1, without a Python traceback
 

@@ -546,6 +546,43 @@ end
                 with self.assertRaisesRegex(DoloSyntaxError, expected):
                     compile_source(source)
 
+    def test_expression_rejects_unsupported_punctuation(self):
+        cases = (
+            (
+                """fn bad() {
+  return :
+}
+""",
+                r"line 2, column 10: unexpected ':' in expression",
+            ),
+            (
+                """fn bad() {
+  return 1:2
+}
+""",
+                r"line 2, column 11: unexpected ':' in expression",
+            ),
+            (
+                """fn bad() {
+  return {1}
+}
+""",
+                r"line 2, column 10: unexpected '\{' in expression",
+            ),
+            (
+                """fn bad() {
+  return ({1}, 2)
+}
+""",
+                r"line 2, column 11: unexpected '\{' in expression",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_parenthesized_expressions_must_not_be_empty(self):
         source = """fn bad() {
   return ()

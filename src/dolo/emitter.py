@@ -407,6 +407,10 @@ class Emitter:
                 continue
             previous = expr.tokens[i - 1] if i > 0 else None
             next_token = expr.tokens[i + 1] if i + 1 < len(expr.tokens) else None
+            if token.value in UNSUPPORTED_EXPRESSION_PUNCTUATION:
+                raise DoloSyntaxError(
+                    f"{_location(token)}: unexpected {token.value!r} in expression"
+                )
             if (
                 previous is not None
                 and _is_expression_value_end(previous)
@@ -560,6 +564,7 @@ EXPRESSION_KEYWORDS = frozenset({"false", "true"})
 INFIX_OPERATORS = frozenset(
     {"+", "-", "*", "/", "%", "<", ">", "<=", ">=", "==", "!=", "&&", "||"}
 )
+UNSUPPORTED_EXPRESSION_PUNCTUATION = frozenset({":", "{", "}"})
 
 
 def emit_program(program: Program) -> str:

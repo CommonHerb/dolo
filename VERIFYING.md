@@ -36,9 +36,9 @@ This proves:
   mismatches, invalid `new_array` argument counts, unknown `new_array` type
   arguments, invalid singleton Herbert tuple type arguments, no-value built-in
   expression calls, invalid `do` statement calls, expression delimiter errors,
-  unsupported `else if` and `elif` forms, stray `else` statements, and
-  non-literal expression keywords fail with focused `DoloSyntaxError`
-  diagnostics
+  unsupported expression punctuation, unsupported `else if` and `elif` forms,
+  stray `else` statements, and non-literal expression keywords fail with
+  focused `DoloSyntaxError` diagnostics
 - the CLI writes Herbert to stdout
 - the CLI reports syntax and source-file read failures without Python
   tracebacks
