@@ -1,0 +1,11 @@
+func empty_array_counts():
+  let ints = new_array(int)
+  let strings = new_array(string)
+  let pairs = new_array((int, bool))
+  let nested = new_array(array(string))
+  return (count(ints), count(strings), count(pairs), count(nested))
+end
+
+func main():
+  return empty_array_counts()
+end

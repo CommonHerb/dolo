@@ -11,6 +11,9 @@ This roadmap is a living map. It separates what is proven from what is intended.
   `e9dff2283113063f60fece453e9ab9eb16e7366a`.
 - Dolo has executable examples with `fn main()` and committed Herbert/stdout
   fixtures.
+- Dolo can emit value-level observed Herbert built-ins including typed
+  `new_array(...)` expressions and `count(...)`; no-value mutation built-ins
+  are rejected until Dolo has an explicit `do` statement.
 - `scripts/verify_herbert_truth.sh` proves manifested examples by compiling
   `.dolo -> .herb -> ELF` through the pinned Herbert seed on Linux/x86_64 and
   comparing native stdout.
@@ -34,8 +37,10 @@ This roadmap is a living map. It separates what is proven from what is intended.
 - Expand expression and statement coverage only when examples demand it.
 - Harden parser diagnostics with stable error messages.
 - Add record constructors and named-field access with explicit tuple lowering.
-- Add list literals or typed list builders if they can lower honestly to Herbert
-  arrays.
+- Add a Dolo `do` statement before exposing observed no-value Herbert mutation
+  built-ins such as `add` and `append`.
+- Add list literals or typed list builders if they can lower honestly to
+  Herbert arrays.
 - Grow the executable manifest one behavior at a time.
 - Turn migration candidate 0001 into a real replacement only after the Dolo
   compiler behavior it mirrors has stronger diagnostic and type boundaries.

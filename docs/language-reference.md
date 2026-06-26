@@ -86,11 +86,17 @@ fn hunger_of(c: Citizen) {
 The annotation is used by the Dolo compiler and is not emitted into Herbert.
 An annotation must name a record declared in the same source file.
 
-Dolo-to-Dolo function calls must pass the declared number of arguments. Calls
-to observed Herbert built-ins are allowed by name; for value-level built-ins
-that Dolo can emit directly, the compiler also validates observed argument
-counts before Herbert emission. This remains an arity boundary, not a claim
-that Dolo owns a full type system for those built-ins.
+Dolo-to-Dolo function calls must pass the declared number of arguments.
+Value-level calls to observed Herbert built-ins are allowed by name. For the
+built-ins Dolo can emit directly, the compiler validates observed argument
+counts before Herbert emission. For `new_array(...)`, the compiler also
+validates the observed Herbert type-expression argument: `int`, `bool`,
+`string`, `buffer`, `array(T)`, and tuple-shaped type expressions such as
+`(int, bool)`.
+
+Observed Herbert no-value mutation built-ins such as `add` and `append` are not
+valid Dolo expression calls. They remain deferred until Dolo has an explicit
+`do` statement.
 
 ## Statements
 
@@ -106,7 +112,7 @@ parameter or earlier local binding in the current binding context. Assignment
 updates an existing parameter or local binding; it does not introduce a new
 name.
 
-`else` is optional. `else if`, `elif`, loops, imports, modules, effects,
+`else` is optional. `do`, `else if`, `elif`, loops, imports, modules, effects,
 methods, and pattern matching are not implemented.
 
 ## Expressions
@@ -120,9 +126,10 @@ Implemented expression behavior includes:
 - variable references
 - function calls to Dolo functions declared in the same source file, with
   declared arity checking
-- calls to the observed Herbert built-ins named in
-  `docs/foundation/herbert-target-subset.md`; value-level built-ins with
-  observed arities are checked before Herbert emission
+- calls to the observed value-level Herbert built-ins named in
+  `docs/foundation/herbert-target-subset.md`; observed arities are checked
+  before Herbert emission
+- `new_array(...)` calls with observed Herbert type-expression arguments
 - tuple construction
 - arithmetic and comparison operators accepted by Herbert
 - `&&` lowering to Herbert `and`
@@ -184,6 +191,9 @@ Diagnostics are intentionally small:
   counts at the call target column
 - observed Herbert built-in arity mismatches report expected and actual
   argument counts at the built-in call target column
+- unknown `new_array(...)` Herbert type arguments report the type token column
+- observed Herbert no-value mutation built-ins report the call target column
+  when used as Dolo expression calls
 - unknown variable references report the variable column
 - non-literal keywords in expressions report the keyword column; `true` and
   `false` are the only keyword literals today

@@ -18,10 +18,14 @@ This proves:
 - record type knowledge propagates through simple identifier bindings
 - `if` / `else`, `let`, assignment, `return`, calls, strings, booleans, and
   arithmetic-like expressions emit readable Herbert source
+- typed `new_array(...)` expressions preserve observed Herbert type-expression
+  forms while no-value Herbert mutation built-ins are rejected from Dolo
+  expressions until `do` statements exist
 - duplicate declarations, including record/function name overlaps, record
   annotation errors, unbound variables, unbound assignment targets, duplicate
   `let` bindings, unknown call targets, Dolo function arity mismatches,
-  observed Herbert built-in arity mismatches, expression delimiter errors,
+  observed Herbert built-in arity mismatches, unknown `new_array` type
+  arguments, no-value built-in expression calls, expression delimiter errors,
   unsupported `else if` and `elif` forms, stray `else` statements, and
   non-literal expression keywords fail with focused `DoloSyntaxError`
   diagnostics

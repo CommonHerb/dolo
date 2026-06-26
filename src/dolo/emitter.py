@@ -89,9 +89,14 @@ class Emitter:
 
     def _emit_expr(self, expr: Expr, context: EmitContext) -> str:
         parts: list[str] = []
+        new_array_type_indexes = self._new_array_type_indexes(expr)
         i = 0
         while i < len(expr.tokens):
             token = expr.tokens[i]
+            if i in new_array_type_indexes:
+                parts.append(token.value)
+                i += 1
+                continue
             if token.kind == "KEYWORD" and token.value not in EXPRESSION_KEYWORDS:
                 raise DoloSyntaxError(
                     f"{_location(token)}: unexpected keyword {token.value!r} in expression"
@@ -147,6 +152,134 @@ class Emitter:
         constructor = expr.tokens[index]
         raise DoloSyntaxError(f"line {constructor.line}: unterminated {constructor.value} constructor")
 
+    def _new_array_type_indexes(self, expr: Expr) -> set[int]:
+        indexes: set[int] = set()
+        i = 0
+        while i < len(expr.tokens):
+            token = expr.tokens[i]
+            if token.kind == "IDENT" and token.value == "new_array" and self._next_value(expr, i, "("):
+                spans = self._call_argument_spans(expr, i)
+                if len(spans) == 1:
+                    start, end = spans[0]
+                    self._validate_herbert_type_expr(expr.tokens, start, end)
+                    indexes.update(range(start, end))
+                    i = self._call_close_index(expr, i) + 1
+                    continue
+            i += 1
+        return indexes
+
+    def _call_argument_spans(self, expr: Expr, index: int) -> list[tuple[int, int]]:
+        spans: list[tuple[int, int]] = []
+        depth = 0
+        start = index + 2
+        for i, token in enumerate(expr.tokens[index + 2 :], start=index + 2):
+            if token.value == "(":
+                depth += 1
+            elif token.value == ")":
+                if depth == 0:
+                    if start != i or spans:
+                        spans.append((start, i))
+                    return spans
+                depth -= 1
+            elif token.value == "," and depth == 0:
+                spans.append((start, i))
+                start = i + 1
+        call = expr.tokens[index]
+        raise DoloSyntaxError(f"{_location(call)}: unterminated {call.value} call")
+
+    def _call_close_index(self, expr: Expr, index: int) -> int:
+        depth = 0
+        for i, token in enumerate(expr.tokens[index + 2 :], start=index + 2):
+            if token.value == "(":
+                depth += 1
+            elif token.value == ")":
+                if depth == 0:
+                    return i
+                depth -= 1
+        call = expr.tokens[index]
+        raise DoloSyntaxError(f"{_location(call)}: unterminated {call.value} call")
+
+    def _validate_herbert_type_expr(
+        self,
+        tokens: tuple[Token, ...],
+        start: int,
+        end: int,
+    ) -> None:
+        if start >= end:
+            token = tokens[start - 1] if start > 0 else tokens[0]
+            raise DoloSyntaxError(
+                f"{_location(token)}: expected Herbert type expression in new_array argument"
+            )
+        next_index = self._consume_herbert_type_expr(tokens, start, end)
+        if next_index != end:
+            token = tokens[next_index]
+            raise DoloSyntaxError(
+                f"{_location(token)}: expected end of Herbert type expression in new_array argument"
+            )
+
+    def _consume_herbert_type_expr(
+        self,
+        tokens: tuple[Token, ...],
+        index: int,
+        end: int,
+    ) -> int:
+        if index >= end:
+            token = tokens[end - 1] if end > 0 else tokens[0]
+            raise DoloSyntaxError(
+                f"{_location(token)}: expected Herbert type expression in new_array argument"
+            )
+        token = tokens[index]
+        if token.kind == "IDENT":
+            if token.value in HERBERT_TYPE_NAMES:
+                return index + 1
+            if token.value == "array":
+                if index + 1 >= end or tokens[index + 1].value != "(":
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: array type expects one Herbert type argument"
+                    )
+                next_index = self._consume_herbert_type_expr(tokens, index + 2, end)
+                if next_index >= end or tokens[next_index].value != ")":
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: array type expects one Herbert type argument"
+                    )
+                return next_index + 1
+            raise DoloSyntaxError(
+                f"{_location(token)}: unknown Herbert type {token.value!r} in new_array argument"
+            )
+        if token.value == "(":
+            return self._consume_herbert_tuple_type(tokens, index, end)
+        raise DoloSyntaxError(
+            f"{_location(token)}: expected Herbert type expression in new_array argument"
+        )
+
+    def _consume_herbert_tuple_type(
+        self,
+        tokens: tuple[Token, ...],
+        index: int,
+        end: int,
+    ) -> int:
+        next_index = index + 1
+        if next_index >= end:
+            token = tokens[index]
+            raise DoloSyntaxError(
+                f"{_location(token)}: unterminated Herbert tuple type in new_array argument"
+            )
+        while True:
+            next_index = self._consume_herbert_type_expr(tokens, next_index, end)
+            if next_index >= end:
+                token = tokens[index]
+                raise DoloSyntaxError(
+                    f"{_location(token)}: unterminated Herbert tuple type in new_array argument"
+                )
+            if tokens[next_index].value == ")":
+                return next_index + 1
+            if tokens[next_index].value != ",":
+                token = tokens[next_index]
+                raise DoloSyntaxError(
+                    f"{_location(token)}: expected ',' or ')' in Herbert tuple type"
+                )
+            next_index += 1
+
     def _emit_field_access(self, target: Token, field: Token, env: dict[str, str | None]) -> str:
         record_name = env.get(target.value)
         if record_name not in self.records:
@@ -163,7 +296,14 @@ class Emitter:
         return f"{target.value}.{index}"
 
     def _validate_call_target(self, token: Token) -> None:
-        if token.value in self.functions or token.value in HERBERT_BUILTINS:
+        if token.value in self.functions:
+            return
+        if token.value in HERBERT_VOID_BUILTINS:
+            raise DoloSyntaxError(
+                f"{_location(token)}: built-in {token.value} has no value; "
+                "Dolo do statements are not implemented"
+            )
+        if token.value in HERBERT_BUILTINS:
             return
         raise DoloSyntaxError(f"{_location(token)}: unknown function call {token.value!r}")
 
@@ -237,10 +377,8 @@ def _argument_word(count: int) -> str:
     return "argument" if count == 1 else "arguments"
 
 
-HERBERT_BUILTINS = frozenset(
+HERBERT_VALUE_BUILTINS = frozenset(
     {
-        "add",
-        "append",
         "count",
         "equal",
         "freeze",
@@ -251,6 +389,8 @@ HERBERT_BUILTINS = frozenset(
         "new_buffer",
     }
 )
+HERBERT_VOID_BUILTINS = frozenset({"add", "append"})
+HERBERT_BUILTINS = HERBERT_VALUE_BUILTINS | HERBERT_VOID_BUILTINS
 HERBERT_BUILTIN_ARITIES = {
     "add": 2,
     "append": 2,
@@ -263,6 +403,7 @@ HERBERT_BUILTIN_ARITIES = {
     "new_buffer": 0,
 }
 EXPRESSION_KEYWORDS = frozenset({"false", "true"})
+HERBERT_TYPE_NAMES = frozenset({"bool", "buffer", "int", "string"})
 
 
 def emit_program(program: Program) -> str:

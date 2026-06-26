@@ -25,8 +25,10 @@ Dolo v0 may emit Herbert source using:
 - boolean `and`, `or`, and `not`
 - tuple construction and positional access
 - calls to user functions
-- calls to observed Herbert built-ins such as `length`, `index`, `equal`,
-  `new_buffer`, `append`, `freeze`, `new_array`, `add`, `get`, and `count`
+- calls to observed value-level Herbert built-ins such as `length`, `index`,
+  `equal`, `new_buffer`, `freeze`, `new_array`, `get`, and `count`
+- observed `new_array(...)` type expressions for `int`, `bool`, `string`,
+  `buffer`, `array(T)`, and tuple-shaped type expressions
 - no-argument `func main()` returning a value that Herbert's native renderer can
   print on Linux/x86_64
 
@@ -34,6 +36,10 @@ For value-level built-ins that Dolo can currently emit directly, the bootstrap
 compiler validates observed argument counts before Herbert emission. This is an
 arity boundary only; Dolo does not yet claim a full type system for those
 built-ins.
+
+Observed no-value Herbert mutation built-ins such as `add` and `append` require
+Herbert `do` statements. Dolo does not emit them yet, and the bootstrap compiler
+rejects them in Dolo expressions.
 
 The initial compiler should generate conservative, readable Herbert text. It is
 better to emit boring Herbert that can be inspected than clever Herbert that
@@ -62,11 +68,12 @@ end
 
 This is an honest v0 representation, not a permanent ABI.
 
-## Lists
+## Arrays And Lists
 
-The first Dolo list lowering may use Herbert arrays when element type is obvious
-from annotation or literal context. List support is deferred from the current
-compiler slice rather than faked.
+Dolo can currently pass observed Herbert type expressions to `new_array(...)`
+and can use value-level array readers such as `count(...)` and `get(...)`.
+Array mutation, list literals, and typed list builders are deferred until Dolo
+has an honest statement form for no-value built-ins such as `add`.
 
 ## Out Of Scope
 

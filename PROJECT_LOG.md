@@ -2,6 +2,35 @@
 
 ## 2026-06-26
 
+- Added a narrow typed-array boundary for observed Herbert `new_array(...)`
+  calls: the emitter now accepts primitive, nested `array(T)`, and tuple-shaped
+  Herbert type expressions as type arguments instead of misreporting type names
+  as unknown Dolo variables.
+- Rejected observed Herbert no-value mutation built-ins `add` and `append` in
+  Dolo expressions until Dolo owns an explicit `do` statement, closing a docs
+  overclaim where the target subset named built-ins the Dolo surface could not
+  honestly use.
+- Added executable example `examples/array_seed.dolo` with committed Herbert
+  and stdout fixtures, proving typed empty-array construction plus `count`
+  through the executable manifest.
+- Pinned the existing name-resolution boundary that Dolo-declared functions
+  take precedence over observed Herbert built-in names, so user functions named
+  `add` or `append` are not mistaken for no-value built-ins.
+- Verified the new RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_new_array_accepts_observed_herbert_type_expressions tests.test_compiler.CompilerTests.test_new_array_type_argument_must_be_observed_herbert_type_expression tests.test_compiler.CompilerTests.test_herbert_void_builtins_are_not_value_calls`
+  (first observed failures: `new_array(int)` reported `unknown variable 'int'`,
+  `new_array(Missing)` reported `unknown variable 'Missing'`, and `add` /
+  `append` did not raise; after the emitter change: `Ran 3 tests`, `OK`).
+- Verified locally with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 63 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the executable Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 7 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Hardened parser diagnostics for unsupported `elif` so the parser reports the
   `elif` column with a direct unsupported-form message instead of treating it
   as an assignment target and drifting to `expected '='`.

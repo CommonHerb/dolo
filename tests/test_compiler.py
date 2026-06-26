@@ -274,6 +274,73 @@ end
                 with self.assertRaisesRegex(DoloSyntaxError, expected):
                     compile_source(source)
 
+    def test_new_array_accepts_observed_herbert_type_expressions(self):
+        source = """fn empty_counts() {
+  return (count(new_array(int)), count(new_array(array(string))), count(new_array((int, bool))))
+}
+"""
+        expected = """func empty_counts():
+  return (count(new_array(int)), count(new_array(array(string))), count(new_array((int, bool))))
+end
+"""
+
+        self.assertEqual(compile_source(source), expected)
+
+    def test_new_array_type_argument_must_be_observed_herbert_type_expression(self):
+        source = """fn bad() {
+  return new_array(Missing)
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 20: unknown Herbert type 'Missing' in new_array argument",
+        ):
+            compile_source(source)
+
+    def test_herbert_void_builtins_are_not_value_calls(self):
+        cases = (
+            (
+                """fn bad(a) {
+  return add(a, 1)
+}
+""",
+                r"line 2, column 10: built-in add has no value; Dolo do statements are not implemented",
+            ),
+            (
+                """fn bad(b) {
+  return append(b, 'h')
+}
+""",
+                r"line 2, column 10: built-in append has no value; Dolo do statements are not implemented",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
+    def test_dolo_functions_take_precedence_over_observed_builtin_names(self):
+        source = """fn add(a, b) {
+  return a + b
+}
+
+fn main() {
+  return add(1, 2)
+}
+"""
+        expected = """func add(a, b):
+  return a + b
+end
+
+func main():
+  return add(1, 2)
+end
+"""
+
+        self.assertEqual(compile_source(source), expected)
+
     def test_record_constructor_and_if_else_lower_to_herbert(self):
         source = """record Citizen { name, hunger }
 
