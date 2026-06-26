@@ -97,11 +97,23 @@ def validate_repository_manifests(root: Path) -> None:
             manifest_name="executable_manifest.tsv",
             label="Herbert golden",
         )
+        _require_parent(
+            herb_rel,
+            parent=Path("tests") / "fixtures",
+            manifest_name="executable_manifest.tsv",
+            label="Herbert golden",
+        )
         _require_herbert_golden_matches(root, source_rel, herb_rel)
         _require_file(root, stdout_rel, label="stdout golden")
         _require_suffix(
             stdout_rel,
             suffix=".stdout",
+            manifest_name="executable_manifest.tsv",
+            label="stdout golden",
+        )
+        _require_parent(
+            stdout_rel,
+            parent=Path("tests") / "fixtures",
             manifest_name="executable_manifest.tsv",
             label="stdout golden",
         )
@@ -119,6 +131,12 @@ def validate_repository_manifests(root: Path) -> None:
         _require_suffix(
             stdout_rel,
             suffix=".stdout",
+            manifest_name="herbert_migration_manifest.tsv",
+            label="stdout golden",
+        )
+        _require_parent(
+            stdout_rel,
+            parent=Path("tests") / "fixtures",
             manifest_name="herbert_migration_manifest.tsv",
             label="stdout golden",
         )
@@ -216,9 +234,24 @@ def _require_example_source(relative_path: str, *, manifest_name: str) -> None:
         manifest_name=manifest_name,
         label="source",
     )
-    if Path(relative_path).parent != Path("examples"):
+    _require_parent(
+        relative_path,
+        parent=Path("examples"),
+        manifest_name=manifest_name,
+        label="source",
+    )
+
+
+def _require_parent(
+    relative_path: str,
+    *,
+    parent: Path,
+    manifest_name: str,
+    label: str,
+) -> None:
+    if Path(relative_path).parent != parent:
         raise ManifestError(
-            f"{manifest_name}: source must live under examples/: {relative_path}"
+            f"{manifest_name}: {label} must live under {parent}/: {relative_path}"
         )
 
 
@@ -270,6 +303,12 @@ def _require_migration_main(root: Path, source_rel: str) -> None:
         raise ManifestError(
             f"herbert_migration_manifest.tsv: migration source must be .herb: {source_rel}"
         )
+    _require_parent(
+        source_rel,
+        parent=Path("experiments") / "herbert",
+        manifest_name="herbert_migration_manifest.tsv",
+        label="migration source",
+    )
     if "func main()" not in source_path.read_text():
         raise ManifestError(
             f"herbert_migration_manifest.tsv: {source_rel} must define func main()"

@@ -765,6 +765,88 @@ end
                     with self.assertRaisesRegex(ManifestError, expected):
                         validate_repository_manifests(root)
 
+    def test_manifest_validator_requires_owned_fixture_and_candidate_paths(self):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        cases = (
+            (
+                "tests/fixtures/a.herb",
+                "tests/fixtures/a.stdout",
+                "experiments/herbert/candidate.herb",
+                "tests/fixtures/candidate.stdout",
+                r"",
+            ),
+            (
+                "examples/a.herb",
+                "tests/fixtures/a.stdout",
+                "experiments/herbert/candidate.herb",
+                "tests/fixtures/candidate.stdout",
+                r"executable_manifest.tsv: Herbert golden must live under tests/fixtures/: examples/a.herb",
+            ),
+            (
+                "tests/fixtures/a.herb",
+                "examples/a.stdout",
+                "experiments/herbert/candidate.herb",
+                "tests/fixtures/candidate.stdout",
+                r"executable_manifest.tsv: stdout golden must live under tests/fixtures/: examples/a.stdout",
+            ),
+            (
+                "tests/fixtures/a.herb",
+                "tests/fixtures/a.stdout",
+                "examples/candidate.herb",
+                "tests/fixtures/candidate.stdout",
+                r"herbert_migration_manifest.tsv: migration source must live under experiments/herbert/: examples/candidate.herb",
+            ),
+            (
+                "tests/fixtures/a.herb",
+                "tests/fixtures/a.stdout",
+                "experiments/herbert/candidate.herb",
+                "experiments/herbert/candidate.stdout",
+                r"herbert_migration_manifest.tsv: stdout golden must live under tests/fixtures/: experiments/herbert/candidate.stdout",
+            ),
+        )
+
+        for herb_rel, stdout_rel, migration_rel, migration_stdout_rel, expected in cases:
+            with self.subTest(expected=expected or "valid"):
+                with tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    fixtures = root / "tests" / "fixtures"
+                    examples = root / "examples"
+                    experiments = root / "experiments" / "herbert"
+                    fixtures.mkdir(parents=True)
+                    examples.mkdir()
+                    experiments.mkdir(parents=True)
+
+                    (examples / "a.dolo").write_text(
+                        """fn main() {
+  return 1
+}
+"""
+                    )
+                    for relative_path, text in (
+                        (herb_rel, "func main():\n  return 1\nend\n"),
+                        (stdout_rel, "1\n"),
+                        (migration_rel, "func main():\n  return 1\nend\n"),
+                        (migration_stdout_rel, "1\n"),
+                    ):
+                        target = root / relative_path
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        target.write_text(text)
+
+                    (fixtures / "executable_manifest.tsv").write_text(
+                        f"examples/a.dolo\t{herb_rel}\t{stdout_rel}\n"
+                    )
+                    (fixtures / "non_executable_examples.tsv").write_text("")
+                    (fixtures / "herbert_migration_manifest.tsv").write_text(
+                        f"{migration_rel}\t{migration_stdout_rel}\n"
+                    )
+
+                    if expected:
+                        with self.assertRaisesRegex(ManifestError, expected):
+                            validate_repository_manifests(root)
+                    else:
+                        validate_repository_manifests(root)
+
     def test_manifest_validator_requires_stdout_goldens_to_end_with_newline(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 

@@ -443,3 +443,11 @@
   `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
   (`Ran 55 tests`, `OK`), plus
   `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Hardened manifest validation so executable Herbert/stdout goldens must stay
+  in `tests/fixtures/`, Herbert migration candidates must stay in
+  `experiments/herbert/`, and migration stdout goldens must stay in
+  `tests/fixtures/`.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 56 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
