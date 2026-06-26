@@ -2,6 +2,28 @@
 
 ## 2026-06-26
 
+- Rejected trailing commas in record field declarations. `record Pair { left, }`
+  now fails at the comma instead of compiling as though the trailing comma were
+  absent.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_record_declaration_rejects_trailing_field_comma`
+  (first observed failure: the trailing-comma record did not raise
+  `DoloSyntaxError`; after the parser change: `Ran 1 test`, `OK`).
+- Verified neighboring record behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_record_declaration_requires_at_least_one_field tests.test_compiler.CompilerTests.test_record_declaration_rejects_duplicate_field_names tests.test_compiler.CompilerTests.test_record_field_access_lowers_to_tuple_index tests.test_compiler.CompilerTests.test_record_constructor_and_if_else_lower_to_herbert`
+  (`Ran 4 tests`, `OK`).
+- Probed leading and doubled record field commas after the change; they still
+  fail with the existing `expected ident` diagnostics at the offending comma.
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 89 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Rejected sources with no top-level Dolo declarations. Empty, whitespace-only,
   newline-only, and comment-only inputs now fail at EOF with a focused
   `source must contain at least one top-level record or fn` diagnostic instead

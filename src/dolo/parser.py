@@ -62,7 +62,13 @@ class Parser:
                 self._fail_at(field, f"record {name} repeats field {field.value!r}")
             fields.append(field.value)
             seen_fields.add(field.value)
-            if self._match_value(","):
+            if self._peek_value(","):
+                comma = self._advance()
+                if self._peek_value("}"):
+                    self._fail_at(
+                        comma,
+                        f"record {name} field list cannot end with ','",
+                    )
                 continue
             self._expect_value("}")
             break

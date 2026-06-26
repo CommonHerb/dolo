@@ -130,6 +130,20 @@ fn main() {
         ):
             compile_source(source)
 
+    def test_record_declaration_rejects_trailing_field_comma(self):
+        source = """record Pair { left, }
+
+fn main() {
+  return 0
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 1, column 19: record Pair field list cannot end with ','",
+        ):
+            compile_source(source)
+
     def test_function_declaration_rejects_duplicate_parameter_names(self):
         source = """fn bad(x, x) {
   return x
