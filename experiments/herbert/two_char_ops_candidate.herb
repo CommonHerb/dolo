@@ -1,0 +1,40 @@
+func two_char_op(name):
+    if equal(name, "!="):
+        return 1
+    else:
+        if equal(name, "&&"):
+            return 1
+        else:
+            if equal(name, "<="):
+                return 1
+            else:
+                if equal(name, "=="):
+                    return 1
+                else:
+                    if equal(name, ">="):
+                        return 1
+                    else:
+                        if equal(name, "||"):
+                            return 1
+                        else:
+                            return 0
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+func main():
+    return (
+        "two-char-ops-candidate",
+        two_char_op("!="),
+        two_char_op("&&"),
+        two_char_op("<="),
+        two_char_op("=="),
+        two_char_op(">="),
+        two_char_op("||"),
+        two_char_op("missing")
+    )
+end
