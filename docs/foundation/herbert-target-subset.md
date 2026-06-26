@@ -28,8 +28,9 @@ Dolo v0 may emit Herbert source using:
 - calls to user functions
 - calls to observed value-level Herbert built-ins such as `length`, `index`,
   `equal`, `new_buffer`, `freeze`, `new_array`, `get`, and `count`
-- observed `new_array(...)` type expressions for `int`, `bool`, `string`,
-  `buffer`, `array(T)`, and tuple-shaped type expressions
+- observed built-in `new_array(...)` calls with exactly one type expression:
+  `int`, `bool`, `string`, `buffer`, `array(T)`, or tuple-shaped type
+  expressions
 - no-argument `func main()` returning a value that Herbert's native renderer can
   print on Linux/x86_64
 

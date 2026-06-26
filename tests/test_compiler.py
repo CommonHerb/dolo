@@ -298,6 +298,29 @@ end
         ):
             compile_source(source)
 
+    def test_new_array_requires_one_herbert_type_argument(self):
+        cases = (
+            (
+                """fn bad() {
+  return new_array()
+}
+""",
+                r"line 2, column 10: new_array expects one Herbert type argument, got 0",
+            ),
+            (
+                """fn bad() {
+  return new_array(int, string)
+}
+""",
+                r"line 2, column 10: new_array expects one Herbert type argument, got 2",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(DoloSyntaxError, expected):
+                    compile_source(source)
+
     def test_herbert_void_builtins_are_not_value_calls(self):
         cases = (
             (
@@ -322,24 +345,48 @@ end
                     compile_source(source)
 
     def test_dolo_functions_take_precedence_over_observed_builtin_names(self):
-        source = """fn add(a, b) {
+        cases = (
+            (
+                """fn add(a, b) {
   return a + b
 }
 
 fn main() {
   return add(1, 2)
 }
-"""
-        expected = """func add(a, b):
+""",
+                """func add(a, b):
   return a + b
 end
 
 func main():
   return add(1, 2)
 end
-"""
+""",
+            ),
+            (
+                """fn new_array() {
+  return 7
+}
 
-        self.assertEqual(compile_source(source), expected)
+fn main() {
+  return new_array()
+}
+""",
+                """func new_array():
+  return 7
+end
+
+func main():
+  return new_array()
+end
+""",
+            ),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                self.assertEqual(compile_source(source), expected)
 
     def test_do_statement_emits_observed_no_value_herbert_builtin_calls(self):
         source = """fn mutate(items, label) {

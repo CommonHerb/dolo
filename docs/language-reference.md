@@ -89,8 +89,8 @@ An annotation must name a record declared in the same source file.
 Dolo-to-Dolo function calls must pass the declared number of arguments.
 Value-level calls to observed Herbert built-ins are allowed by name. For the
 built-ins Dolo can emit directly, the compiler validates observed argument
-counts before Herbert emission. For `new_array(...)`, the compiler also
-validates the observed Herbert type-expression argument: `int`, `bool`,
+counts before Herbert emission. For built-in `new_array(...)`, the compiler
+requires exactly one observed Herbert type-expression argument: `int`, `bool`,
 `string`, `buffer`, `array(T)`, and tuple-shaped type expressions such as
 `(int, bool)`.
 
@@ -132,7 +132,8 @@ Implemented expression behavior includes:
 - calls to the observed value-level Herbert built-ins named in
   `docs/foundation/herbert-target-subset.md`; observed arities are checked
   before Herbert emission
-- `new_array(...)` calls with observed Herbert type-expression arguments
+- built-in `new_array(...)` calls with exactly one observed Herbert
+  type-expression argument
 - tuple construction
 - arithmetic and comparison operators accepted by Herbert
 - `&&` lowering to Herbert `and`
@@ -194,6 +195,8 @@ Diagnostics are intentionally small:
   counts at the call target column
 - observed Herbert built-in arity mismatches report expected and actual
   argument counts at the built-in call target column
+- invalid `new_array(...)` argument counts report expected and actual counts at
+  the built-in call target column
 - unknown `new_array(...)` Herbert type arguments report the type token column
 - observed Herbert no-value mutation built-ins report the call target column
   when used as Dolo expression calls

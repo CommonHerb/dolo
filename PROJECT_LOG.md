@@ -2,6 +2,25 @@
 
 ## 2026-06-26
 
+- Tightened the built-in `new_array(...)` boundary so it now reports a focused
+  diagnostic when the call has zero or multiple Herbert type arguments. This
+  preserves Dolo function precedence for a user-defined `new_array` function.
+- Verified the diagnostic slice with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_new_array_requires_one_herbert_type_argument`
+  (first observed failures: zero-argument `new_array()` did not raise, and
+  `new_array(int, string)` failed later as `unknown variable 'int'`; after the
+  emitter change: `Ran 1 test`, `OK`). The neighboring `new_array` and
+  built-in-name precedence tests then ran as `Ran 4 tests`, `OK`.
+- Verified the full gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 69 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 8 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Added a narrow `do` statement for observed no-value Herbert mutation built-ins
   `add` and `append`. Dolo value expressions still reject those no-value calls,
   now with a diagnostic that points users to `do`.

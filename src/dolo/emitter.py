@@ -206,13 +206,20 @@ class Emitter:
         while i < len(expr.tokens):
             token = expr.tokens[i]
             if token.kind == "IDENT" and token.value == "new_array" and self._next_value(expr, i, "("):
-                spans = self._call_argument_spans(expr, i)
-                if len(spans) == 1:
-                    start, end = spans[0]
-                    self._validate_herbert_type_expr(expr.tokens, start, end)
-                    indexes.update(range(start, end))
-                    i = self._call_close_index(expr, i) + 1
+                if token.value in self.functions:
+                    i += 1
                     continue
+                spans = self._call_argument_spans(expr, i)
+                if len(spans) != 1:
+                    raise DoloSyntaxError(
+                        f"{_location(token)}: new_array expects one Herbert type argument, "
+                        f"got {len(spans)}"
+                    )
+                start, end = spans[0]
+                self._validate_herbert_type_expr(expr.tokens, start, end)
+                indexes.update(range(start, end))
+                i = self._call_close_index(expr, i) + 1
+                continue
             i += 1
         return indexes
 
