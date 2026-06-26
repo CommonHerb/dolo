@@ -161,6 +161,18 @@ record Thing { value }
                 with self.assertRaisesRegex(DoloSyntaxError, expected):
                     compile_source(source)
 
+    def test_main_function_must_take_no_parameters(self):
+        source = """fn main(seed) {
+  return seed
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 1, column 4: function 'main' must take zero parameters",
+        ):
+            compile_source(source)
+
     def test_function_parameter_annotation_must_name_a_record(self):
         source = """fn bad(c: Missing) {
   return c
@@ -754,7 +766,8 @@ end
   return seed
 }
 """,
-                r"executable_manifest.tsv: examples/a.dolo must define no-argument fn main\(\)",
+                r"executable_manifest.tsv: examples/a.dolo failed to parse: "
+                r"line 1, column 4: function 'main' must take zero parameters",
             ),
         )
 

@@ -156,7 +156,9 @@ system, or runtime.
 
 ## Main And Execution
 
-Executable examples define a no-argument `fn main()`:
+Executable examples define a no-argument `fn main()`. If a Dolo source declares
+`main`, the compiler requires it to take zero parameters so emitted Herbert
+stays inside the pinned target's executable entry-point boundary:
 
 ```dolo
 fn main() {
@@ -183,6 +185,7 @@ Diagnostics are intentionally small:
   name column
 - function declarations that reuse observed Herbert built-in names report the
   function name column
+- `main` declarations with parameters report the `main` name column
 - unknown record annotations report the annotation column
 - unexpected characters and unterminated string or character literals report
   the offending or opening column

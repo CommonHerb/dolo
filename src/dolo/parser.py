@@ -81,6 +81,8 @@ class Parser:
         self.function_names.add(name)
         self._expect_value("(")
         params = self._parse_params(name)
+        if name == "main" and params:
+            self._fail_at(name_token, "function 'main' must take zero parameters")
         self._expect_value(")")
         self._expect_value("{")
         body = self._parse_block()

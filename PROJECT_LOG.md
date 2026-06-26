@@ -2,6 +2,30 @@
 
 ## 2026-06-26
 
+- Enforced the pinned Herbert executable-entry boundary for Dolo `main`: when a
+  source declares `fn main`, it must take zero parameters before the compiler
+  will emit Herbert.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_main_function_must_take_no_parameters`
+  (first observed failure: `DoloSyntaxError` was not raised for
+  `fn main(seed)`; after the parser change: `Ran 1 test`, `OK`).
+- Updated the executable-manifest no-argument-main test for the new parser
+  boundary, since parameterized `main` now fails during Dolo parsing while
+  helper-only executable rows still fail with the manifest-specific no-main
+  diagnostic.
+- Verified the focused parser/manifest boundary with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_main_function_must_take_no_parameters tests.test_compiler.CompilerTests.test_manifest_validator_requires_executable_no_arg_main`
+  (`Ran 2 tests`, `OK`).
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 74 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Replaced the stale Dolo shadowing rule for observed Herbert built-ins with a
   target-surface reservation: Dolo function declarations now reject names such
   as `length`, `add`, and `new_array`, matching the pinned Herbert compiler's
