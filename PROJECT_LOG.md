@@ -75,3 +75,9 @@
 - Verified locally with:
   `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
   (`Ran 19 tests`, `OK`).
+- Added parser guardrails for ambiguous duplicate names: top-level records,
+  top-level functions, record fields, and function parameters now fail with
+  columned `DoloSyntaxError` messages.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 23 tests`, `OK`).

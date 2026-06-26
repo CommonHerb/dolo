@@ -19,6 +19,8 @@ class Parser:
     def __init__(self, source: str):
         self.tokens = tokenize(source)
         self.index = 0
+        self.record_names: set[str] = set()
+        self.function_names: set[str] = set()
 
     def parse(self) -> Program:
         records: list[RecordDecl] = []
@@ -35,11 +37,20 @@ class Parser:
         return Program(tuple(records), tuple(functions))
 
     def _parse_record_after_keyword(self) -> RecordDecl:
-        name = self._expect_kind("IDENT").value
+        name_token = self._expect_kind("IDENT")
+        name = name_token.value
+        if name in self.record_names:
+            self._fail_at(name_token, f"duplicate record {name}")
+        self.record_names.add(name)
         self._expect_value("{")
         fields: list[str] = []
+        seen_fields: set[str] = set()
         while not self._match_value("}"):
-            fields.append(self._expect_kind("IDENT").value)
+            field = self._expect_kind("IDENT")
+            if field.value in seen_fields:
+                self._fail_at(field, f"record {name} repeats field {field.value!r}")
+            fields.append(field.value)
+            seen_fields.add(field.value)
             if self._match_value(","):
                 continue
             self._expect_value("}")
@@ -47,24 +58,33 @@ class Parser:
         return RecordDecl(name, tuple(fields))
 
     def _parse_function_after_keyword(self) -> FunctionDecl:
-        name = self._expect_kind("IDENT").value
+        name_token = self._expect_kind("IDENT")
+        name = name_token.value
+        if name in self.function_names:
+            self._fail_at(name_token, f"duplicate function {name}")
+        self.function_names.add(name)
         self._expect_value("(")
-        params = self._parse_params()
+        params = self._parse_params(name)
         self._expect_value(")")
         self._expect_value("{")
         body = self._parse_block()
         return FunctionDecl(name, tuple(params), tuple(body))
 
-    def _parse_params(self) -> list[Param]:
+    def _parse_params(self, function_name: str) -> list[Param]:
         params: list[Param] = []
+        seen_params: set[str] = set()
         if self._peek_value(")"):
             return params
         while True:
-            name = self._expect_kind("IDENT").value
+            name_token = self._expect_kind("IDENT")
+            name = name_token.value
+            if name in seen_params:
+                self._fail_at(name_token, f"function {function_name} repeats parameter {name!r}")
             type_name = None
             if self._match_value(":"):
                 type_name = self._expect_kind("IDENT").value
             params.append(Param(name, type_name))
+            seen_params.add(name)
             if not self._match_value(","):
                 return params
 

@@ -17,6 +17,10 @@ fn hunger_of(c: Citizen) {
 
 Comments start with `#` and run to the end of the line.
 
+Top-level record names and function names must be unique within the source
+file. Record field names must be unique within a record, and function parameter
+names must be unique within a function.
+
 ## Records
 
 Records name tuple positions:
@@ -134,6 +138,8 @@ Diagnostics are intentionally small:
 
 - malformed source reports line and column where the tokenizer or parser
   noticed the issue
+- duplicate top-level record names, top-level function names, record fields, and
+  function parameters report the repeated name column
 - unexpected characters and unterminated string or character literals report
   the offending or opening column
 - unclosed expression delimiters report the opening delimiter column before

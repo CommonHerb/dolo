@@ -26,6 +26,63 @@ end
 
         self.assertEqual(compile_source(source), expected)
 
+    def test_record_declaration_rejects_duplicate_field_names(self):
+        source = """record Citizen { name, hunger, name }
+
+fn main() {
+  return 1
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 1, column 32: record Citizen repeats field 'name'",
+        ):
+            compile_source(source)
+
+    def test_function_declaration_rejects_duplicate_parameter_names(self):
+        source = """fn bad(x, x) {
+  return x
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 1, column 11: function bad repeats parameter 'x'",
+        ):
+            compile_source(source)
+
+    def test_record_declaration_rejects_duplicate_record_names(self):
+        source = """record Citizen { name }
+record Citizen { hunger }
+
+fn main() {
+  return 1
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 8: duplicate record Citizen",
+        ):
+            compile_source(source)
+
+    def test_function_declaration_rejects_duplicate_function_names(self):
+        source = """fn main() {
+  return 1
+}
+
+fn main() {
+  return 2
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 5, column 4: duplicate function main",
+        ):
+            compile_source(source)
+
     def test_record_constructor_and_if_else_lower_to_herbert(self):
         source = """record Citizen { name, hunger }
 
