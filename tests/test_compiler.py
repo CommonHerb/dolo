@@ -935,14 +935,15 @@ end
 
         self.assertEqual(emitted, expected)
 
-    def test_builtin_kind_sets_are_derived_from_one_owner_table(self):
+    def test_builtin_kind_sets_are_derived_from_herbert_owner(self):
         import dolo.herbert_surface as surface
 
-        kinds = getattr(surface, "HERBERT_BUILTIN_KINDS", None)
-        self.assertIsNotNone(
-            kinds,
-            "HERBERT_BUILTIN_KINDS must be the Python owner for built-in kind",
+        self.assertEqual(
+            surface.HERBERT_BUILTIN_KIND_OWNER,
+            "experiments/herbert/builtin_kind_candidate.herb",
         )
+        kinds = surface.load_herbert_builtin_kinds(ROOT)
+        self.assertEqual(kinds, surface.HERBERT_BUILTIN_KINDS)
         self.assertEqual(set(kinds), surface.HERBERT_BUILTINS)
         self.assertEqual(
             {
@@ -960,6 +961,8 @@ end
             },
             surface.HERBERT_VOID_BUILTINS,
         )
+        self.assertEqual(surface.herbert_builtin_kind("new_array"), "value")
+        self.assertEqual(surface.herbert_builtin_kind("add"), "void")
         self.assertEqual(set(kinds.values()), {"value", "void"})
 
     def test_observed_herbert_builtin_call_requires_observed_arity(self):
@@ -2125,16 +2128,18 @@ end
             ):
                 validate_repository_manifests(root)
 
-    def test_manifest_validator_requires_builtin_kind_candidate_to_mirror_python_tables(self):
+    def test_manifest_validator_requires_builtin_kind_candidate_to_match_oracle_golden(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             fixtures = root / "tests" / "fixtures"
+            oracle = root / "tests" / "oracle"
             examples = root / "examples"
             experiments = root / "experiments" / "herbert"
             notes = root / "docs" / "migration-candidates"
             fixtures.mkdir(parents=True)
+            oracle.mkdir(parents=True)
             examples.mkdir()
             experiments.mkdir(parents=True)
             notes.mkdir(parents=True)
@@ -2161,6 +2166,11 @@ end
 """
             )
             (fixtures / "builtin_kind_candidate.stdout").write_text("\"void\"\n")
+            (oracle / "builtin_kind_golden.tsv").write_text(
+                "# name\tkind\n"
+                "add\tvoid\n"
+                "append\tvoid\n"
+            )
             (notes / "0001-builtin-kind.md").write_text(
                 "experiments/herbert/builtin_kind_candidate.herb\n"
                 "tests/fixtures/builtin_kind_candidate.stdout\n"
@@ -2184,8 +2194,8 @@ end
 
             with self.assertRaisesRegex(
                 ManifestError,
-                r"herbert_migration_manifest.tsv: builtin kind candidate must mirror "
-                r"HERBERT_VALUE_BUILTINS and HERBERT_VOID_BUILTINS \(missing append",
+                r"herbert_migration_manifest.tsv: builtin kind candidate must match "
+                r"tests/oracle/builtin_kind_golden.tsv \(missing append",
             ):
                 validate_repository_manifests(root)
 

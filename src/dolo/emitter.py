@@ -17,10 +17,8 @@ from .ast import (
 from .herbert_surface import (
     DOLO_BOOLEAN_OPERATOR_LOWERINGS,
     HERBERT_BUILTIN_ARITIES,
-    HERBERT_BUILTINS,
     HERBERT_TYPE_NAMES,
-    HERBERT_VALUE_BUILTINS,
-    HERBERT_VOID_BUILTINS,
+    herbert_builtin_kind,
 )
 from .tokens import DoloSyntaxError, Token
 
@@ -169,11 +167,12 @@ class Emitter:
             raise DoloSyntaxError(
                 f"{_location(call)}: Dolo function {call.value!r} cannot be used as a do statement"
             )
-        if call.value in HERBERT_VALUE_BUILTINS:
+        kind = herbert_builtin_kind(call.value)
+        if kind == "value":
             raise DoloSyntaxError(
                 f"{_location(call)}: do statement requires no-value Herbert built-in, got {call.value!r}"
             )
-        if call.value not in HERBERT_VOID_BUILTINS:
+        if kind != "void":
             raise DoloSyntaxError(f"{_location(call)}: unknown do statement call {call.value!r}")
         close_index = self._call_close_index(expr, 0)
         if close_index != len(expr.tokens) - 1:
@@ -376,14 +375,15 @@ class Emitter:
     def _validate_call_target(self, token: Token, *, allow_void_call: bool = False) -> None:
         if token.value in self.functions:
             return
-        if token.value in HERBERT_VOID_BUILTINS:
+        kind = herbert_builtin_kind(token.value)
+        if kind == "void":
             if allow_void_call:
                 return
             raise DoloSyntaxError(
                 f"{_location(token)}: built-in {token.value} has no value; "
                 "use a do statement"
             )
-        if token.value in HERBERT_BUILTINS:
+        if kind == "value":
             return
         raise DoloSyntaxError(f"{_location(token)}: unknown function call {token.value!r}")
 
