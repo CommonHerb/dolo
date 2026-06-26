@@ -430,6 +430,19 @@ end
         ):
             compile_source(source)
 
+    def test_let_statement_requires_binding_name(self):
+        source = """fn bad() {
+  let = 1
+  return 1
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 2, column 7: let statement expects a binding name",
+        ):
+            compile_source(source)
+
     def test_function_call_target_must_be_known(self):
         source = """fn bad() {
   return missing(1)

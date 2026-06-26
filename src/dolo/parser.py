@@ -157,6 +157,8 @@ class Parser:
 
     def _parse_stmt(self) -> Stmt:
         if self._match_value("let"):
+            if not self._at("IDENT"):
+                self._fail("let statement expects a binding name")
             name_token = self._expect_kind("IDENT")
             name = name_token.value
             self._expect_value("=")

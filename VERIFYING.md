@@ -32,8 +32,9 @@ This proves:
   parameter trailing commas, function names that reuse observed Herbert
   built-ins, `main` declarations with parameters, functions that may complete
   without returning, unbound variables, unbound assignment targets, duplicate
-  `let` bindings, assignment operators inside expressions, empty parenthesized
-  value expressions, commas without values on both sides, unknown call targets,
+  `let` bindings, `let` statements without binding names, assignment operators
+  inside expressions, empty parenthesized value expressions, commas without
+  values on both sides, unknown call targets,
   malformed field access, adjacent expression values without an operator, Dolo
   function arity mismatches, binary operators without both operands, malformed
   prefix `!` expressions, observed Herbert built-in arity mismatches, invalid

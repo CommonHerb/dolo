@@ -2,6 +2,23 @@
 
 ## 2026-06-26
 
+- Hardened parser diagnostics for malformed `let` statements so `let = value`
+  reports the binding-name boundary instead of the generic identifier parser
+  fallback.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_let_statement_requires_binding_name`
+  (first observed failure: generic `expected ident`; after the parser change:
+  `Ran 1 test`, `OK`).
+- Verified neighboring binding diagnostics with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_let_statement_requires_binding_name tests.test_compiler.CompilerTests.test_let_binding_must_be_new tests.test_compiler.CompilerTests.test_assignment_target_must_already_be_bound`
+  (`Ran 3 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 101 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`. This parser-only diagnostic slice did not change emitted
+  Herbert or executable manifests, so local Colima native verification was not
+  rerun for this commit.
 - Added executable example `examples/citizen_reassignment.dolo` with committed
   Herbert/stdout fixtures. The example proves Dolo's current record type
   knowledge survives a record-valued assignment before later field access, so

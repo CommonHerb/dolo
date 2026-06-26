@@ -236,6 +236,8 @@ Diagnostics are intentionally small:
 - unknown record fields report the record name, missing field, and field column
 - record constructor arity mismatches report expected and actual field counts
   at the constructor column
+- `let` statements without a binding name report the token where the binding
+  name was expected
 - `let` binding redeclarations report the repeated binding column
 - assignment to an unbound name reports the assignment target column
 - assignment operators inside expressions report the operator column
