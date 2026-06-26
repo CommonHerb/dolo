@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from .herbert_surface import is_dolo_two_char_op
+
 
 @dataclass(frozen=True)
 class Token:
@@ -16,7 +18,6 @@ class DoloSyntaxError(ValueError):
 
 
 KEYWORDS = {"record", "fn", "let", "do", "return", "if", "else", "true", "false"}
-TWO_CHAR_OPS = {"==", "!=", "<=", ">=", "&&", "||"}
 ONE_CHAR = set("{}(),.:+-*/%<>=!")
 
 
@@ -95,7 +96,7 @@ def tokenize(source: str) -> list[Token]:
                 )
             continue
         two = source[i : i + 2]
-        if two in TWO_CHAR_OPS:
+        if is_dolo_two_char_op(two):
             add("OP", two, line, column)
             i += 2
             column += 2
