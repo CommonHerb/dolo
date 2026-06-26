@@ -2074,7 +2074,7 @@ fn main() {
                 return 2
             else:
                 if equal(name, "hunger"):
-                    return 1
+                    return missing_index
                 else:
                     return 999
                 end

@@ -2,6 +2,27 @@
 
 ## 2026-06-26
 
+- Tightened duplicate lookup validation further so table-shaped migration
+  candidates reject a repeated branch name before numeric-return extraction,
+  including repeats whose `return` line would otherwise be skipped from the
+  extracted comparison map.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_rejects_duplicate_record_field_candidate_lookup_names`
+  (first observed failure with a nonnumeric duplicate branch return:
+  `ManifestError not raised`; after the validator change: `Ran 1 test`, `OK`).
+- Verified neighboring migration-candidate behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_rejects_duplicate_record_field_candidate_lookup_names tests.test_compiler.CompilerTests.test_manifest_validator_requires_record_field_candidate_to_mirror_citizen_record tests.test_compiler.CompilerTests.test_manifest_validator_requires_builtin_arity_candidate_to_mirror_python_table tests.test_compiler.CompilerTests.test_manifest_validator_requires_array_mutation_candidate_to_mirror_emitted_fixture tests.test_compiler.CompilerTests.test_herbert_migration_candidates_are_manifested`
+  (`Ran 5 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 102 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 12 Dolo executable example(s)`, `PASS: 3 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Hardened table-shaped migration candidate validation so duplicate Herbert
   lookup names are rejected before the extracted map is compared with the
   Dolo/Python bootstrap owner. This closes a trust-debt precision gap where a

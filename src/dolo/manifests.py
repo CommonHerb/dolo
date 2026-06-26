@@ -593,6 +593,7 @@ def _extract_equal_return_map(
     manifest_name: str,
 ) -> dict[str, int]:
     found: dict[str, int] = {}
+    seen_lookup_names: set[str] = set()
     lines = text.splitlines()
     prefix = 'if equal(name, "'
     suffix = '"):'
@@ -601,16 +602,17 @@ def _extract_equal_return_map(
         if not stripped.startswith(prefix) or not stripped.endswith(suffix):
             continue
         name = stripped[len(prefix) : -len(suffix)]
+        if name in seen_lookup_names:
+            raise ManifestError(
+                f"{manifest_name}: {candidate_label} has duplicate "
+                f"lookup name {name}"
+            )
+        seen_lookup_names.add(name)
         return_line = lines[index + 1].strip()
         if not return_line.startswith("return "):
             continue
         arity_text = return_line.removeprefix("return ").strip()
         if arity_text.isdigit():
-            if name in found:
-                raise ManifestError(
-                    f"{manifest_name}: {candidate_label} has duplicate "
-                    f"lookup name {name}"
-                )
             found[name] = int(arity_text)
     return dict(sorted(found.items()))
 
