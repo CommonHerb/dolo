@@ -14,6 +14,7 @@ class Expr:
 class Param:
     name: str
     type_name: str | None = None
+    type_token: Token | None = None
 
 
 @dataclass(frozen=True)

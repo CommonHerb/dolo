@@ -80,6 +80,7 @@ fn hunger_of(c: Citizen) {
 ```
 
 The annotation is used by the Dolo compiler and is not emitted into Herbert.
+An annotation must name a record declared in the same source file.
 
 ## Statements
 
@@ -140,6 +141,7 @@ Diagnostics are intentionally small:
   noticed the issue
 - duplicate top-level record names, top-level function names, record fields, and
   function parameters report the repeated name column
+- unknown record annotations report the annotation column
 - unexpected characters and unterminated string or character literals report
   the offending or opening column
 - unclosed expression delimiters report the opening delimiter column before

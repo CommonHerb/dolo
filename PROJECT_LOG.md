@@ -98,3 +98,14 @@
 - Verified locally with:
   `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
   (`Ran 24 tests`, `OK`).
+- Added type-boundary validation for record parameter annotations: annotations
+  must name a record declared in the same source file and now fail with a
+  columned `DoloSyntaxError` instead of being silently ignored.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 25 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 3 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

@@ -83,6 +83,18 @@ fn main() {
         ):
             compile_source(source)
 
+    def test_function_parameter_annotation_must_name_a_record(self):
+        source = """fn bad(c: Missing) {
+  return c
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 1, column 11: unknown record annotation 'Missing'",
+        ):
+            compile_source(source)
+
     def test_record_constructor_and_if_else_lower_to_herbert(self):
         source = """record Citizen { name, hunger }
 

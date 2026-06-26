@@ -34,7 +34,9 @@ class Parser:
             else:
                 self._fail("expected top-level record or fn")
             self._skip_newlines()
-        return Program(tuple(records), tuple(functions))
+        program = Program(tuple(records), tuple(functions))
+        self._validate_record_annotations(program)
+        return program
 
     def _parse_record_after_keyword(self) -> RecordDecl:
         name_token = self._expect_kind("IDENT")
@@ -81,12 +83,24 @@ class Parser:
             if name in seen_params:
                 self._fail_at(name_token, f"function {function_name} repeats parameter {name!r}")
             type_name = None
+            type_token = None
             if self._match_value(":"):
-                type_name = self._expect_kind("IDENT").value
-            params.append(Param(name, type_name))
+                type_token = self._expect_kind("IDENT")
+                type_name = type_token.value
+            params.append(Param(name, type_name, type_token))
             seen_params.add(name)
             if not self._match_value(","):
                 return params
+
+    def _validate_record_annotations(self, program: Program) -> None:
+        for function in program.functions:
+            for param in function.params:
+                if (
+                    param.type_name is not None
+                    and param.type_name not in self.record_names
+                    and param.type_token is not None
+                ):
+                    self._fail_at(param.type_token, f"unknown record annotation {param.type_name!r}")
 
     def _parse_block(self) -> list[Stmt]:
         body: list[Stmt] = []
