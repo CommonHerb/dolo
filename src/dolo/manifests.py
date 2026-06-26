@@ -145,6 +145,7 @@ def validate_repository_manifests(root: Path) -> None:
             stdout_rel,
             manifest_name="herbert_migration_manifest.tsv",
         )
+        _require_migration_candidate_note(root, source_rel, stdout_rel)
 
     non_executable_sources = set()
     for source_rel, reason in non_executable_rows:
@@ -312,6 +313,40 @@ def _require_migration_main(root: Path, source_rel: str) -> None:
     if "func main()" not in source_path.read_text():
         raise ManifestError(
             f"herbert_migration_manifest.tsv: {source_rel} must define func main()"
+        )
+
+
+def _require_migration_candidate_note(
+    root: Path,
+    source_rel: str,
+    stdout_rel: str,
+) -> None:
+    docs_dir = root / "docs"
+    if not docs_dir.exists():
+        return
+    notes_dir = docs_dir / "migration-candidates"
+    if not notes_dir.is_dir():
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: migration candidate notes must live under "
+            "docs/migration-candidates/"
+        )
+    source_notes: list[Path] = []
+    stdout_notes: list[Path] = []
+    for note in sorted(notes_dir.glob("*.md")):
+        text = note.read_text()
+        if source_rel in text:
+            source_notes.append(note)
+            if stdout_rel in text:
+                stdout_notes.append(note)
+    if not source_notes:
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: migration candidate note must mention "
+            f"{source_rel}"
+        )
+    if not stdout_notes:
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: migration candidate note must mention "
+            f"{stdout_rel}"
         )
 
 

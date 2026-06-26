@@ -2,6 +2,24 @@
 
 ## 2026-06-26
 
+- Hardened migration-candidate validation so notes in
+  `docs/migration-candidates/` must mention each manifested Herbert candidate
+  source and stdout golden. This keeps executable repayment candidates tied to
+  their proof notes instead of relying on nearby prose.
+- Verified the migration-note validator slice with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_requires_migration_candidate_note_links`
+  (first observed failures: candidate notes that omitted the source/stdout row
+  were accepted; after the validator change: `Ran 1 test`, `OK`).
+- Verified the full gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 72 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Improved expression formatting so a grouped expression after a comma keeps a
   separating space in emitted Herbert, for example `array((int, (bool,
   string)))`.

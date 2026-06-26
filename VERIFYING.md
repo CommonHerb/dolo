@@ -48,6 +48,9 @@ This proves:
 - Herbert migration manifest sources stay in `experiments/herbert/*.herb` with
   a visible `func main()` entry point, and their stdout goldens stay in
   `tests/fixtures/*.stdout`
+- migration candidate notes under `docs/migration-candidates/` mention their
+  manifested Herbert source and stdout golden, so executable candidates and
+  their documentation cannot silently drift apart
 - executable and migration stdout goldens end with a newline, matching the
   shape the truth loop compares after native execution
 - the Herbert truth harness is pinned, stages a temporary seed copy, includes
@@ -112,7 +115,9 @@ The same harness also runs raw Herbert migration candidates listed in
 Herbert-family implementation candidates, not completed replacements for Python
 bootstrap code. Local manifest validation rejects migration rows that do not
 point at `.herb` files with a visible `func main()` entry point, and rejects
-stdout goldens that do not use a `.stdout` suffix or end with a newline.
+stdout goldens that do not use a `.stdout` suffix or end with a newline. When
+`docs/migration-candidates/` exists, local validation also requires a migration
+candidate note to mention the manifested Herbert source and stdout golden.
 
 This does not prove arbitrary Dolo program correctness, arbitrary Herbert
 compiler correctness, or removal of bootstrap trust debt. It proves only the

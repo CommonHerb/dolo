@@ -1167,6 +1167,62 @@ end
                     with self.assertRaisesRegex(ManifestError, expected):
                         validate_repository_manifests(root)
 
+    def test_manifest_validator_requires_migration_candidate_note_links(self):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        cases = (
+            (
+                "candidate note does not mention source or stdout\n",
+                r"herbert_migration_manifest.tsv: migration candidate note must mention "
+                r"experiments/herbert/candidate.herb",
+            ),
+            (
+                "candidate note mentions experiments/herbert/candidate.herb only\n",
+                r"herbert_migration_manifest.tsv: migration candidate note must mention "
+                r"tests/fixtures/candidate.stdout",
+            ),
+        )
+
+        for note_text, expected in cases:
+            with self.subTest(expected=expected):
+                with tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    fixtures = root / "tests" / "fixtures"
+                    examples = root / "examples"
+                    experiments = root / "experiments" / "herbert"
+                    notes = root / "docs" / "migration-candidates"
+                    fixtures.mkdir(parents=True)
+                    examples.mkdir()
+                    experiments.mkdir(parents=True)
+                    notes.mkdir(parents=True)
+                    (examples / "a.dolo").write_text(
+                        """fn main() {
+  return 1
+}
+"""
+                    )
+                    (fixtures / "a.herb").write_text(
+                        "func main():\n  return 1\nend\n"
+                    )
+                    (fixtures / "a.stdout").write_text("1\n")
+                    (experiments / "candidate.herb").write_text(
+                        "func main():\n  return 1\nend\n"
+                    )
+                    (fixtures / "candidate.stdout").write_text("1\n")
+                    (notes / "0001-candidate.md").write_text(note_text)
+                    (fixtures / "executable_manifest.tsv").write_text(
+                        "examples/a.dolo\ttests/fixtures/a.herb\t"
+                        "tests/fixtures/a.stdout\n"
+                    )
+                    (fixtures / "non_executable_examples.tsv").write_text("")
+                    (fixtures / "herbert_migration_manifest.tsv").write_text(
+                        "experiments/herbert/candidate.herb\t"
+                        "tests/fixtures/candidate.stdout\n"
+                    )
+
+                    with self.assertRaisesRegex(ManifestError, expected):
+                        validate_repository_manifests(root)
+
     def test_manifest_validator_requires_migration_stdout_suffix(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
