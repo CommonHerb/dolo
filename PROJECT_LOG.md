@@ -69,3 +69,9 @@
 - Verified locally with:
   `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
   (`Ran 18 tests`, `OK`).
+- Taught the bootstrap CLI to report `DoloSyntaxError` diagnostics as plain
+  `dolo: ...` stderr messages with exit status 1 instead of exposing Python
+  tracebacks.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 19 tests`, `OK`).

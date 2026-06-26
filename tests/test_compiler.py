@@ -1,6 +1,7 @@
 import unittest
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from dolo.compiler import compile_source
@@ -89,6 +90,29 @@ end
         )
 
         self.assertEqual(result.stdout, expected)
+
+    def test_cli_reports_syntax_errors_without_python_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source_path = Path(tmp) / "bad.dolo"
+            source_path.write_text("""fn bad() {
+  return @
+}
+""")
+
+            result = subprocess.run(
+                [sys.executable, "-m", "dolo.cli", str(source_path)],
+                env={"PYTHONPATH": str(ROOT / "src")},
+                capture_output=True,
+                text=True,
+            )
+
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(
+            result.stderr,
+            "dolo: line 2, column 10: unexpected character '@'\n",
+        )
+        self.assertEqual(result.stdout, "")
+        self.assertNotIn("Traceback", result.stderr)
 
     def test_record_constructor_requires_exact_field_count(self):
         too_few = """record Citizen { name, hunger }
