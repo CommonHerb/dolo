@@ -1,6 +1,11 @@
 from __future__ import annotations
 
 
+DOLO_BOOLEAN_OPERATOR_LOWERINGS = {
+    "!": "not",
+    "&&": "and",
+    "||": "or",
+}
 HERBERT_VALUE_BUILTINS = frozenset(
     {
         "count",

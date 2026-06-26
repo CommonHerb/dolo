@@ -1,0 +1,25 @@
+func boolean_operator(name):
+    if equal(name, "!"):
+        return "not"
+    else:
+        if equal(name, "&&"):
+            return "and"
+        else:
+            if equal(name, "||"):
+                return "or"
+            else:
+                return "missing"
+            end
+        end
+    end
+end
+
+func main():
+    return (
+        "boolean-operator-candidate",
+        boolean_operator("!"),
+        boolean_operator("&&"),
+        boolean_operator("||"),
+        boolean_operator("missing")
+    )
+end

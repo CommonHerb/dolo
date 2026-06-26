@@ -15,6 +15,7 @@ from .ast import (
     Stmt,
 )
 from .herbert_surface import (
+    DOLO_BOOLEAN_OPERATOR_LOWERINGS,
     HERBERT_BUILTIN_ARITIES,
     HERBERT_BUILTINS,
     HERBERT_TYPE_NAMES,
@@ -537,13 +538,7 @@ def _format_expr(parts: list[str]) -> str:
 
 
 def _operator_value(value: str) -> str:
-    if value == "&&":
-        return "and"
-    if value == "||":
-        return "or"
-    if value == "!":
-        return "not"
-    return value
+    return DOLO_BOOLEAN_OPERATOR_LOWERINGS.get(value, value)
 
 
 def _is_expression_value_start(token: Token) -> bool:

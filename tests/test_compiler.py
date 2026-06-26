@@ -2098,6 +2098,68 @@ end
             ):
                 validate_repository_manifests(root)
 
+    def test_manifest_validator_requires_boolean_operator_candidate_to_mirror_python_table(self):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixtures = root / "tests" / "fixtures"
+            examples = root / "examples"
+            experiments = root / "experiments" / "herbert"
+            notes = root / "docs" / "migration-candidates"
+            fixtures.mkdir(parents=True)
+            examples.mkdir()
+            experiments.mkdir(parents=True)
+            notes.mkdir(parents=True)
+            (examples / "a.dolo").write_text(
+                """fn main() {
+  return 1
+}
+"""
+            )
+            (fixtures / "a.herb").write_text("func main():\n  return 1\nend\n")
+            (fixtures / "a.stdout").write_text("1\n")
+            (experiments / "boolean_operator_candidate.herb").write_text(
+                """func boolean_operator(name):
+    if equal(name, "&&"):
+        return "and"
+    else:
+        return "missing"
+    end
+end
+
+func main():
+    return boolean_operator("&&")
+end
+"""
+            )
+            (fixtures / "boolean_operator_candidate.stdout").write_text("\"and\"\n")
+            (notes / "0001-boolean.md").write_text(
+                "experiments/herbert/boolean_operator_candidate.herb\n"
+                "tests/fixtures/boolean_operator_candidate.stdout\n"
+                "Current Python behavior lives in DOLO_BOOLEAN_OPERATOR_LOWERINGS.\n"
+                "## Replacement Path\n"
+                "Compare this against DOLO_BOOLEAN_OPERATOR_LOWERINGS before wiring.\n"
+                "## Authority Boundary\n"
+                "This candidate is not compiler authority and not paid debt.\n"
+            )
+            (fixtures / "executable_manifest.tsv").write_text(
+                "examples/a.dolo\ttests/fixtures/a.herb\t"
+                "tests/fixtures/a.stdout\n"
+            )
+            (fixtures / "non_executable_examples.tsv").write_text("")
+            (fixtures / "herbert_migration_manifest.tsv").write_text(
+                "experiments/herbert/boolean_operator_candidate.herb\t"
+                "tests/fixtures/boolean_operator_candidate.stdout\n"
+            )
+
+            with self.assertRaisesRegex(
+                ManifestError,
+                r"herbert_migration_manifest.tsv: boolean operator candidate must mirror "
+                r"DOLO_BOOLEAN_OPERATOR_LOWERINGS \(missing !",
+            ):
+                validate_repository_manifests(root)
+
     def test_manifest_validator_requires_record_field_candidate_to_mirror_citizen_record(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 

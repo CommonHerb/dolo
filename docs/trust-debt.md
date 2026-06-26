@@ -29,6 +29,10 @@ candidates. Today they mirror narrow Python bootstrap compiler decisions:
 - `builtin_arity_candidate.herb` mirrors the observed Herbert built-in arity
   table used by Dolo before emission. Local manifest validation compares this
   candidate against Python-owned `HERBERT_BUILTIN_ARITIES`.
+- `boolean_operator_candidate.herb` mirrors the Dolo-to-Herbert boolean
+  operator lowering table used by the emitter. Local manifest validation
+  compares this candidate against Python-owned
+  `DOLO_BOOLEAN_OPERATOR_LOWERINGS`.
 
 They run through pinned Herbert in CI. They are not yet wired into the Dolo
 compiler, so they are repayment candidates, not paid debt.
@@ -40,7 +44,7 @@ that owner. It must also state the authority boundary that keeps
 executable/comparison proof distinct from compiler authority. A candidate
 without all four is not precise enough to count as a trust-debt repayment path.
 Table-shaped lookup candidates must also use unique lookup names before any
-numeric return map is compared with the Python/Dolo owner, so duplicate Herbert
+return map is compared with the Python/Dolo owner, so duplicate Herbert
 branches cannot be hidden by dictionary-style collapse or by returns that are
 skipped during extraction.
 

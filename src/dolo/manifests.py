@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from .compiler import compile_source
-from .herbert_surface import HERBERT_BUILTIN_ARITIES
+from .herbert_surface import DOLO_BOOLEAN_OPERATOR_LOWERINGS, HERBERT_BUILTIN_ARITIES
 from .parser import parse_source
 from .tokens import DoloSyntaxError
 
@@ -17,6 +17,7 @@ class ManifestError(ValueError):
 
 ARRAY_MUTATION_CANDIDATE = "experiments/herbert/array_mutation_candidate.herb"
 ARRAY_MUTATION_HERBERT_GOLDEN = "tests/fixtures/array_mutation.herb"
+BOOLEAN_OPERATOR_CANDIDATE = "experiments/herbert/boolean_operator_candidate.herb"
 BUILTIN_ARITY_CANDIDATE = "experiments/herbert/builtin_arity_candidate.herb"
 RECORD_FIELD_INDEX_CANDIDATE = "experiments/herbert/record_field_index_candidate.herb"
 RECORD_FIELD_INDEX_EXAMPLE = "examples/citizen.dolo"
@@ -158,6 +159,7 @@ def validate_repository_manifests(root: Path) -> None:
         )
         _require_migration_candidate_note(root, source_rel, stdout_rel)
         _require_array_mutation_candidate_matches_emitted_fixture(root, source_rel)
+        _require_boolean_operator_candidate_matches_python_table(root, source_rel)
         _require_builtin_arity_candidate_matches_python_table(root, source_rel)
         _require_record_field_index_candidate_matches_dolo_record(root, source_rel)
     _require_migration_candidate_notes_are_manifested(
@@ -515,6 +517,53 @@ def _extract_builtin_arity_candidate_map(text: str) -> dict[str, int]:
     )
 
 
+def _require_boolean_operator_candidate_matches_python_table(
+    root: Path,
+    source_rel: str,
+) -> None:
+    if source_rel != BOOLEAN_OPERATOR_CANDIDATE:
+        return
+
+    actual = _extract_boolean_operator_candidate_map((root / source_rel).read_text())
+    expected = dict(sorted(DOLO_BOOLEAN_OPERATOR_LOWERINGS.items()))
+    if actual == expected:
+        return
+
+    missing = sorted(set(expected) - set(actual))
+    unexpected = sorted(set(actual) - set(expected))
+    mismatched = sorted(
+        name
+        for name in set(expected) & set(actual)
+        if expected[name] != actual[name]
+    )
+    details: list[str] = []
+    if missing:
+        details.append(f"missing {', '.join(missing)}")
+    if unexpected:
+        details.append(f"unexpected {', '.join(unexpected)}")
+    if mismatched:
+        details.append(
+            "mismatched "
+            + ", ".join(
+                f"{name} expected {expected[name]} got {actual[name]}"
+                for name in mismatched
+            )
+        )
+    raise ManifestError(
+        "herbert_migration_manifest.tsv: boolean operator candidate must mirror "
+        "DOLO_BOOLEAN_OPERATOR_LOWERINGS "
+        f"({'; '.join(details)})"
+    )
+
+
+def _extract_boolean_operator_candidate_map(text: str) -> dict[str, str]:
+    return _extract_equal_return_string_map(
+        text,
+        candidate_label="boolean operator candidate",
+        manifest_name="herbert_migration_manifest.tsv",
+    )
+
+
 def _require_record_field_index_candidate_matches_dolo_record(
     root: Path,
     source_rel: str,
@@ -614,6 +663,37 @@ def _extract_equal_return_map(
         arity_text = return_line.removeprefix("return ").strip()
         if arity_text.isdigit():
             found[name] = int(arity_text)
+    return dict(sorted(found.items()))
+
+
+def _extract_equal_return_string_map(
+    text: str,
+    *,
+    candidate_label: str,
+    manifest_name: str,
+) -> dict[str, str]:
+    found: dict[str, str] = {}
+    seen_lookup_names: set[str] = set()
+    lines = text.splitlines()
+    prefix = 'if equal(name, "'
+    suffix = '"):'
+    for index, line in enumerate(lines[:-1]):
+        stripped = line.strip()
+        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
+            continue
+        name = stripped[len(prefix) : -len(suffix)]
+        if name in seen_lookup_names:
+            raise ManifestError(
+                f"{manifest_name}: {candidate_label} has duplicate "
+                f"lookup name {name}"
+            )
+        seen_lookup_names.add(name)
+        return_line = lines[index + 1].strip()
+        if not return_line.startswith("return "):
+            continue
+        value_text = return_line.removeprefix("return ").strip()
+        if len(value_text) >= 2 and value_text[0] == '"' and value_text[-1] == '"':
+            found[name] = value_text[1:-1]
     return dict(sorted(found.items()))
 
 

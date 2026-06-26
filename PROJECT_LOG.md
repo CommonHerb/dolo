@@ -2,6 +2,32 @@
 
 ## 2026-06-26
 
+- Added Herbert-family migration candidate 0004,
+  `experiments/herbert/boolean_operator_candidate.herb`, plus its stdout
+  golden and candidate note. It mirrors the Python-owned
+  `DOLO_BOOLEAN_OPERATOR_LOWERINGS` table for `!`, `&&`, and `||`; local
+  manifest validation now compares that candidate against the bootstrap table
+  before native execution.
+- Moved the emitter's boolean operator lowering into the shared
+  `DOLO_BOOLEAN_OPERATOR_LOWERINGS` table so the Python bootstrap owner has one
+  explicit comparison point.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_requires_boolean_operator_candidate_to_mirror_python_table`
+  (first observed failure: `ManifestError not raised`; after the validator and
+  table change: `Ran 1 test`, `OK`).
+- Verified neighboring migration-candidate behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_requires_boolean_operator_candidate_to_mirror_python_table tests.test_compiler.CompilerTests.test_manifest_validator_requires_builtin_arity_candidate_to_mirror_python_table tests.test_compiler.CompilerTests.test_manifest_validator_requires_record_field_candidate_to_mirror_citizen_record tests.test_compiler.CompilerTests.test_manifest_validator_rejects_duplicate_record_field_candidate_lookup_names tests.test_compiler.CompilerTests.test_herbert_migration_candidates_are_manifested tests.test_compiler.CompilerTests.test_manifest_validator_accepts_repository_manifests`
+  (`Ran 6 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 109 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 13 Dolo executable example(s)`, `PASS: 4 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Added executable application-shaped example `examples/clinic_queue.dolo`,
   combining records, record-field lowering, boolean branching, string arrays,
   and buffer mutation without expanding the Dolo language surface.

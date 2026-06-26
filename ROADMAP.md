@@ -19,11 +19,12 @@ This roadmap is a living map. It separates what is proven from what is intended.
   `.dolo -> .herb -> ELF` through the pinned Herbert seed on Linux/x86_64 and
   comparing native stdout.
 - Herbert-family migration candidates for record field indexing, array
-  mutation, and built-in arity lookup run through the same pinned Herbert seed
-  and are tracked as candidates 0001, 0002, and 0003.
-- Local manifest validation compares the record-field, array-mutation, and
-  built-in-arity candidates against the Dolo/Python bootstrap owners they
-  mirror.
+  mutation, built-in arity lookup, and boolean operator lowering run through
+  the same pinned Herbert seed and are tracked as candidates 0001 through
+  0004.
+- Local manifest validation compares the record-field, array-mutation,
+  built-in-arity, and boolean-operator candidates against the Dolo/Python
+  bootstrap owners they mirror.
 
 ## First Foundation
 

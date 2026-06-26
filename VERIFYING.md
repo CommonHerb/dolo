@@ -86,6 +86,10 @@ This proves:
   built-in names and arities as Python-owned `HERBERT_BUILTIN_ARITIES`, so the
   first arity migration candidate is compared against the bootstrap table it
   intends to replace
+- `experiments/herbert/boolean_operator_candidate.herb` enumerates the same
+  Dolo boolean operator spellings and lowered Herbert words as Python-owned
+  `DOLO_BOOLEAN_OPERATOR_LOWERINGS`, so the first boolean-operator migration
+  candidate is compared against the bootstrap table it intends to replace
 - executable and migration stdout goldens end with a newline, matching the
   shape the truth loop compares after native execution
 - the Herbert truth harness is pinned, stages a temporary seed copy, includes
@@ -162,10 +166,12 @@ its Herbert lookup table must mirror the parsed `Citizen` fields in
 `examples/citizen.dolo`. The array mutation candidate has one extra local
 check: its mutation/read shape must mirror `tests/fixtures/array_mutation.herb`.
 The built-in arity candidate has one extra local check: its Herbert lookup
-table must mirror Python-owned `HERBERT_BUILTIN_ARITIES`. Table-shaped
-candidate checks also reject duplicate lookup names before comparing the final
-numeric-return map, so duplicate branches cannot be hidden by extraction order
-or by returns that are skipped from that map.
+table must mirror Python-owned `HERBERT_BUILTIN_ARITIES`. The boolean operator
+candidate has one extra local check: its Herbert lookup table must mirror
+Python-owned `DOLO_BOOLEAN_OPERATOR_LOWERINGS`. Table-shaped candidate checks
+also reject duplicate lookup names before comparing the final return map, so
+duplicate branches cannot be hidden by extraction order or by returns that are
+skipped from that map.
 
 This does not prove arbitrary Dolo program correctness, arbitrary Herbert
 compiler correctness, or removal of bootstrap trust debt. It proves only the
