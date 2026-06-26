@@ -364,6 +364,86 @@ end
         self.assertEqual(result.stdout, "")
         self.assertEqual(result.stderr, "")
 
+    def test_manifest_validator_rejects_duplicate_source_rows(self):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        cases = (
+            (
+                "executable_manifest.tsv",
+                "examples/a.dolo\ttests/fixtures/a.herb\ttests/fixtures/a.stdout\n"
+                "examples/a.dolo\ttests/fixtures/a.herb\ttests/fixtures/a.stdout\n",
+                None,
+                None,
+                r"executable_manifest.tsv: duplicate source examples/a.dolo",
+            ),
+            (
+                "non_executable_examples.tsv",
+                None,
+                "examples/b.dolo\twaiting for list syntax\n"
+                "examples/b.dolo\twaiting for list syntax\n",
+                None,
+                r"non_executable_examples.tsv: duplicate source examples/b.dolo",
+            ),
+            (
+                "herbert_migration_manifest.tsv",
+                None,
+                None,
+                "experiments/herbert/candidate.herb\ttests/fixtures/candidate.stdout\n"
+                "experiments/herbert/candidate.herb\ttests/fixtures/candidate.stdout\n",
+                r"herbert_migration_manifest.tsv: duplicate source "
+                r"experiments/herbert/candidate.herb",
+            ),
+        )
+
+        for (
+            manifest_name,
+            executable_rows,
+            non_executable_rows,
+            migration_rows,
+            expected,
+        ) in cases:
+            with self.subTest(manifest=manifest_name):
+                with tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    fixtures = root / "tests" / "fixtures"
+                    examples = root / "examples"
+                    experiments = root / "experiments" / "herbert"
+                    fixtures.mkdir(parents=True)
+                    examples.mkdir()
+                    experiments.mkdir(parents=True)
+                    (examples / "a.dolo").write_text("fn main() { return 1 }\n")
+                    (examples / "b.dolo").write_text("fn listy() { return 1 }\n")
+                    (fixtures / "a.herb").write_text(
+                        "func main():\n  return 1\nend\n"
+                    )
+                    (fixtures / "a.stdout").write_text("1\n")
+                    (experiments / "candidate.herb").write_text(
+                        "func main():\n  return 1\nend\n"
+                    )
+                    (fixtures / "candidate.stdout").write_text("1\n")
+
+                    (fixtures / "executable_manifest.tsv").write_text(
+                        executable_rows
+                        or (
+                            "examples/a.dolo\ttests/fixtures/a.herb\t"
+                            "tests/fixtures/a.stdout\n"
+                        )
+                    )
+                    (fixtures / "non_executable_examples.tsv").write_text(
+                        non_executable_rows
+                        or "examples/b.dolo\twaiting for list syntax\n"
+                    )
+                    (fixtures / "herbert_migration_manifest.tsv").write_text(
+                        migration_rows
+                        or (
+                            "experiments/herbert/candidate.herb\t"
+                            "tests/fixtures/candidate.stdout\n"
+                        )
+                    )
+
+                    with self.assertRaisesRegex(ManifestError, expected):
+                        validate_repository_manifests(root)
+
     def test_all_examples_are_classified_for_execution(self):
         executable_manifest = (
             ROOT / "tests" / "fixtures" / "executable_manifest.tsv"

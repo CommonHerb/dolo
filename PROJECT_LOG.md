@@ -335,3 +335,14 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Hardened repository manifest validation to reject duplicate source rows in
+  executable example, non-executable example, and Herbert migration manifests
+  before the native truth loop runs.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 44 tests`, `OK`).
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

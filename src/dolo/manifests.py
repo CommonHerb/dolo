@@ -38,6 +38,18 @@ def validate_repository_manifests(root: Path) -> None:
         fixtures / "non_executable_examples.tsv",
         columns=2,
     )
+    _reject_duplicate_sources(
+        executable_rows,
+        manifest_name="executable_manifest.tsv",
+    )
+    _reject_duplicate_sources(
+        migration_rows,
+        manifest_name="herbert_migration_manifest.tsv",
+    )
+    _reject_duplicate_sources(
+        non_executable_rows,
+        manifest_name="non_executable_examples.tsv",
+    )
 
     if not executable_rows:
         raise ManifestError(
@@ -93,6 +105,19 @@ def _read_sorted(path: Path, *, columns: int) -> list[tuple[str, ...]]:
     if rows != sorted(rows):
         raise ManifestError(f"{path.name}: rows must be sorted")
     return rows
+
+
+def _reject_duplicate_sources(
+    rows: list[tuple[str, ...]],
+    *,
+    manifest_name: str,
+) -> None:
+    seen: set[str] = set()
+    for row in rows:
+        source = row[0]
+        if source in seen:
+            raise ManifestError(f"{manifest_name}: duplicate source {source}")
+        seen.add(source)
 
 
 def _require_file(root: Path, relative_path: str, *, label: str) -> None:

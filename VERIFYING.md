@@ -29,8 +29,8 @@ This proves:
   tracebacks
 - committed examples match committed Herbert goldens
 - repository manifests have sorted rows, the expected tab-separated fields,
-  existing file targets, and every `examples/*.dolo` file is either executable
-  or explicitly non-executable with a reason
+  unique source rows, existing file targets, and every `examples/*.dolo` file
+  is either executable or explicitly non-executable with a reason
 - the Herbert truth harness is pinned, stages a temporary seed copy, and
   includes the migration-candidate manifest
 
