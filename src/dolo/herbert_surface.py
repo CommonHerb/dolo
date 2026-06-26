@@ -1,30 +1,82 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 
 DOLO_BOOLEAN_OPERATOR_LOWERINGS = {
     "!": "not",
     "&&": "and",
     "||": "or",
 }
-HERBERT_BUILTIN_KINDS = {
-    "add": "void",
-    "append": "void",
-    "count": "value",
-    "equal": "value",
-    "freeze": "value",
-    "get": "value",
-    "index": "value",
-    "length": "value",
-    "new_array": "value",
-    "new_buffer": "value",
-}
+HERBERT_BUILTIN_KIND_OWNER = "experiments/herbert/builtin_kind_candidate.herb"
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_VALID_BUILTIN_KINDS = frozenset({"value", "void"})
+
+
+def load_herbert_builtin_kinds(root: Path | str | None = None) -> dict[str, str]:
+    repo_root = Path(root) if root is not None else _REPO_ROOT
+    owner_path = repo_root / HERBERT_BUILTIN_KIND_OWNER
+    try:
+        owner_text = owner_path.read_text()
+    except OSError as exc:
+        raise RuntimeError(
+            f"Herbert built-in kind owner is unreadable: {HERBERT_BUILTIN_KIND_OWNER}"
+        ) from exc
+
+    kinds = _extract_builtin_kind_owner_map(owner_text)
+    if not kinds:
+        raise RuntimeError(
+            f"Herbert built-in kind owner declares no kind data: {HERBERT_BUILTIN_KIND_OWNER}"
+        )
+    invalid = {
+        name: kind
+        for name, kind in kinds.items()
+        if kind not in _VALID_BUILTIN_KINDS
+    }
+    if invalid:
+        details = ", ".join(
+            f"{name}={kind!r}" for name, kind in sorted(invalid.items())
+        )
+        raise RuntimeError(
+            f"Herbert built-in kind owner has invalid kind(s): {details}"
+        )
+    return kinds
+
+
+def _extract_builtin_kind_owner_map(text: str) -> dict[str, str]:
+    found: dict[str, str] = {}
+    seen_lookup_names: set[str] = set()
+    lines = text.splitlines()
+    prefix = 'if equal(name, "'
+    suffix = '"):'
+    for index, line in enumerate(lines[:-1]):
+        stripped = line.strip()
+        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
+            continue
+        name = stripped[len(prefix) : -len(suffix)]
+        if name in seen_lookup_names:
+            raise RuntimeError(
+                f"Herbert built-in kind owner repeats lookup name {name!r}"
+            )
+        seen_lookup_names.add(name)
+        return_line = lines[index + 1].strip()
+        if not return_line.startswith("return "):
+            continue
+        value_text = return_line.removeprefix("return ").strip()
+        if len(value_text) >= 2 and value_text[0] == '"' and value_text[-1] == '"':
+            found[name] = value_text[1:-1]
+    return dict(sorted(found.items()))
+
+
+_HERBERT_BUILTIN_KINDS_BY_OWNER = load_herbert_builtin_kinds()
+HERBERT_BUILTIN_KINDS = dict(_HERBERT_BUILTIN_KINDS_BY_OWNER)
 HERBERT_VALUE_BUILTINS = frozenset(
-    name for name, kind in HERBERT_BUILTIN_KINDS.items() if kind == "value"
+    name for name, kind in _HERBERT_BUILTIN_KINDS_BY_OWNER.items() if kind == "value"
 )
 HERBERT_VOID_BUILTINS = frozenset(
-    name for name, kind in HERBERT_BUILTIN_KINDS.items() if kind == "void"
+    name for name, kind in _HERBERT_BUILTIN_KINDS_BY_OWNER.items() if kind == "void"
 )
-HERBERT_BUILTINS = frozenset(HERBERT_BUILTIN_KINDS)
+HERBERT_BUILTINS = frozenset(_HERBERT_BUILTIN_KINDS_BY_OWNER)
 HERBERT_BUILTIN_ARITIES = {
     "add": 2,
     "append": 2,
@@ -38,3 +90,7 @@ HERBERT_BUILTIN_ARITIES = {
     "new_buffer": 0,
 }
 HERBERT_TYPE_NAMES = frozenset({"bool", "buffer", "int", "string"})
+
+
+def herbert_builtin_kind(name: str) -> str | None:
+    return _HERBERT_BUILTIN_KINDS_BY_OWNER.get(name)

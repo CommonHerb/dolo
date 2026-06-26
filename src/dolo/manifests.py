@@ -9,7 +9,6 @@ from .compiler import compile_source
 from .herbert_surface import (
     DOLO_BOOLEAN_OPERATOR_LOWERINGS,
     HERBERT_BUILTIN_ARITIES,
-    HERBERT_BUILTIN_KINDS,
     HERBERT_TYPE_NAMES,
 )
 from .parser import parse_source
@@ -168,7 +167,7 @@ def validate_repository_manifests(root: Path) -> None:
         _require_array_mutation_candidate_matches_emitted_fixture(root, source_rel)
         _require_boolean_operator_candidate_matches_python_table(root, source_rel)
         _require_builtin_arity_candidate_matches_python_table(root, source_rel)
-        _require_builtin_kind_candidate_matches_python_tables(root, source_rel)
+        _require_builtin_kind_candidate_matches_oracle_golden(root, source_rel)
         _require_record_field_index_candidate_matches_dolo_record(root, source_rel)
         _require_type_name_candidate_matches_python_table(root, source_rel)
     _require_migration_candidate_notes_are_manifested(
@@ -526,7 +525,7 @@ def _extract_builtin_arity_candidate_map(text: str) -> dict[str, int]:
     )
 
 
-def _require_builtin_kind_candidate_matches_python_tables(
+def _require_builtin_kind_candidate_matches_oracle_golden(
     root: Path,
     source_rel: str,
 ) -> None:
@@ -534,7 +533,7 @@ def _require_builtin_kind_candidate_matches_python_tables(
         return
 
     actual = _extract_builtin_kind_candidate_map((root / source_rel).read_text())
-    expected = dict(sorted(HERBERT_BUILTIN_KINDS.items()))
+    expected = _read_builtin_kind_golden(root)
     if actual == expected:
         return
 
@@ -559,8 +558,8 @@ def _require_builtin_kind_candidate_matches_python_tables(
             )
         )
     raise ManifestError(
-        "herbert_migration_manifest.tsv: builtin kind candidate must mirror "
-        "HERBERT_VALUE_BUILTINS and HERBERT_VOID_BUILTINS "
+        "herbert_migration_manifest.tsv: builtin kind candidate must match "
+        "tests/oracle/builtin_kind_golden.tsv "
         f"({'; '.join(details)})"
     )
 
@@ -571,6 +570,33 @@ def _extract_builtin_kind_candidate_map(text: str) -> dict[str, str]:
         candidate_label="builtin kind candidate",
         manifest_name="herbert_migration_manifest.tsv",
     )
+
+
+def _read_builtin_kind_golden(root: Path) -> dict[str, str]:
+    path = root / "tests" / "oracle" / "builtin_kind_golden.tsv"
+    if not path.is_file():
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: builtin kind golden missing: "
+            "tests/oracle/builtin_kind_golden.tsv"
+        )
+    found: dict[str, str] = {}
+    for line_number, line in enumerate(path.read_text().splitlines(), start=1):
+        if not line or line.startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) != 2:
+            raise ManifestError(
+                "tests/oracle/builtin_kind_golden.tsv:"
+                f"{line_number}: expected name<TAB>kind"
+            )
+        name, kind = fields
+        if kind not in {"value", "void"}:
+            raise ManifestError(
+                "tests/oracle/builtin_kind_golden.tsv:"
+                f"{line_number}: unexpected kind {kind!r}"
+            )
+        found[name] = kind
+    return dict(sorted(found.items()))
 
 
 def _require_boolean_operator_candidate_matches_python_table(
