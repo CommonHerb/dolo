@@ -27,10 +27,11 @@ This proves:
 - the CLI writes Herbert to stdout
 - the CLI reports syntax and source-file read failures without Python
   tracebacks
-- committed examples match committed Herbert goldens
+- executable manifest examples still emit their committed Herbert goldens
 - repository manifests have sorted rows, the expected tab-separated fields,
   expected file suffixes, unique source rows, unique executable and migration
-  output targets, existing repository-relative file targets, and every
+  output targets, existing repository-relative file targets, executable sources
+  whose generated Herbert matches committed `.herb` goldens, and every
   `examples/*.dolo` file is either executable with a no-argument `fn main()` or
   explicitly non-executable with a reason
 - Herbert migration manifest sources are `.herb` files with a visible
@@ -64,13 +65,17 @@ This proves, for the executable manifest in
 - generated Herbert compiles through the pinned Herbert seed to an ELF `a.out`
 - the ELF runs and its stdout matches the committed `.stdout` file
 
+In GitHub Actions, the Herbert checkout ref is read from `HERBERT.lock` before
+checkout so the workflow does not carry a second hard-coded Herbert commit.
+
 The harness stages a temporary executable copy of Herbert's tracked
 `bootstrap/seed/gen1.seed`; it does not chmod or modify the Herbert checkout.
 Before staging the seed, the harness runs the same manifest validator used by
-the local bootstrap tests so malformed manifests, duplicate executable output
-targets, and executable rows without a no-argument Dolo `main` fail before
-native execution. Manifest file targets must stay repository-relative; absolute
-paths and parent-directory traversal are rejected before native execution.
+the local bootstrap tests so malformed manifests, stale executable Herbert
+goldens, duplicate executable output targets, and executable rows without a
+no-argument Dolo `main` fail before native execution. Manifest file targets must
+stay repository-relative; absolute paths and parent-directory traversal are
+rejected before native execution.
 
 Examples intentionally excluded from the executable truth loop must be listed
 with a reason in `tests/fixtures/non_executable_examples.tsv`; the local

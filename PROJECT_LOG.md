@@ -408,3 +408,11 @@
   profile remained flaky during this slice (`host agent process has exited:
   signal: killed`; one retry dropped SSH after 3 executable examples), so CI is
   the current native truth source for this checkpoint.
+- Hardened manifest verification so executable `.dolo` rows must compile to the
+  committed `.herb` golden during `python3 -m dolo.manifests --root . verify`,
+  and hardened CI so the Herbert checkout ref is read from `HERBERT.lock`
+  instead of duplicated in the workflow.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 53 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.

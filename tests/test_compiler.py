@@ -590,6 +590,47 @@ end
                     with self.assertRaisesRegex(ManifestError, expected):
                         validate_repository_manifests(root)
 
+    def test_manifest_validator_requires_herbert_goldens_to_match_generated_output(
+        self,
+    ):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixtures = root / "tests" / "fixtures"
+            examples = root / "examples"
+            experiments = root / "experiments" / "herbert"
+            fixtures.mkdir(parents=True)
+            examples.mkdir()
+            experiments.mkdir(parents=True)
+            (examples / "a.dolo").write_text(
+                """fn main() {
+  return 1
+}
+"""
+            )
+            (fixtures / "a.herb").write_text("func main():\n  return 2\nend\n")
+            (fixtures / "a.stdout").write_text("1\n")
+            (experiments / "candidate.herb").write_text(
+                "func main():\n  return 1\nend\n"
+            )
+            (fixtures / "candidate.stdout").write_text("1\n")
+            (fixtures / "executable_manifest.tsv").write_text(
+                "examples/a.dolo\ttests/fixtures/a.herb\ttests/fixtures/a.stdout\n"
+            )
+            (fixtures / "non_executable_examples.tsv").write_text("")
+            (fixtures / "herbert_migration_manifest.tsv").write_text(
+                "experiments/herbert/candidate.herb\t"
+                "tests/fixtures/candidate.stdout\n"
+            )
+
+            with self.assertRaisesRegex(
+                ManifestError,
+                r"executable_manifest.tsv: generated Herbert does not match "
+                r"golden: examples/a.dolo -> tests/fixtures/a.herb",
+            ):
+                validate_repository_manifests(root)
+
     def test_manifest_validator_requires_executable_manifest_suffixes(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
@@ -1198,6 +1239,27 @@ end
         self.assertIn('cp "$seed" "$compiler"', harness_text)
         self.assertIn('chmod +x "$compiler"', harness_text)
         self.assertNotIn('"$seed" <"$generated"', harness_text)
+
+    def test_ci_herbert_checkout_reads_lock(self):
+        workflow = ROOT / ".github" / "workflows" / "check.yml"
+        lock = ROOT / "HERBERT.lock"
+
+        self.assertTrue(workflow.is_file(), "GitHub Actions check workflow is required")
+        workflow_text = workflow.read_text()
+        lock_text = lock.read_text()
+        lock_commit = next(
+            line.split("=", 1)[1]
+            for line in lock_text.splitlines()
+            if line.startswith("HERBERT_COMMIT=")
+        )
+
+        self.assertIn("id: herbert-lock", workflow_text)
+        self.assertIn('echo "commit=$HERBERT_COMMIT" >> "$GITHUB_OUTPUT"', workflow_text)
+        self.assertIn(
+            "ref: ${{ steps.herbert-lock.outputs.commit }}",
+            workflow_text,
+        )
+        self.assertNotIn(f"ref: {lock_commit}", workflow_text)
 
     def test_first_herbert_migration_candidate_is_manifested(self):
         from dolo.manifests import read_manifest_rows

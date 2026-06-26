@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from .compiler import compile_source
 from .parser import parse_source
 from .tokens import DoloSyntaxError
 
@@ -98,6 +99,7 @@ def validate_repository_manifests(root: Path) -> None:
             manifest_name="executable_manifest.tsv",
             label="Herbert golden",
         )
+        _require_herbert_golden_matches(root, source_rel, herb_rel)
         _require_file(root, stdout_rel, label="stdout golden")
         _require_suffix(
             stdout_rel,
@@ -214,6 +216,20 @@ def _require_stdout_newline(
     if not (root / relative_path).read_bytes().endswith(b"\n"):
         raise ManifestError(
             f"{manifest_name}: stdout golden must end with newline: {relative_path}"
+        )
+
+
+def _require_herbert_golden_matches(
+    root: Path,
+    source_rel: str,
+    herb_rel: str,
+) -> None:
+    generated = compile_source((root / source_rel).read_text())
+    expected = (root / herb_rel).read_text()
+    if generated != expected:
+        raise ManifestError(
+            "executable_manifest.tsv: generated Herbert does not match golden: "
+            f"{source_rel} -> {herb_rel}"
         )
 
 

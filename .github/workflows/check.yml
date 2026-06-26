@@ -26,11 +26,18 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: Read Herbert lock
+        id: herbert-lock
+        run: |
+          set -euo pipefail
+          source HERBERT.lock
+          echo "commit=$HERBERT_COMMIT" >> "$GITHUB_OUTPUT"
+
       - name: Check out pinned Herbert
         uses: actions/checkout@v7
         with:
           repository: CommonHerb/herbert
-          ref: e9dff2283113063f60fece453e9ab9eb16e7366a
+          ref: ${{ steps.herbert-lock.outputs.commit }}
           path: herbert
 
       - name: Verify Herbert lock
