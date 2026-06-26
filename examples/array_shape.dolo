@@ -1,0 +1,9 @@
+fn nested_type_counts() {
+  let deep = new_array(array((int, (bool, string))))
+  let rows = new_array((int, array(string)))
+  return (count(deep), count(rows))
+}
+
+fn main() {
+  return nested_type_counts()
+}

@@ -2,6 +2,20 @@
 
 ## 2026-06-26
 
+- Added executable example `examples/array_shape.dolo` with committed Herbert
+  and stdout fixtures, proving nested observed Herbert type expressions such as
+  `array((int, (bool, string)))` and tuple fields containing `array(string)`
+  through the executable manifest.
+- Verified the nested type-expression example with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 70 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Tightened `new_array(...)` Herbert type-expression validation so singleton
   tuple types such as `(int)` fail before Dolo emits Herbert that the pinned
   Herbert parser rejects.
