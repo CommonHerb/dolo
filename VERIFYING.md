@@ -33,7 +33,9 @@ This proves:
   `examples/*.dolo` file is either executable with a no-argument `fn main()` or
   explicitly non-executable with a reason
 - Herbert migration manifest sources are `.herb` files with a visible
-  `func main()` entry point and committed stdout goldens
+  `func main()` entry point and `.stdout` goldens
+- executable and migration stdout goldens end with a newline, matching the
+  shape the truth loop compares after native execution
 - the Herbert truth harness is pinned, stages a temporary seed copy, and
   includes the migration-candidate manifest
 
@@ -76,7 +78,8 @@ The same harness also runs raw Herbert migration candidates listed in
 `tests/fixtures/herbert_migration_manifest.tsv`. These are early
 Herbert-family implementation candidates, not completed replacements for Python
 bootstrap code. Local manifest validation rejects migration rows that do not
-point at `.herb` files with a visible `func main()` entry point.
+point at `.herb` files with a visible `func main()` entry point, and rejects
+stdout goldens that do not use a `.stdout` suffix or end with a newline.
 
 This does not prove arbitrary Dolo program correctness, arbitrary Herbert
 compiler correctness, or removal of bootstrap trust debt. It proves only the

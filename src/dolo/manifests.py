@@ -87,12 +87,28 @@ def validate_repository_manifests(root: Path) -> None:
             manifest_name="executable_manifest.tsv",
             label="stdout golden",
         )
+        _require_stdout_newline(
+            root,
+            stdout_rel,
+            manifest_name="executable_manifest.tsv",
+        )
         executable_sources.add(source_rel)
 
     for source_rel, stdout_rel in migration_rows:
         _require_file(root, source_rel, label="migration source")
         _require_migration_main(root, source_rel)
         _require_file(root, stdout_rel, label="migration stdout golden")
+        _require_suffix(
+            stdout_rel,
+            suffix=".stdout",
+            manifest_name="herbert_migration_manifest.tsv",
+            label="stdout golden",
+        )
+        _require_stdout_newline(
+            root,
+            stdout_rel,
+            manifest_name="herbert_migration_manifest.tsv",
+        )
 
     non_executable_sources = set()
     for source_rel, reason in non_executable_rows:
@@ -153,6 +169,18 @@ def _require_suffix(
     if Path(relative_path).suffix != suffix:
         raise ManifestError(
             f"{manifest_name}: {label} must be {suffix}: {relative_path}"
+        )
+
+
+def _require_stdout_newline(
+    root: Path,
+    relative_path: str,
+    *,
+    manifest_name: str,
+) -> None:
+    if not (root / relative_path).read_bytes().endswith(b"\n"):
+        raise ManifestError(
+            f"{manifest_name}: stdout golden must end with newline: {relative_path}"
         )
 
 

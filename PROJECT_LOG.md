@@ -380,3 +380,15 @@
   `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
   (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
   candidate(s)`).
+- Hardened repository manifest validation so Herbert migration stdout goldens
+  must use `.stdout`, and both executable and migration stdout goldens must end
+  with a newline before the native truth loop compares process output.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 49 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the executable Herbert truth loop through the local stopped-after-use
+  `herbert-x86` Colima profile:
+  `PYTHONPATH=src scripts/verify_herbert_truth.sh --herbert-dir ../herbert`
+  (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

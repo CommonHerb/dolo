@@ -558,6 +558,60 @@ end
                     with self.assertRaisesRegex(ManifestError, expected):
                         validate_repository_manifests(root)
 
+    def test_manifest_validator_requires_stdout_goldens_to_end_with_newline(self):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        cases = (
+            (
+                "tests/fixtures/a.stdout",
+                r"executable_manifest.tsv: stdout golden must end with newline: "
+                r"tests/fixtures/a.stdout",
+            ),
+            (
+                "tests/fixtures/candidate.stdout",
+                r"herbert_migration_manifest.tsv: stdout golden must end with newline: "
+                r"tests/fixtures/candidate.stdout",
+            ),
+        )
+
+        for bad_stdout, expected in cases:
+            with self.subTest(stdout=bad_stdout):
+                with tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    fixtures = root / "tests" / "fixtures"
+                    examples = root / "examples"
+                    experiments = root / "experiments" / "herbert"
+                    fixtures.mkdir(parents=True)
+                    examples.mkdir()
+                    experiments.mkdir(parents=True)
+                    (examples / "a.dolo").write_text(
+                        """fn main() {
+  return 1
+}
+"""
+                    )
+                    (fixtures / "a.herb").write_text(
+                        "func main():\n  return 1\nend\n"
+                    )
+                    (fixtures / "a.stdout").write_text("1\n")
+                    (experiments / "candidate.herb").write_text(
+                        "func main():\n  return 1\nend\n"
+                    )
+                    (fixtures / "candidate.stdout").write_text("1\n")
+                    (root / bad_stdout).write_bytes(b"1")
+                    (fixtures / "executable_manifest.tsv").write_text(
+                        "examples/a.dolo\ttests/fixtures/a.herb\t"
+                        "tests/fixtures/a.stdout\n"
+                    )
+                    (fixtures / "non_executable_examples.tsv").write_text("")
+                    (fixtures / "herbert_migration_manifest.tsv").write_text(
+                        "experiments/herbert/candidate.herb\t"
+                        "tests/fixtures/candidate.stdout\n"
+                    )
+
+                    with self.assertRaisesRegex(ManifestError, expected):
+                        validate_repository_manifests(root)
+
     def test_manifest_validator_requires_migration_herbert_main(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
@@ -609,6 +663,45 @@ end
 
                     with self.assertRaisesRegex(ManifestError, expected):
                         validate_repository_manifests(root)
+
+    def test_manifest_validator_requires_migration_stdout_suffix(self):
+        from dolo.manifests import ManifestError, validate_repository_manifests
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixtures = root / "tests" / "fixtures"
+            examples = root / "examples"
+            experiments = root / "experiments" / "herbert"
+            fixtures.mkdir(parents=True)
+            examples.mkdir()
+            experiments.mkdir(parents=True)
+            (examples / "a.dolo").write_text(
+                """fn main() {
+  return 1
+}
+"""
+            )
+            (fixtures / "a.herb").write_text("func main():\n  return 1\nend\n")
+            (fixtures / "a.stdout").write_text("1\n")
+            (experiments / "candidate.herb").write_text(
+                "func main():\n  return 1\nend\n"
+            )
+            (fixtures / "candidate.txt").write_text("1\n")
+            (fixtures / "executable_manifest.tsv").write_text(
+                "examples/a.dolo\ttests/fixtures/a.herb\t"
+                "tests/fixtures/a.stdout\n"
+            )
+            (fixtures / "non_executable_examples.tsv").write_text("")
+            (fixtures / "herbert_migration_manifest.tsv").write_text(
+                "experiments/herbert/candidate.herb\ttests/fixtures/candidate.txt\n"
+            )
+
+            with self.assertRaisesRegex(
+                ManifestError,
+                r"herbert_migration_manifest.tsv: stdout golden must be .stdout: "
+                r"tests/fixtures/candidate.txt",
+            ):
+                validate_repository_manifests(root)
 
     def test_all_examples_are_classified_for_execution(self):
         executable_manifest = (
