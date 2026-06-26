@@ -451,3 +451,15 @@
   `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
   (`Ran 56 tests`, `OK`), plus
   `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Hardened parser diagnostics for unsupported `else if` so the parser reports
+  the `if` column with a direct unsupported-form message instead of the generic
+  `expected '{'` block diagnostic.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 57 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the executable Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 6 Dolo executable example(s)`, `PASS: 1 Herbert migration
+  candidate(s)`).

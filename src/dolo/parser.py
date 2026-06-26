@@ -134,6 +134,11 @@ class Parser:
             self._skip_newlines()
             else_body: tuple[Stmt, ...] = ()
             if self._match_value("else"):
+                if self._peek_value("if"):
+                    self._fail_at(
+                        self._peek(),
+                        "else if is not implemented; use else { if ... }",
+                    )
                 self._expect_value("{")
                 else_body = tuple(self._parse_block())
             return IfStmt(condition, then_body, else_body)

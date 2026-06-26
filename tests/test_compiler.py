@@ -1318,6 +1318,22 @@ fn bad() {
         ):
             compile_source(source)
 
+    def test_else_if_reports_unsupported_form(self):
+        source = """fn bad(flag) {
+  if flag {
+    return 1
+  } else if false {
+    return 2
+  }
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 4, column 10: else if is not implemented; use else \{ if ... \}",
+        ):
+            compile_source(source)
+
     def test_bang_lowers_to_herbert_not(self):
         source = """fn ready(flag) {
   return !flag

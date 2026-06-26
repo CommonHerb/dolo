@@ -106,8 +106,8 @@ parameter or earlier local binding in the current binding context. Assignment
 updates an existing parameter or local binding; it does not introduce a new
 name.
 
-`else` is optional. `elif`, loops, imports, modules, effects, methods, and
-pattern matching are not implemented.
+`else` is optional. `else if`, `elif`, loops, imports, modules, effects,
+methods, and pattern matching are not implemented.
 
 ## Expressions
 
@@ -170,6 +170,7 @@ Diagnostics are intentionally small:
 - unclosed expression delimiters at newline, EOF, or an expected block
   delimiter report the opening delimiter column before block parsing drifts
 - unmatched closing expression delimiters report the closing delimiter column
+- `else if` reports the `if` column with an unsupported-form diagnostic
 - unresolved record field access reports the target, field, and target column
 - unknown record fields report the record name, missing field, and field column
 - record constructor arity mismatches report expected and actual field counts
