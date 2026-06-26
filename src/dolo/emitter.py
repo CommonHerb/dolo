@@ -16,8 +16,8 @@ from .ast import (
 )
 from .herbert_surface import (
     DOLO_BOOLEAN_OPERATOR_LOWERINGS,
-    HERBERT_BUILTIN_ARITIES,
     HERBERT_TYPE_NAMES,
+    herbert_builtin_arity,
     herbert_builtin_kind,
 )
 from .tokens import DoloSyntaxError, Token
@@ -390,8 +390,9 @@ class Emitter:
     def _validate_call_arity(self, token: Token, expr: Expr, index: int) -> None:
         want = self.function_arities.get(token.value)
         subject = f"function {token.value}"
-        if want is None and token.value in HERBERT_BUILTIN_ARITIES:
-            want = HERBERT_BUILTIN_ARITIES[token.value]
+        builtin_arity = herbert_builtin_arity(token.value)
+        if want is None and builtin_arity is not None:
+            want = builtin_arity
             subject = f"built-in {token.value}"
         elif want is None:
             return

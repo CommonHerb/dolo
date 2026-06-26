@@ -965,7 +965,20 @@ end
         self.assertEqual(surface.herbert_builtin_kind("add"), "void")
         self.assertEqual(set(kinds.values()), {"value", "void"})
 
-    def test_observed_herbert_builtin_call_requires_observed_arity(self):
+    def test_builtin_arity_owner_drives_observed_call_validation(self):
+        import dolo.herbert_surface as surface
+
+        self.assertEqual(
+            surface.HERBERT_BUILTIN_ARITY_OWNER,
+            "experiments/herbert/builtin_arity_candidate.herb",
+        )
+        arities = surface.load_herbert_builtin_arities(ROOT)
+        self.assertEqual(arities, surface.HERBERT_BUILTIN_ARITIES)
+        self.assertEqual(surface.herbert_builtin_arity("new_buffer"), 0)
+        self.assertEqual(surface.herbert_builtin_arity("new_array"), 1)
+        self.assertEqual(surface.herbert_builtin_arity("equal"), 2)
+        self.assertIsNone(surface.herbert_builtin_arity("missing"))
+
         cases = (
             (
                 """fn bad() {
@@ -2066,16 +2079,18 @@ end
             ):
                 validate_repository_manifests(root)
 
-    def test_manifest_validator_requires_builtin_arity_candidate_to_mirror_python_table(self):
+    def test_manifest_validator_requires_builtin_arity_candidate_to_match_oracle_golden(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             fixtures = root / "tests" / "fixtures"
+            oracle = root / "tests" / "oracle"
             examples = root / "examples"
             experiments = root / "experiments" / "herbert"
             notes = root / "docs" / "migration-candidates"
             fixtures.mkdir(parents=True)
+            oracle.mkdir(parents=True)
             examples.mkdir()
             experiments.mkdir(parents=True)
             notes.mkdir(parents=True)
@@ -2102,12 +2117,17 @@ end
 """
             )
             (fixtures / "builtin_arity_candidate.stdout").write_text("2\n")
+            (oracle / "builtin_arity_golden.tsv").write_text(
+                "# name\tarity\n"
+                "add\t2\n"
+                "append\t2\n"
+            )
             (notes / "0001-builtin.md").write_text(
                 "experiments/herbert/builtin_arity_candidate.herb\n"
                 "tests/fixtures/builtin_arity_candidate.stdout\n"
                 "Current Python behavior lives in src/dolo/herbert_surface.py.\n"
                 "## Replacement Path\n"
-                "Compare this against HERBERT_BUILTIN_ARITIES before wiring.\n"
+                "Compare this against the held-back arity golden before wiring.\n"
                 "## Authority Boundary\n"
                 "This candidate is not compiler authority and not paid debt.\n"
             )
@@ -2123,8 +2143,8 @@ end
 
             with self.assertRaisesRegex(
                 ManifestError,
-                r"herbert_migration_manifest.tsv: builtin arity candidate must mirror "
-                r"HERBERT_BUILTIN_ARITIES \(missing append",
+                r"herbert_migration_manifest.tsv: builtin arity candidate must match "
+                r"tests/oracle/builtin_arity_golden.tsv \(missing append",
             ):
                 validate_repository_manifests(root)
 

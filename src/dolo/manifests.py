@@ -8,7 +8,6 @@ from pathlib import Path
 from .compiler import compile_source
 from .herbert_surface import (
     DOLO_BOOLEAN_OPERATOR_LOWERINGS,
-    HERBERT_BUILTIN_ARITIES,
     HERBERT_TYPE_NAMES,
 )
 from .parser import parse_source
@@ -166,7 +165,7 @@ def validate_repository_manifests(root: Path) -> None:
         _require_migration_candidate_note(root, source_rel, stdout_rel)
         _require_array_mutation_candidate_matches_emitted_fixture(root, source_rel)
         _require_boolean_operator_candidate_matches_python_table(root, source_rel)
-        _require_builtin_arity_candidate_matches_python_table(root, source_rel)
+        _require_builtin_arity_candidate_matches_oracle_golden(root, source_rel)
         _require_builtin_kind_candidate_matches_oracle_golden(root, source_rel)
         _require_record_field_index_candidate_matches_dolo_record(root, source_rel)
         _require_type_name_candidate_matches_python_table(root, source_rel)
@@ -426,7 +425,7 @@ def _require_migration_candidate_notes_are_manifested(
             )
 
 
-def _require_builtin_arity_candidate_matches_python_table(
+def _require_builtin_arity_candidate_matches_oracle_golden(
     root: Path,
     source_rel: str,
 ) -> None:
@@ -434,7 +433,7 @@ def _require_builtin_arity_candidate_matches_python_table(
         return
 
     actual = _extract_builtin_arity_candidate_map((root / source_rel).read_text())
-    expected = dict(sorted(HERBERT_BUILTIN_ARITIES.items()))
+    expected = _read_builtin_arity_golden(root)
     if actual == expected:
         return
 
@@ -459,8 +458,8 @@ def _require_builtin_arity_candidate_matches_python_table(
             )
         )
     raise ManifestError(
-        "herbert_migration_manifest.tsv: builtin arity candidate must mirror "
-        "HERBERT_BUILTIN_ARITIES "
+        "herbert_migration_manifest.tsv: builtin arity candidate must match "
+        "tests/oracle/builtin_arity_golden.tsv "
         f"({'; '.join(details)})"
     )
 
@@ -523,6 +522,33 @@ def _extract_builtin_arity_candidate_map(text: str) -> dict[str, int]:
         candidate_label="builtin arity candidate",
         manifest_name="herbert_migration_manifest.tsv",
     )
+
+
+def _read_builtin_arity_golden(root: Path) -> dict[str, int]:
+    path = root / "tests" / "oracle" / "builtin_arity_golden.tsv"
+    if not path.is_file():
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: builtin arity golden missing: "
+            "tests/oracle/builtin_arity_golden.tsv"
+        )
+    found: dict[str, int] = {}
+    for line_number, line in enumerate(path.read_text().splitlines(), start=1):
+        if not line or line.startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) != 2:
+            raise ManifestError(
+                "tests/oracle/builtin_arity_golden.tsv:"
+                f"{line_number}: expected name<TAB>arity"
+            )
+        name, arity_text = fields
+        if not arity_text.isdigit():
+            raise ManifestError(
+                "tests/oracle/builtin_arity_golden.tsv:"
+                f"{line_number}: unexpected arity {arity_text!r}"
+            )
+        found[name] = int(arity_text)
+    return dict(sorted(found.items()))
 
 
 def _require_builtin_kind_candidate_matches_oracle_golden(
