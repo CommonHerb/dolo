@@ -2,6 +2,27 @@
 
 ## 2026-06-26
 
+- Added executable example `examples/citizen_reassignment.dolo` with committed
+  Herbert/stdout fixtures. The example proves Dolo's current record type
+  knowledge survives a record-valued assignment before later field access, so
+  this behavior is now represented in the executable manifest instead of only
+  unit-level compiler tests.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` (first observed
+  failure: `source missing: examples/citizen_reassignment.dolo`; after adding
+  the source and fixtures: exit `0`), plus
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_examples_compile_to_committed_herbert tests.test_compiler.CompilerTests.test_executable_manifest_examples_have_main_and_goldens tests.test_compiler.CompilerTests.test_manifest_validator_accepts_repository_manifests`
+  (`Ran 3 tests`, `OK`).
+- Verified the full local suite with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 100 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify` and
+  `git diff --check`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 11 Dolo executable example(s)`, `PASS: 3 Herbert migration
+  candidate(s)`), and confirmed the profile was stopped afterward.
 - Hardened migration-candidate note validation so every note under
   `docs/migration-candidates/` must link back to a manifested source/stdout
   pair, not just mention a manifested Herbert source with a stale or unrelated

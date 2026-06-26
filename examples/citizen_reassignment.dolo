@@ -1,0 +1,12 @@
+record Citizen { name, hunger, coins }
+
+fn feed(c: Citizen) {
+  let current = c
+  current = Citizen(current.name, current.hunger - 1, current.coins + 2)
+  return (current.name, current.hunger, current.coins)
+}
+
+fn main() {
+  let start = Citizen("Ada", 3, 12)
+  return feed(start)
+}

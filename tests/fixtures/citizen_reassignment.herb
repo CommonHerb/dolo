@@ -1,0 +1,10 @@
+func feed(c):
+  let current = c
+  current = (current.0, current.1 - 1, current.2 + 2)
+  return (current.0, current.1, current.2)
+end
+
+func main():
+  let start = ("Ada", 3, 12)
+  return feed(start)
+end

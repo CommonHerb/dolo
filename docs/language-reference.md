@@ -61,8 +61,9 @@ Constructor arity is checked by the bootstrap compiler. A record with two fields
 must be constructed with exactly two values.
 
 The compiler tracks record type knowledge for annotated parameters, record
-constructor results, and simple identifier bindings that copy a value whose
-record type is already known.
+constructor results, simple identifier bindings that copy a value whose record
+type is already known, and assignments that replace a bound value with another
+known record value.
 
 This is not a stable ABI. It is the honest v0 representation used to reach
 Herbert today.
