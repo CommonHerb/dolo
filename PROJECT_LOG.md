@@ -436,3 +436,10 @@
   `/Users/ben/.colima/_lima/colima-herbert-x86/ha.stderr.log` and `serial.log`
   for local Colima details. GitHub Actions remains the Linux/x86_64 truth
   source for this checkpoint.
+- Hardened manifest validation so executable and non-executable example source
+  rows must be top-level `examples/*.dolo` paths, closing a gap where
+  non-executable rows could name arbitrary existing files with reason text.
+- Verified locally with:
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 55 tests`, `OK`), plus
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.

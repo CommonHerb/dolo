@@ -85,11 +85,9 @@ def validate_repository_manifests(root: Path) -> None:
     executable_sources = set()
     for source_rel, herb_rel, stdout_rel in executable_rows:
         _require_file(root, source_rel, label="source")
-        _require_suffix(
+        _require_example_source(
             source_rel,
-            suffix=".dolo",
             manifest_name="executable_manifest.tsv",
-            label="source",
         )
         _require_no_arg_main(root, source_rel)
         _require_file(root, herb_rel, label="Herbert golden")
@@ -133,6 +131,10 @@ def validate_repository_manifests(root: Path) -> None:
     non_executable_sources = set()
     for source_rel, reason in non_executable_rows:
         _require_file(root, source_rel, label="source")
+        _require_example_source(
+            source_rel,
+            manifest_name="non_executable_examples.tsv",
+        )
         if not reason.strip():
             raise ManifestError(
                 f"non_executable_examples.tsv: missing reason for {source_rel}"
@@ -204,6 +206,19 @@ def _require_suffix(
     if Path(relative_path).suffix != suffix:
         raise ManifestError(
             f"{manifest_name}: {label} must be {suffix}: {relative_path}"
+        )
+
+
+def _require_example_source(relative_path: str, *, manifest_name: str) -> None:
+    _require_suffix(
+        relative_path,
+        suffix=".dolo",
+        manifest_name=manifest_name,
+        label="source",
+    )
+    if Path(relative_path).parent != Path("examples"):
+        raise ManifestError(
+            f"{manifest_name}: source must live under examples/: {relative_path}"
         )
 
 

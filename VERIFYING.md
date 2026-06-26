@@ -30,8 +30,9 @@ This proves:
 - executable manifest examples still emit their committed Herbert goldens
 - repository manifests have sorted rows, the expected tab-separated fields,
   expected file suffixes, unique source rows, unique executable and migration
-  output targets, existing repository-relative file targets, executable sources
-  whose generated Herbert matches committed `.herb` goldens, and every
+  output targets, existing repository-relative file targets, example source
+  rows that stay in top-level `examples/*.dolo`, executable sources whose
+  generated Herbert matches committed `.herb` goldens, and every
   `examples/*.dolo` file is either executable with a no-argument `fn main()` or
   explicitly non-executable with a reason
 - Herbert migration manifest sources are `.herb` files with a visible
