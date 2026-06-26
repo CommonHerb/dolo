@@ -57,9 +57,58 @@ POISON = {
         "    if hasattr(_m,'HERBERT_BUILTIN_KINDS'):\n"
         "        _m.HERBERT_BUILTIN_KINDS={_k:('void' if _x=='value' else 'value') for _k,_x in _m.HERBERT_BUILTIN_KINDS.items()}\n"
     ),
+    # +1 to every built-in arity: new_array's poisoned arity (1->2) makes the genuine emitter reject
+    # `new_array(string)` ("expects 2 arguments, got 1"); a Herbert-wired emitter is unaffected.
+    "builtin_arity": (
+        "import sys as _s\n"
+        "for _m in list(_s.modules.values()):\n"
+        "    if not getattr(_m,'__name__','').startswith('dolo'): continue\n"
+        "    _a=getattr(_m,'HERBERT_BUILTIN_ARITIES',None)\n"
+        "    if isinstance(_a,dict):\n"
+        "        _m.HERBERT_BUILTIN_ARITIES={_k:_v+1 for _k,_v in _a.items()}\n"
+    ),
+    # swap &&<->|| and force !->or: a probe using && / || / ! lowers to DIFFERENT Herbert text.
+    "boolean_operator": (
+        "import sys as _s\n"
+        "for _m in list(_s.modules.values()):\n"
+        "    if not getattr(_m,'__name__','').startswith('dolo'): continue\n"
+        "    _t=getattr(_m,'DOLO_BOOLEAN_OPERATOR_LOWERINGS',None)\n"
+        "    if _t is not None:\n"
+        "        _w=dict(_t)\n"
+        "        if '&&' in _w and '||' in _w: _w['&&'],_w['||']=_w['||'],_w['&&']\n"
+        "        if '!' in _w: _w['!']='or'\n"
+        "        _m.DOLO_BOOLEAN_OPERATOR_LOWERINGS=_w\n"
+    ),
+    # empty the type-name set: the genuine emitter then rejects every `new_array(<type>)`.
+    "type_name": (
+        "import sys as _s\n"
+        "for _m in list(_s.modules.values()):\n"
+        "    if not getattr(_m,'__name__','').startswith('dolo'): continue\n"
+        "    if hasattr(_m,'HERBERT_TYPE_NAMES'):\n"
+        "        _m.HERBERT_TYPE_NAMES=frozenset()\n"
+    ),
 }
-PROBE = {"builtin_kind": ORACLE / "programs" / "kind_probe.dolo"}
-GOLDEN = {"builtin_kind": ORACLE / "golden" / "kind_probe.herb"}
+PROBE = {
+    "builtin_kind":     ORACLE / "programs" / "kind_probe.dolo",
+    "builtin_arity":    ORACLE / "programs" / "arity_probe.dolo",
+    "boolean_operator": ORACLE / "programs" / "boolean_probe.dolo",
+    "type_name":        ORACLE / "programs" / "type_probe.dolo",
+}
+GOLDEN = {
+    "builtin_kind":     ORACLE / "golden" / "kind_probe.herb",
+    "builtin_arity":    ORACLE / "golden" / "arity_probe.herb",
+    "boolean_operator": ORACLE / "golden" / "boolean_probe.herb",
+    "type_name":        ORACLE / "golden" / "type_probe.herb",
+}
+# CHECK-3 (semantic perturbation): once an authority is wired, perturbing the owner's CONTENT must
+# change the emitted output -- proving the owner's content DRIVES the decision (not just load-bearing).
+# Per authority: (owner repo-path, the if/equal target name, the replacement return line).
+PERTURB = {
+    "builtin_kind":     ("experiments/herbert/builtin_kind_candidate.herb",  "new_array", 'return "void"'),
+    "builtin_arity":    ("experiments/herbert/builtin_arity_candidate.herb", "count",     "return 2"),
+    "boolean_operator": ("experiments/herbert/boolean_operator_candidate.herb", "&&",     'return "or"'),
+    "type_name":        ("experiments/herbert/type_name_candidate.herb",     "string",    "return 0"),
+}
 
 
 def _compile(patch: str, probe: pathlib.Path):
@@ -97,6 +146,35 @@ def _compile_without_owner(owner_rel: str, probe: pathlib.Path):
     try:
         p.write_text("")  # neutralize the claimed Herbert owner
         return _compile("", probe)
+    finally:
+        p.write_bytes(backup)
+
+
+def _perturb_owner_drives(auth: str, probe: pathlib.Path, golden: str) -> bool:
+    """CHECK-3: perturb the owner's CONTENT; the probe output MUST change -- proving the owner's
+       content DRIVES the decision, not merely that the file is load-bearing. Restores the owner."""
+    cfg = PERTURB.get(auth)
+    if not cfg:
+        return True  # no perturbation configured -> do not block
+    owner_rel, target, new_return = cfg
+    p = ROOT / owner_rel
+    if not p.exists():
+        return True  # a missing owner is CHECK-2's job
+    backup = p.read_bytes()
+    lines = p.read_text().splitlines()
+    flipped = False
+    for i in range(len(lines) - 1):
+        if f'if equal(name, "{target}"):' in lines[i] and lines[i + 1].lstrip().startswith("return "):
+            indent = lines[i + 1][: len(lines[i + 1]) - len(lines[i + 1].lstrip())]
+            lines[i + 1] = indent + new_return
+            flipped = True
+            break
+    if not flipped:
+        return False  # the target entry is not in the owner -> content does not drive it (or wrong format)
+    try:
+        p.write_text("\n".join(lines) + "\n")
+        rc, out, _ = _compile("", probe)
+        return not (rc == 0 and out == golden)  # the output MUST differ from the golden
     finally:
         p.write_bytes(backup)
 
@@ -154,8 +232,14 @@ def main() -> int:
               f"the Herbert owner is not load-bearing (moved-literal / dead-dependency forge?) -> RED.")
         return 1
 
-    print(f"WIRED: '{auth}' -- Python neutralization is a no-op (old authority gone) AND the "
-          f"Herbert-family owner '{owner}' is load-bearing (removing it breaks compilation) -> GREEN.")
+    # CHECK-3: the owner's CONTENT must drive the decision (perturb it -> output changes).
+    if not _perturb_owner_drives(auth, PROBE[auth], golden):
+        print(f"NOT WIRED: perturbing the herbert_owner's content did not change the emitted output "
+              f"-- the owner's CONTENT does not drive the decision (CHECK-3) -> RED.")
+        return 1
+
+    print(f"WIRED: '{auth}' -- Python neutralization is a no-op (old authority gone), the "
+          f"Herbert-family owner '{owner}' is load-bearing, and its content drives the decision -> GREEN.")
     return 0
 
 

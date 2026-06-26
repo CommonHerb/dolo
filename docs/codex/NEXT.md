@@ -1,22 +1,33 @@
-# NEXT — orchestrator-authored task for Codex
+# NEXT — orchestrator-authored task queue for Codex
 
-> **Phase: BETWEEN SLICES.** `builtin_kind` LANDED (sovereignty meter 6 → 5). There is
-> **no armed task right now.** Read `AGENTS.md`. Do NOT start a slice until this file names one.
+> **Phase: FULL-AUTO QUEUE.** Three armed slices below. Work them **in order, one PR per slice,
+> without stopping** for orchestrator approval between them — the CI **sovereignty-gate** job
+> verifies each (a green PR = a genuinely-wired slice). Read `AGENTS.md`. Do NOT edit `tests/oracle/*`
+> or `HERBERT.lock`. One authority per PR; mark the PR ready (not draft) when its checks pass.
 
-## Done
-- **`builtin_kind`** — wired to `experiments/herbert/builtin_kind_candidate.herb`; the Python
-  value/void literal is gone; the emitter consults the Herbert-family owner. Orchestrator-verified
-  (oracle WIRED, meter = 5, CHECK-3 perturbation, truth loop, CI 112), merged `f76d9fa`.
+## How each slice works (same shape as the merged `builtin_kind`)
+1. Author/extend the Herbert-family owner `.herb` (a `func <name>(name):` **if/equal chain** that
+   returns the decision value, with a sentinel fallback) — the candidate files already exist.
+2. Make the emitter DERIVE the decision from that owner (parse it like `load_herbert_builtin_kinds`),
+   and **delete** the Python literal so it is no longer authoritative.
+3. Flip the row in `docs/sovereignty/ledger.tsv` to `status=herbert` and set `herbert_owner` to the
+   `.herb` path.
+4. The slice is accepted iff: `bash scripts/sovereignty_meter.sh` drops by one and exits 0;
+   `python3 tests/oracle/oracle_wiring.py <id>` exits 0 (WIRED = poison no-op + owner load-bearing +
+   **content drives the decision**); truth loop green; CI 112 green.
 
-## Next candidate — NOT yet armed
-- **`builtin_arity`** — the orchestrator owes its **held-back oracle** before this can be armed
-  (a worker cannot grind an authority that has no grader). **Hold.**
+## The queue (meter is at 5; each slice lowers it)
+1. **`builtin_arity`** → owner `experiments/herbert/builtin_arity_candidate.herb` (returns the arity int).
+   The emitter's `_validate_call_arity` must read arities from the owner. (Keep "unknown built-in →
+   no arity check" — unknowns are rejected earlier by `_validate_call_target`.)
+2. **`boolean_operator`** → owner `experiments/herbert/boolean_operator_candidate.herb` (returns the
+   lowering string for `!`/`&&`/`||`). The emitter's `_operator_value` must derive from the owner.
+3. **`type_name`** → owner `experiments/herbert/type_name_candidate.herb`. The emitter's type-name
+   validation must derive the recognized set from the owner.
 
-## Allowed now (optional, read-only)
-- You may READ and PROPOSE (in a comment, not a commit) how you'd wire `builtin_arity` the same
-  way (a `.herb` owner under `experiments/herbert/`, the Python literal deleted). Commit nothing
-  until this file arms it.
+When the queue is empty, STOP and log it; the orchestrator will arm the next batch
+(`record_field_index`, `array_mutation`) once their oracles are authored.
 
-> **Residual on `builtin_kind` (a future slice, not now):** the `.herb` owner is Python-PARSED,
-> not yet SEED-EXECUTED. Moving the kind COMPUTATION through the pinned seed (not just the DATA
-> into a `.herb`) is the deeper sovereignty step. The orchestrator will scope it.
+> **Residual carried from `builtin_kind` (do not regress, not your task to fix now):** owners are
+> Python-PARSED, not yet SEED-EXECUTED. Keep using the if/equal-chain `.herb` format so the deeper
+> "seed computes the decision" slice stays reachable. The orchestrator will scope it.

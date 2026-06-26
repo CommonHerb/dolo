@@ -1,0 +1,8 @@
+fn main() {
+  let a = new_array(string)
+  let b = new_array(int)
+  let c = new_array(bool)
+  let d = new_array(buffer)
+  let e = new_array(array(int))
+  return (count(a), count(b), count(c), count(d), count(e))
+}

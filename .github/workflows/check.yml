@@ -15,6 +15,19 @@ jobs:
       - name: Run bootstrap tests
         run: PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"
 
+  sovereignty-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Sovereignty meter + held-back wiring oracle
+        # Fails if any ledger status=herbert authority does not pass its held-back wiring oracle
+        # (CHECK-1 poison no-op + CHECK-2 load-bearing .herb owner + CHECK-3 content perturbation).
+        # A green run means every claimed sovereignty gain is genuinely Herbert-wired, not a mirror.
+        run: bash scripts/sovereignty_meter.sh
+
   herbert-execution:
     runs-on: ubuntu-latest
     steps:

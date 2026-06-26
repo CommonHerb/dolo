@@ -1,0 +1,7 @@
+func main():
+  let a = true and false
+  let b = false or true
+  let c = not a
+  let d = a and b or not c
+  return (a, b, c, d)
+end

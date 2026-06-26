@@ -8,8 +8,8 @@
 #   oracle        : oracle_wiring.py <id>  (or "(pending)" if not yet authored)
 id	status	python_site	mirror_candidate	herbert_owner	oracle	description
 builtin_kind	herbert	src/dolo/herbert_surface.py:HERBERT_BUILTIN_KINDS	experiments/herbert/builtin_kind_candidate.herb	experiments/herbert/builtin_kind_candidate.herb	oracle_wiring.py builtin_kind	value-vs-void classification of observed Herbert built-ins (the emitter's lowering decision)
-builtin_arity	python	src/dolo/herbert_surface.py:HERBERT_BUILTIN_ARITIES	experiments/herbert/builtin_arity_candidate.herb		(pending)	declared argument count per observed Herbert built-in
-boolean_operator	python	src/dolo/herbert_surface.py:DOLO_BOOLEAN_OPERATOR_LOWERINGS	experiments/herbert/boolean_operator_candidate.herb		(pending)	Dolo !/&&/|| lowering to Herbert not/and/or
-type_name	python	src/dolo/herbert_surface.py:HERBERT_TYPE_NAMES	experiments/herbert/type_name_candidate.herb		(pending)	the set of Herbert type names Dolo recognizes
+builtin_arity	python	src/dolo/herbert_surface.py:HERBERT_BUILTIN_ARITIES	experiments/herbert/builtin_arity_candidate.herb		oracle_wiring.py builtin_arity	declared argument count per observed Herbert built-in
+boolean_operator	python	src/dolo/herbert_surface.py:DOLO_BOOLEAN_OPERATOR_LOWERINGS	experiments/herbert/boolean_operator_candidate.herb		oracle_wiring.py boolean_operator	Dolo !/&&/|| lowering to Herbert not/and/or
+type_name	python	src/dolo/herbert_surface.py:HERBERT_TYPE_NAMES	experiments/herbert/type_name_candidate.herb		oracle_wiring.py type_name	the set of Herbert type names Dolo recognizes
 record_field_index	python	src/dolo/emitter.py:record-field lowering	experiments/herbert/record_field_index_candidate.herb		(pending)	record field name -> tuple index lowering
 array_mutation	python	src/dolo/emitter.py:array-mutation lowering	experiments/herbert/array_mutation_candidate.herb		(pending)	array mutation built-in lowering boundary

@@ -1,0 +1,7 @@
+fn main() {
+  let a = true && false
+  let b = false || true
+  let c = !a
+  let d = a && b || !c
+  return (a, b, c, d)
+}
