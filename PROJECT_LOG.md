@@ -2,6 +2,23 @@
 
 ## 2026-06-26
 
+- Hardened migration-candidate validation in the other direction too:
+  candidate notes under `docs/migration-candidates/` now fail validation when
+  they do not link back to any manifested Herbert candidate source.
+- Verified the orphan-note validator slice with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_manifest_validator_rejects_orphaned_migration_candidate_notes`
+  (first observed failure: an orphaned note was accepted; after the validator
+  change: `Ran 1 test`, `OK`).
+- Verified the full gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 73 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Hardened migration-candidate validation so notes in
   `docs/migration-candidates/` must mention each manifested Herbert candidate
   source and stdout golden. This keeps executable repayment candidates tied to

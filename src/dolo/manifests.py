@@ -146,6 +146,10 @@ def validate_repository_manifests(root: Path) -> None:
             manifest_name="herbert_migration_manifest.tsv",
         )
         _require_migration_candidate_note(root, source_rel, stdout_rel)
+    _require_migration_candidate_notes_are_manifested(
+        root,
+        {source_rel for source_rel, _ in migration_rows},
+    )
 
     non_executable_sources = set()
     for source_rel, reason in non_executable_rows:
@@ -348,6 +352,29 @@ def _require_migration_candidate_note(
             "herbert_migration_manifest.tsv: migration candidate note must mention "
             f"{stdout_rel}"
         )
+
+
+def _require_migration_candidate_notes_are_manifested(
+    root: Path,
+    migration_sources: set[str],
+) -> None:
+    docs_dir = root / "docs"
+    if not docs_dir.exists():
+        return
+    notes_dir = docs_dir / "migration-candidates"
+    if not notes_dir.is_dir():
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: migration candidate notes must live under "
+            "docs/migration-candidates/"
+        )
+    for note in sorted(notes_dir.glob("*.md")):
+        text = note.read_text()
+        if not any(source in text for source in migration_sources):
+            note_rel = note.relative_to(root)
+            raise ManifestError(
+                "herbert_migration_manifest.tsv: migration candidate note "
+                f"is not linked to a manifest source: {note_rel}"
+            )
 
 
 def _require_file(root: Path, relative_path: str, *, label: str) -> None:
