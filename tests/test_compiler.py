@@ -61,6 +61,20 @@ fn main() {
         ):
             compile_source(source)
 
+    def test_record_declaration_requires_at_least_one_field(self):
+        source = """record Empty { }
+
+fn main() {
+  return Empty()
+}
+"""
+
+        with self.assertRaisesRegex(
+            DoloSyntaxError,
+            r"line 1, column 8: record Empty must declare at least one field",
+        ):
+            compile_source(source)
+
     def test_function_declaration_rejects_duplicate_parameter_names(self):
         source = """fn bad(x, x) {
   return x

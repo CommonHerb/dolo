@@ -64,6 +64,8 @@ class Parser:
                 continue
             self._expect_value("}")
             break
+        if not fields:
+            self._fail_at(name_token, f"record {name} must declare at least one field")
         return RecordDecl(name, tuple(fields))
 
     def _parse_function_after_keyword(self) -> FunctionDecl:

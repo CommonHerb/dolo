@@ -2,6 +2,26 @@
 
 ## 2026-06-26
 
+- Rejected zero-field record declarations before they can lower to empty
+  Herbert tuple-shaped values. `record Empty { }` now fails at the record name
+  instead of allowing `Empty()` to emit `()`.
+- Verified the RED/GREEN path with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_record_declaration_requires_at_least_one_field`
+  (first observed failure: `DoloSyntaxError` was not raised; after the parser
+  change: `Ran 1 test`, `OK`).
+- Verified neighboring record behavior with:
+  `PYTHONPATH=src python3 -m unittest tests.test_compiler.CompilerTests.test_record_declaration_requires_at_least_one_field tests.test_compiler.CompilerTests.test_record_declaration_rejects_duplicate_field_names tests.test_compiler.CompilerTests.test_record_constructor_and_if_else_lower_to_herbert tests.test_compiler.CompilerTests.test_record_constructor_arity_diagnostic_reports_column tests.test_compiler.CompilerTests.test_record_field_access_lowers_to_tuple_index`
+  (`Ran 5 tests`, `OK`).
+- Verified the full local gate set after the change with:
+  `git diff --check`,
+  `PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"`
+  (`Ran 83 tests`, `OK`), and
+  `PYTHONPATH=src python3 -m dolo.manifests --root . verify`.
+- Verified the Linux/x86 Herbert truth loop through the stopped-after-use
+  `herbert-x86` Colima profile:
+  `scripts/verify_herbert_truth_colima.sh --profile herbert-x86 --herbert-dir ../herbert`
+  (`PASS: 9 Dolo executable example(s)`, `PASS: 2 Herbert migration
+  candidate(s)`), and confirmed both Colima profiles were stopped afterward.
 - Added expression-shape validation for empty parenthesized value expressions
   and malformed comma fields. Dolo now rejects `return ()`, `return (,1)`,
   `return (1,)`, `return (1,,2)`, and bad function-call comma forms before

@@ -18,8 +18,9 @@ fn hunger_of(c: Citizen) {
 Comments start with `#` and run to the end of the line.
 
 Top-level declaration names must be unique within the source file; a record and
-a function cannot share the same name. Record field names must be unique within
-a record, and function parameter names must be unique within a function.
+a function cannot share the same name. Records must declare at least one field.
+Record field names must be unique within a record, and function parameter names
+must be unique within a function.
 
 ## Records
 
@@ -197,6 +198,7 @@ Diagnostics are intentionally small:
 - duplicate top-level record names, top-level function names, record/function
   name overlaps, record fields, and function parameters report the repeated
   name column
+- records with no fields report the record name column
 - function declarations that reuse observed Herbert built-in names report the
   function name column
 - `main` declarations with parameters report the `main` name column
