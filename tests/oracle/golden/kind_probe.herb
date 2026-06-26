@@ -1,0 +1,8 @@
+func main():
+  let a = new_array(string)
+  do add(a, "x")
+  do add(a, "y")
+  let b = new_buffer()
+  do append(b, 'z')
+  return (count(a), get(a, 0), length(a), freeze(b))
+end

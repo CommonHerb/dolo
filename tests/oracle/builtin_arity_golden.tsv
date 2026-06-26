@@ -1,0 +1,12 @@
+# Held-back TRUE built-in ARITY map for Herbert's observed surface.
+# ORCHESTRATOR-AUTHORED. Codex MUST NOT edit. Tab-separated: name<TAB>arity
+add	2
+append	2
+count	1
+equal	2
+freeze	1
+get	2
+index	2
+length	1
+new_array	1
+new_buffer	0

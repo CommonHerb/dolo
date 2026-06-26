@@ -1,0 +1,13 @@
+# Held-back TRUE built-in KIND map (value | void) for Herbert's observed surface.
+# ORCHESTRATOR-AUTHORED. Codex MUST NOT edit. A slice's Herbert-family owner must
+# reproduce EXACTLY this map. Tab-separated: name<TAB>kind
+add	void
+append	void
+count	value
+equal	value
+freeze	value
+get	value
+index	value
+length	value
+new_array	value
+new_buffer	value

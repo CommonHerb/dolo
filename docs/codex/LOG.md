@@ -8,4 +8,5 @@ Format: `YYYY-MM-DD  <GREEN|RED|PROPOSE|NEEDS-SYNC>  <commit-or-—>  <one line>
 
 ---
 
+2026-06-26  ARMED  —  Orchestrator landed the sovereignty meter (`scripts/sovereignty_meter.sh`, reads 6) + the held-back wiring oracle (`tests/oracle/`, bite-verified) + the authority ledger. NEXT.md now arms the first earned slice: `builtin_kind`. Pin drift acknowledged (NEEDS-SYNC seen): leaving `HERBERT.lock` at e9dff22 for now — Dolo's app-level subset is unaffected by larder's kernel-only syscalls; re-pin is fold-in-time work, the orchestrator's call.
 2026-06-26  SETUP  —  Channel established by the orchestrator (AGENTS.md + NEXT.md + drift check). Autonomous grinding not yet armed; awaiting orchestrator-owned meter + held-back oracle.
