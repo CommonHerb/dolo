@@ -302,7 +302,16 @@ FIELD_IDX = _re.compile(r"(?<=\w)\.(\d+)\b")     # the N in a `var.N` field-acce
 
 
 def _grade_computation(auth: str, bite: bool) -> int:
-    rng = _random.Random()                       # nondeterministic -> author-unknown per run
+    # Seeded for REPRODUCIBILITY (a RED is re-runnable) while staying author-UNKNOWN per run:
+    # default = fresh entropy each invocation (a worker cannot pre-compute the draws to overfit), and
+    # a GENUINE wiring passes for EVERY seed, so this never false-flakes -- a red is always a real bug,
+    # now reproducible. DOLO_ORACLE_SEED pins the seed (repro / deterministic debugging).
+    # (cross-model audit, Codex gpt-5.5 + completeness critic: seed-and-print the RNG.)
+    _env = os.environ.get("DOLO_ORACLE_SEED")
+    _seed = int(_env) if _env else int.from_bytes(os.urandom(8), "big")
+    print(f"[oracle] {auth} seed={_seed} (re-run with DOLO_ORACLE_SEED={_seed} to reproduce)",
+          file=sys.stderr)
+    rng = _random.Random(_seed)
     if auth == "record_field_index":
         return _grade_record_field_index(rng, bite)
     return _grade_array_mutation(rng, bite)
@@ -822,6 +831,22 @@ def _am_struct_differential(golden):
             return False
         if want == "reject" and probe == AM_PROBE and rc == 0 and out == golden:
             return False
+    # KEYWORD content-perturbation (cross-model audit, Codex gpt-5.5): the do-statement KEYWORD must
+    # be owner-SOURCED too, not merely poison-bound (CHECK-1 proves the binding is connected; this
+    # proves the OWNER FILE's content drives the emitted keyword). Edit the owner's keyword return to
+    # a sentinel; the EMITTED keyword must change to track it. A keyword-only moved literal (keyword
+    # emitted from an inline Python constant while the owner is only poison-bound) leaves this RED.
+    _KW = "doxx"
+    lines = base.splitlines()
+    if not _edit_owner_return(lines, "func do_statement_keyword", f'return "{_KW}"'):
+        return False  # owner declares no keyword function -> the keyword is not owner-content-driven
+    try:
+        p.write_text("\n".join(lines) + "\n")
+        rc, out, _ = _compile("", AM_PROBE)
+    finally:
+        p.write_text(base)
+    if rc != 0 or _KW not in out or out == golden:
+        return False
     return True
 
 
@@ -881,8 +906,12 @@ def _grade_array_mutation(rng, bite=False):
     if res is None:
         print("NOT WIRED: declared herbert_owner is missing -> RED.")
         return 1
-    if res[0] == 0 and res[1] == golden:
-        print("NOT WIRED: blanking the herbert_owner did not break compilation -> not load-bearing -> RED.")
+    if res[0] == 0:
+        # Tightened to match record_field_index (cross-model audit, Codex gpt-5.5): a genuine
+        # owner-driven do-policy must FAIL TO LOAD when its owner is empty. A compile that still
+        # SUCCEEDS on a blanked owner (even with non-golden output) means the decision is sourced
+        # elsewhere -- the owner is not load-bearing for it.
+        print("NOT WIRED: blanking the herbert_owner did NOT break compilation -> not load-bearing -> RED.")
         return 1
     # CHECK-3 per-input structural differential (owner CONTENT drives per-statement verdict)
     if not _am_struct_differential(golden):
