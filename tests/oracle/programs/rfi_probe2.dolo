@@ -1,0 +1,5 @@
+record Node { head, mid, tail, extra }
+fn main() {
+  let n = Node(1, 2, 3, 4)
+  return (n.head, n.tail, n.mid, n.extra)
+}

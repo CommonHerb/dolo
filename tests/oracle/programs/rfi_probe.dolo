@@ -1,0 +1,7 @@
+record Alpha { p, q, r }
+record Beta { r, q, p }
+fn main() {
+  let a = Alpha(1, 2, 3)
+  let b = Beta(4, 5, 6)
+  return (a.q, a.r, b.q, b.p, b.r)
+}

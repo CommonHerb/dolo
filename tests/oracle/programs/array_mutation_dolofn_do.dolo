@@ -1,0 +1,8 @@
+fn helper(x) {
+  return x
+}
+fn main() {
+  let a = new_array(int)
+  do helper(a)
+  return count(a)
+}

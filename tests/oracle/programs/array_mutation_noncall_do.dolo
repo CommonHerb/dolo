@@ -1,0 +1,5 @@
+fn main() {
+  let a = new_array(int)
+  do a
+  return count(a)
+}
