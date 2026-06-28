@@ -20,6 +20,7 @@ from .herbert_surface import (
     herbert_builtin_kind,
     is_dolo_infix_operator,
     is_herbert_type_name,
+    record_field_index,
 )
 from .tokens import DoloSyntaxError, Token
 
@@ -371,12 +372,11 @@ class Emitter:
                 f"{_location(target)}: cannot resolve record type for {target.value}.{field.value}"
             )
         record = self.records[record_name]
-        try:
-            index = record.fields.index(field.value)
-        except ValueError as exc:
+        index = record_field_index(record.fields, field.value)
+        if index is None:
             raise DoloSyntaxError(
                 f"{_location(field)}: record {record.name} has no field {field.value!r}"
-            ) from exc
+            )
         return f"{target.value}.{index}"
 
     def _validate_call_target(self, token: Token, *, allow_void_call: bool = False) -> None:

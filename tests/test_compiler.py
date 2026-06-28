@@ -2365,7 +2365,7 @@ end
             ):
                 validate_repository_manifests(root)
 
-    def test_manifest_validator_requires_record_field_candidate_to_mirror_citizen_record(self):
+    def test_manifest_validator_requires_record_field_candidate_to_declare_field_index(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -2438,11 +2438,11 @@ end
             with self.assertRaisesRegex(
                 ManifestError,
                 r"herbert_migration_manifest.tsv: record field index candidate "
-                r"must mirror examples/citizen.dolo Citizen fields \(missing coins",
+                r"must declare field_index\(fields, name\)",
             ):
                 validate_repository_manifests(root)
 
-    def test_manifest_validator_rejects_duplicate_record_field_candidate_lookup_names(self):
+    def test_manifest_validator_rejects_record_field_candidate_that_computes_wrong_index(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -2473,32 +2473,16 @@ fn main() {
             (fixtures / "a.herb").write_text("func main():\n  return 1\nend\n")
             (fixtures / "a.stdout").write_text("1\n")
             (experiments / "record_field_index_candidate.herb").write_text(
-                """func citizen_field_index(name):
-    if equal(name, "name"):
-        return 0
-    else:
-        if equal(name, "hunger"):
-            return 1
-        else:
-            if equal(name, "coins"):
-                return 2
-            else:
-                if equal(name, "hunger"):
-                    return missing_index
-                else:
-                    return 999
-                end
-            end
-        end
-    end
+                """func field_index(fields, name):
+    return 0
 end
 
 func main():
-    return citizen_field_index("hunger")
+    return field_index(("name", "hunger", "coins"), "hunger")
 end
 """
             )
-            (fixtures / "record_field_index_candidate.stdout").write_text("1\n")
+            (fixtures / "record_field_index_candidate.stdout").write_text("0\n")
             (notes / "0001-record.md").write_text(
                 "experiments/herbert/record_field_index_candidate.herb\n"
                 "tests/fixtures/record_field_index_candidate.stdout\n"
@@ -2523,7 +2507,8 @@ end
             with self.assertRaisesRegex(
                 ManifestError,
                 r"herbert_migration_manifest.tsv: record field index candidate "
-                r"has duplicate lookup name hunger",
+                r"must compute examples/citizen.dolo Citizen fields "
+                r"\(mismatched coins expected 2 got 0, hunger expected 1 got 0\)",
             ):
                 validate_repository_manifests(root)
 
@@ -3017,6 +3002,23 @@ fn bad(c: Citizen) {
             r"line 4, column 12: record Citizen has no field 'coins'",
         ):
             compile_source(source)
+
+    def test_record_field_index_runs_herbert_owner(self):
+        import dolo.herbert_surface as surface
+
+        self.assertEqual(
+            surface.RECORD_FIELD_INDEX_OWNER,
+            "experiments/herbert/record_field_index_candidate.herb",
+        )
+        owner = surface.load_record_field_index_owner(ROOT)
+        self.assertTrue(owner.has_function("field_index"))
+        self.assertEqual(
+            surface.record_field_index(("name", "hunger", "coins"), "coins"),
+            2,
+        )
+        self.assertIsNone(
+            surface.record_field_index(("name", "hunger", "coins"), "missing")
+        )
 
     def test_unclosed_expression_delimiter_reports_opening_column(self):
         source = """record Citizen { name, hunger }

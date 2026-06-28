@@ -816,37 +816,48 @@ def _require_record_field_index_candidate_matches_dolo_record(
             f"must define record {RECORD_FIELD_INDEX_RECORD}"
         )
 
-    actual = _extract_equal_return_map(
-        (root / source_rel).read_text(),
-        candidate_label="record field index candidate",
-        manifest_name="herbert_migration_manifest.tsv",
-    )
+    from .herbert_surface import load_record_field_index_owner
+
+    try:
+        owner = load_record_field_index_owner(root)
+    except RuntimeError as exc:
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: record field index candidate must "
+            "declare field_index(fields, name)"
+        ) from exc
+
+    actual: dict[str, object] = {}
+    try:
+        for field in record.fields:
+            actual[field] = owner.call("field_index", (record.fields, field))
+    except RuntimeError as exc:
+        raise ManifestError(
+            "herbert_migration_manifest.tsv: record field index candidate failed "
+            f"field_index(fields, name) evaluation: {exc}"
+        ) from exc
+
     expected = {field: index for index, field in enumerate(record.fields)}
     if actual == expected:
         return
 
-    missing = sorted(set(expected) - set(actual))
-    unexpected = sorted(set(actual) - set(expected))
     mismatched = sorted(
         field
         for field in set(expected) & set(actual)
         if expected[field] != actual[field]
     )
     details: list[str] = []
-    if missing:
-        details.append(f"missing {', '.join(missing)}")
-    if unexpected:
-        details.append(f"unexpected {', '.join(unexpected)}")
     if mismatched:
         details.append(
             "mismatched "
             + ", ".join(
-                f"{field} expected {expected[field]} got {actual[field]}"
+                f"{field} expected {expected[field]} got {actual[field]!r}"
                 for field in mismatched
             )
         )
+    if not details:
+        details.append("sequence differed")
     raise ManifestError(
-        "herbert_migration_manifest.tsv: record field index candidate must mirror "
+        "herbert_migration_manifest.tsv: record field index candidate must compute "
         f"{RECORD_FIELD_INDEX_EXAMPLE} {RECORD_FIELD_INDEX_RECORD} fields "
         f"({'; '.join(details)})"
     )

@@ -1,15 +1,15 @@
-func citizen_field_index(name):
-    if equal(name, "name"):
-        return 0
+func field_index(fields, name):
+    return search(fields, name, 0)
+end
+
+func search(fields, name, acc):
+    if empty(fields):
+        return "missing"
     else:
-        if equal(name, "hunger"):
-            return 1
+        if equal(first(fields), name):
+            return acc
         else:
-            if equal(name, "coins"):
-                return 2
-            else:
-                return 999
-            end
+            return search(rest(fields), name, plus(acc, 1))
         end
     end
 end
@@ -17,8 +17,8 @@ end
 func main():
     return (
         "record-field-index-candidate",
-        citizen_field_index("hunger"),
-        citizen_field_index("coins"),
-        citizen_field_index("missing")
+        field_index(("name", "hunger", "coins"), "hunger"),
+        field_index(("name", "hunger", "coins"), "coins"),
+        field_index(("name", "hunger", "coins"), "missing")
     )
 end
