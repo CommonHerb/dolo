@@ -27,6 +27,8 @@ jobs:
           repository: ${{ steps.herbert-lock.outputs.repository }}
           ref: ${{ steps.herbert-lock.outputs.commit }}
           path: herbert
+      - name: Link herbert-pin for the compiler default seed path
+        run: ln -sfn "$GITHUB_WORKSPACE/herbert" "$GITHUB_WORKSPACE/../herbert-pin"
       - name: Run bootstrap tests
         env:
           DOLO_HERBERT_SEED: ${{ github.workspace }}/herbert/bootstrap/seed/gen1.seed
@@ -54,6 +56,8 @@ jobs:
           repository: ${{ steps.herbert-lock.outputs.repository }}
           ref: ${{ steps.herbert-lock.outputs.commit }}
           path: herbert
+      - name: Link herbert-pin for the compiler default seed path
+        run: ln -sfn "$GITHUB_WORKSPACE/herbert" "$GITHUB_WORKSPACE/../herbert-pin"
       - name: Sovereignty meter + held-back wiring oracle
         # Fails if any ledger status=herbert authority does not pass its held-back wiring oracle
         # (CHECK-1 poison no-op + CHECK-2 load-bearing .herb owner + CHECK-3 content perturbation).
@@ -89,6 +93,8 @@ jobs:
           repository: ${{ steps.herbert-lock.outputs.repository }}
           ref: ${{ steps.herbert-lock.outputs.commit }}
           path: herbert
+      - name: Link herbert-pin for the compiler default seed path
+        run: ln -sfn "$GITHUB_WORKSPACE/herbert" "$GITHUB_WORKSPACE/../herbert-pin"
 
       - name: Verify Herbert lock
         run: |
