@@ -26,6 +26,11 @@ adds two values, builds a buffer-backed label, and returns a tagged tuple:
 The candidate intentionally mirrors a pinned compiler output pattern rather
 than introducing new Dolo syntax.
 
+`experiments/herbert/array_mutation_shape_candidate.herb` declares the
+do-statement shape owner for the compiler path: the emitted keyword, admitted
+built-in kinds, and required top-level call count. Its truth-loop stdout golden
+is `tests/fixtures/array_mutation_shape_candidate.stdout`.
+
 ## Replacement Path
 
 This candidate can only replace Python bootstrap behavior after Dolo has

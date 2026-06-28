@@ -10,6 +10,7 @@ HERBERT_BUILTIN_ARITY_OWNER = "experiments/herbert/builtin_arity_candidate.herb"
 HERBERT_BUILTIN_KIND_OWNER = "experiments/herbert/builtin_kind_candidate.herb"
 HERBERT_TYPE_NAME_OWNER = "experiments/herbert/type_name_candidate.herb"
 RECORD_FIELD_INDEX_OWNER = "experiments/herbert/record_field_index_candidate.herb"
+ARRAY_MUTATION_SHAPE_OWNER = "experiments/herbert/array_mutation_shape_candidate.herb"
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _VALID_BUILTIN_KINDS = frozenset({"value", "void"})
 
@@ -746,6 +747,57 @@ def load_record_field_index_owner(
     return program
 
 
+def load_array_mutation_shape(
+    root: Path | str | None = None,
+) -> tuple[frozenset[str], int, str]:
+    repo_root = Path(root) if root is not None else _REPO_ROOT
+    owner_path = repo_root / ARRAY_MUTATION_SHAPE_OWNER
+    try:
+        owner_text = owner_path.read_text()
+    except OSError as exc:
+        raise RuntimeError(
+            f"Herbert array-mutation shape owner is unreadable: {ARRAY_MUTATION_SHAPE_OWNER}"
+        ) from exc
+
+    program = _parse_herbert_subset(owner_text)
+    required = (
+        "do_admits_kind",
+        "do_statement_call_count",
+        "do_statement_keyword",
+    )
+    missing = [name for name in required if not program.has_function(name)]
+    if missing:
+        raise RuntimeError(
+            "Herbert array-mutation shape owner is missing required function(s): "
+            + ", ".join(missing)
+        )
+
+    admitted: set[str] = set()
+    for kind in sorted(_VALID_BUILTIN_KINDS):
+        marker = program.call("do_admits_kind", (kind,))
+        if type(marker) is not int or marker not in {0, 1}:
+            raise RuntimeError(
+                "Herbert array-mutation shape owner returned invalid "
+                f"do_admits_kind marker for {kind!r}: {marker!r}"
+            )
+        if marker == 1:
+            admitted.add(kind)
+
+    call_count = program.call("do_statement_call_count", ())
+    if type(call_count) is not int:
+        raise RuntimeError(
+            "Herbert array-mutation shape owner returned non-integer "
+            f"do_statement_call_count: {call_count!r}"
+        )
+    keyword = program.call("do_statement_keyword", ())
+    if type(keyword) is not str or not keyword:
+        raise RuntimeError(
+            "Herbert array-mutation shape owner returned invalid "
+            f"do_statement_keyword: {keyword!r}"
+        )
+    return frozenset(admitted), call_count, keyword
+
+
 def _parse_herbert_subset(text: str) -> _HerbertSubsetProgram:
     return _HerbertSubsetParser(_tokenize_herbert_subset(text)).parse_program()
 
@@ -871,6 +923,11 @@ _HERBERT_BUILTIN_ARITIES_BY_OWNER = load_herbert_builtin_arities()
 _HERBERT_BUILTIN_KINDS_BY_OWNER = load_herbert_builtin_kinds()
 _HERBERT_TYPE_NAMES_BY_OWNER = load_herbert_type_names()
 _RECORD_FIELD_INDEX_BY_OWNER = load_record_field_index_owner()
+(
+    _ARRAY_MUTATION_DO_ADMIT_KINDS,
+    _ARRAY_MUTATION_DO_CALL_COUNT,
+    _ARRAY_MUTATION_DO_KEYWORD,
+) = load_array_mutation_shape()
 DOLO_BOOLEAN_OPERATOR_LOWERINGS = dict(_DOLO_BOOLEAN_OPERATOR_LOWERINGS_BY_OWNER)
 HERBERT_BUILTIN_ARITIES = dict(_HERBERT_BUILTIN_ARITIES_BY_OWNER)
 HERBERT_BUILTIN_KINDS = dict(_HERBERT_BUILTIN_KINDS_BY_OWNER)
@@ -911,6 +968,18 @@ def record_field_index(fields: tuple[str, ...], name: str) -> int | None:
             return None
         return value
     return None
+
+
+def array_mutation_do_admits(kind: str | None) -> bool:
+    return kind in _ARRAY_MUTATION_DO_ADMIT_KINDS
+
+
+def array_mutation_do_call_count() -> int:
+    return _ARRAY_MUTATION_DO_CALL_COUNT
+
+
+def array_mutation_do_keyword() -> str:
+    return _ARRAY_MUTATION_DO_KEYWORD
 
 
 DOLO_CLOSING_DELIMITER_OWNER = "experiments/herbert/closing_delimiters_candidate.herb"

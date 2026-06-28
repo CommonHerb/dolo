@@ -1,5 +1,6 @@
 # source	stdout
 experiments/herbert/array_mutation_candidate.herb	tests/fixtures/array_mutation_candidate.stdout
+experiments/herbert/array_mutation_shape_candidate.herb	tests/fixtures/array_mutation_shape_candidate.stdout
 experiments/herbert/boolean_operator_candidate.herb	tests/fixtures/boolean_operator_candidate.stdout
 experiments/herbert/builtin_arity_candidate.herb	tests/fixtures/builtin_arity_candidate.stdout
 experiments/herbert/builtin_kind_candidate.herb	tests/fixtures/builtin_kind_candidate.stdout

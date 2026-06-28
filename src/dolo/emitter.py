@@ -15,6 +15,9 @@ from .ast import (
     Stmt,
 )
 from .herbert_surface import (
+    array_mutation_do_admits,
+    array_mutation_do_call_count,
+    array_mutation_do_keyword,
     dolo_boolean_operator_lowering,
     herbert_builtin_arity,
     herbert_builtin_kind,
@@ -87,7 +90,10 @@ class Emitter:
                 lines.append(f"{prefix}{stmt.name} = {self._emit_expr(stmt.expr, context)}")
                 context.record_types[stmt.name] = self._record_from_expr(stmt.expr, context)
             elif isinstance(stmt, DoStmt):
-                lines.append(f"{prefix}do {self._emit_do_expr(stmt.expr, context)}")
+                lines.append(
+                    f"{prefix}{array_mutation_do_keyword()} "
+                    f"{self._emit_do_expr(stmt.expr, context)}"
+                )
             elif isinstance(stmt, ReturnStmt):
                 lines.append(f"{prefix}return {self._emit_expr(stmt.expr, context)}")
             elif isinstance(stmt, IfStmt):
@@ -168,31 +174,52 @@ class Emitter:
         return _format_expr(parts)
 
     def _emit_do_expr(self, expr: Expr, context: EmitContext) -> str:
-        call = expr.tokens[0]
-        if call.kind != "IDENT" or not self._next_value(expr, 0, "("):
-            raise DoloSyntaxError(f"{_location(call)}: do statement requires a call")
-        if call.value in self.functions:
+        call_indexes, non_call_value = self._top_level_do_call_indexes(expr)
+        if non_call_value is not None:
             raise DoloSyntaxError(
-                f"{_location(call)}: Dolo function {call.value!r} cannot be used as a do statement"
+                f"{_location(non_call_value)}: do statement owner requires "
+                "top-level calls only"
             )
-        kind = herbert_builtin_kind(call.value)
-        if kind == "value":
+        got = len(call_indexes)
+        want = array_mutation_do_call_count()
+        if got != want:
+            token = expr.tokens[0]
             raise DoloSyntaxError(
-                f"{_location(call)}: do statement requires no-value Herbert built-in, got {call.value!r}"
+                f"{_location(token)}: do statement owner requires {want} "
+                f"top-level {_call_word(want)}, got {got}"
             )
-        if kind != "void":
-            raise DoloSyntaxError(f"{_location(call)}: unknown do statement call {call.value!r}")
-        close_index = self._call_close_index(expr, 0)
-        if close_index != len(expr.tokens) - 1:
-            token = expr.tokens[close_index + 1]
-            raise DoloSyntaxError(
-                f"{_location(token)}: do statement must contain exactly one call"
-            )
+        for index in call_indexes:
+            call = expr.tokens[index]
+            kind = herbert_builtin_kind(call.value)
+            if not array_mutation_do_admits(kind):
+                raise DoloSyntaxError(
+                    f"{_location(call)}: do statement owner rejects call "
+                    f"{call.value!r} with kind {kind!r}"
+                )
         return self._emit_expr(
             expr,
             context,
-            allowed_void_call_indexes=frozenset({0}),
+            allowed_void_call_indexes=frozenset(call_indexes),
         )
+
+    def _top_level_do_call_indexes(self, expr: Expr) -> tuple[tuple[int, ...], Token | None]:
+        indexes: list[int] = []
+        depth = 0
+        i = 0
+        while i < len(expr.tokens):
+            token = expr.tokens[i]
+            if depth == 0 and token.kind == "IDENT" and self._next_value(expr, i, "("):
+                indexes.append(i)
+                i = self._call_close_index(expr, i) + 1
+                continue
+            if depth == 0 and _is_expression_value_start(token):
+                return tuple(indexes), token
+            if token.value == "(":
+                depth += 1
+            elif token.value == ")" and depth > 0:
+                depth -= 1
+            i += 1
+        return tuple(indexes), None
 
     def _validate_constructor(self, token: Token, expr: Expr, index: int) -> None:
         record = self.records[token.value]
@@ -575,6 +602,10 @@ def _location(token: Token) -> str:
 
 def _argument_word(count: int) -> str:
     return "argument" if count == 1 else "arguments"
+
+
+def _call_word(count: int) -> str:
+    return "call" if count == 1 else "calls"
 
 
 EXPRESSION_KEYWORDS = frozenset({"false", "true"})

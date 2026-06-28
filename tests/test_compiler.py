@@ -1149,7 +1149,7 @@ end
 
         with self.assertRaisesRegex(
             DoloSyntaxError,
-            r"line 2, column 6: do statement requires no-value Herbert built-in, got 'length'",
+            r"line 2, column 6: do statement owner rejects call 'length' with kind 'value'",
         ):
             compile_source(source)
 
@@ -1162,7 +1162,7 @@ end
 
         with self.assertRaisesRegex(
             DoloSyntaxError,
-            r"line 2, column 6: unknown do statement call 'missing'",
+            r"line 2, column 6: do statement owner rejects call 'missing' with kind None",
         ):
             compile_source(source)
 
@@ -1174,7 +1174,7 @@ end
   return 0
 }
 """,
-                r"line 2, column 6: do statement requires a call",
+                r"line 2, column 6: do statement owner requires top-level calls only",
             ),
             (
                 """fn bad(items) {
@@ -1182,7 +1182,7 @@ end
   return 0
 }
 """,
-                r"line 2, column 20: do statement must contain exactly one call",
+                r"line 2, column 22: do statement owner requires top-level calls only",
             ),
         )
 
@@ -3279,6 +3279,10 @@ end
                 (
                     "experiments/herbert/array_mutation_candidate.herb",
                     "tests/fixtures/array_mutation_candidate.stdout",
+                ),
+                (
+                    "experiments/herbert/array_mutation_shape_candidate.herb",
+                    "tests/fixtures/array_mutation_shape_candidate.stdout",
                 ),
                 (
                     "experiments/herbert/record_field_index_candidate.herb",

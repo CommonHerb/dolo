@@ -1,0 +1,29 @@
+func do_admits_kind(kind):
+    if equal(kind, "void"):
+        return 1
+    else:
+        if equal(kind, "value"):
+            return 0
+        else:
+            return 0
+        end
+    end
+end
+
+func do_statement_call_count():
+    return 1
+end
+
+func do_statement_keyword():
+    return "do"
+end
+
+func main():
+    return (
+        "array-mutation-shape-candidate",
+        do_statement_keyword(),
+        do_admits_kind("void"),
+        do_admits_kind("value"),
+        do_statement_call_count()
+    )
+end
