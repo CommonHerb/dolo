@@ -2,23 +2,27 @@ func field_index(fields, name):
     return search(fields, name, 0)
 end
 
-func search(fields, name, acc):
-    if empty(fields):
-        return "missing"
+func search(fields, name, i):
+    if i == count(fields):
+        return 0 - 1
     else:
-        if equal(first(fields), name):
-            return acc
+        if equal(get(fields, i), name):
+            return i
         else:
-            return search(rest(fields), name, plus(acc, 1))
+            return search(fields, name, i + 1)
         end
     end
 end
 
 func main():
+    let fields = new_array(string)
+    do add(fields, "name")
+    do add(fields, "hunger")
+    do add(fields, "coins")
     return (
         "record-field-index-candidate",
-        field_index(("name", "hunger", "coins"), "hunger"),
-        field_index(("name", "hunger", "coins"), "coins"),
-        field_index(("name", "hunger", "coins"), "missing")
+        field_index(fields, "hunger"),
+        field_index(fields, "coins"),
+        field_index(fields, "missing")
     )
 end

@@ -303,6 +303,17 @@ class _HerbertIfStmt:
 
 
 @dataclass(frozen=True)
+class _HerbertLetStmt:
+    name: str
+    expr: object
+
+
+@dataclass(frozen=True)
+class _HerbertDoStmt:
+    expr: object
+
+
+@dataclass(frozen=True)
 class _HerbertIntExpr:
     value: int
 
@@ -321,6 +332,13 @@ class _HerbertVarExpr:
 class _HerbertCallExpr:
     name: str
     args: tuple[object, ...]
+
+
+@dataclass(frozen=True)
+class _HerbertBinaryExpr:
+    operator: str
+    left: object
+    right: object
 
 
 @dataclass(frozen=True)
@@ -374,6 +392,12 @@ class _HerbertSubsetProgram:
         for statement in statements:
             if isinstance(statement, _HerbertReturnStmt):
                 raise _HerbertReturn(self._eval_expr(statement.expr, env, depth=depth))
+            if isinstance(statement, _HerbertLetStmt):
+                env[statement.name] = self._eval_expr(statement.expr, env, depth=depth)
+                continue
+            if isinstance(statement, _HerbertDoStmt):
+                self._eval_expr(statement.expr, env, depth=depth)
+                continue
             if isinstance(statement, _HerbertIfStmt):
                 branch = (
                     statement.then_body
@@ -398,12 +422,26 @@ class _HerbertSubsetProgram:
         if isinstance(expr, _HerbertTupleExpr):
             return tuple(self._eval_expr(item, env, depth=depth) for item in expr.items)
         if isinstance(expr, _HerbertVarExpr):
-            if expr.name not in env:
-                raise RuntimeError(f"Herbert owner reads unknown variable {expr.name!r}")
-            return env[expr.name]
+            if expr.name in env:
+                return env[expr.name]
+            if expr.name in _HERBERT_TYPE_NAMES:
+                return expr.name
+            raise RuntimeError(f"Herbert owner reads unknown variable {expr.name!r}")
         if isinstance(expr, _HerbertCallExpr):
             args = tuple(self._eval_expr(arg, env, depth=depth) for arg in expr.args)
             return self._call(expr.name, args, depth=depth + 1)
+        if isinstance(expr, _HerbertBinaryExpr):
+            left = self._eval_expr(expr.left, env, depth=depth)
+            right = self._eval_expr(expr.right, env, depth=depth)
+            if expr.operator == "==":
+                return left == right
+            if expr.operator == "+":
+                return _herbert_int_add(left, right)
+            if expr.operator == "-":
+                return _herbert_int_subtract(left, right)
+            raise RuntimeError(
+                f"Herbert owner has unsupported binary operator {expr.operator!r}"
+            )
         raise RuntimeError(f"Herbert owner has unknown expression {expr!r}")
 
     @staticmethod
@@ -437,10 +475,53 @@ def _builtin_rest(args: tuple[object, ...]) -> tuple[object, ...]:
 
 def _builtin_plus(args: tuple[object, ...]) -> int:
     _require_herbert_builtin_arity("plus", args, 2)
-    left, right = args
+    return _herbert_int_add(args[0], args[1])
+
+
+def _builtin_count(args: tuple[object, ...]) -> int:
+    _require_herbert_builtin_arity("count", args, 1)
+    return len(_require_herbert_sequence("count", args[0]))
+
+
+def _builtin_get(args: tuple[object, ...]) -> object:
+    _require_herbert_builtin_arity("get", args, 2)
+    value = _require_herbert_sequence("get", args[0])
+    index = args[1]
+    if type(index) is not int:
+        raise RuntimeError("Herbert owner get expects an integer index")
+    if index < 0 or index >= len(value):
+        raise RuntimeError("Herbert owner get index is out of bounds")
+    return value[index]
+
+
+def _builtin_new_array(args: tuple[object, ...]) -> list[object]:
+    _require_herbert_builtin_arity("new_array", args, 1)
+    return []
+
+
+def _builtin_add(args: tuple[object, ...]) -> None:
+    _require_herbert_builtin_arity("add", args, 2)
+    if not isinstance(args[0], list):
+        raise RuntimeError("Herbert owner add expects an array")
+    args[0].append(args[1])
+    return None
+
+
+def _builtin_array_type(args: tuple[object, ...]) -> tuple[str, object]:
+    _require_herbert_builtin_arity("array", args, 1)
+    return ("array", args[0])
+
+
+def _herbert_int_add(left: object, right: object) -> int:
     if type(left) is not int or type(right) is not int:
-        raise RuntimeError("Herbert owner plus expects integer arguments")
+        raise RuntimeError("Herbert owner + expects integer arguments")
     return left + right
+
+
+def _herbert_int_subtract(left: object, right: object) -> int:
+    if type(left) is not int or type(right) is not int:
+        raise RuntimeError("Herbert owner - expects integer arguments")
+    return left - right
 
 
 def _require_herbert_builtin_arity(
@@ -465,12 +546,19 @@ def _require_herbert_sequence(name: str, value: object) -> tuple[object, ...] | 
 
 
 _HERBERT_SUBSET_BUILTINS = {
+    "add": _builtin_add,
+    "array": _builtin_array_type,
+    "count": _builtin_count,
     "equal": _builtin_equal,
     "empty": _builtin_empty,
     "first": _builtin_first,
+    "get": _builtin_get,
+    "new_array": _builtin_new_array,
     "rest": _builtin_rest,
     "plus": _builtin_plus,
 }
+
+_HERBERT_TYPE_NAMES = frozenset({"bool", "buffer", "int", "string"})
 
 
 class _HerbertSubsetParser:
@@ -514,6 +602,12 @@ class _HerbertSubsetParser:
     def _parse_statement(self) -> object:
         if self._match_value("return"):
             return _HerbertReturnStmt(self._parse_expression())
+        if self._match_value("let"):
+            name = self._expect_ident()
+            self._expect_value("=")
+            return _HerbertLetStmt(name=name, expr=self._parse_expression())
+        if self._match_value("do"):
+            return _HerbertDoStmt(self._parse_expression())
         if self._match_value("if"):
             condition = self._parse_expression()
             self._expect_value(":")
@@ -528,10 +622,31 @@ class _HerbertSubsetParser:
                 then_body=tuple(then_body),
                 else_body=else_body,
             )
-        self._fail_current("Herbert owner expected return or if statement")
+        self._fail_current("Herbert owner expected return, let, do, or if statement")
 
     def _parse_expression(self) -> object:
-        return self._parse_primary()
+        return self._parse_equality()
+
+    def _parse_equality(self) -> object:
+        expr = self._parse_addition()
+        while self._match_value("=="):
+            expr = _HerbertBinaryExpr(
+                operator="==",
+                left=expr,
+                right=self._parse_addition(),
+            )
+        return expr
+
+    def _parse_addition(self) -> object:
+        expr = self._parse_primary()
+        while self._peek().value in {"+", "-"}:
+            operator = str(self._advance().value)
+            expr = _HerbertBinaryExpr(
+                operator=operator,
+                left=expr,
+                right=self._parse_primary(),
+            )
+        return expr
 
     def _parse_primary(self) -> object:
         token = self._peek()
@@ -723,7 +838,12 @@ def _tokenize_herbert_subset(text: str) -> tuple[_HerbertToken, ...]:
                     f"line {start_line}, column {start_column}"
                 )
             continue
-        if ch in "(),:":
+        if text.startswith("==", index):
+            tokens.append(_HerbertToken("PUNCT", "==", line, column))
+            index += 2
+            column += 2
+            continue
+        if ch in "(),:+-=":
             tokens.append(_HerbertToken("PUNCT", ch, line, column))
             index += 1
             column += 1
@@ -787,6 +907,8 @@ def is_herbert_type_name(name: str) -> bool:
 def record_field_index(fields: tuple[str, ...], name: str) -> int | None:
     value = _RECORD_FIELD_INDEX_BY_OWNER.call("field_index", (tuple(fields), name))
     if type(value) is int:
+        if value < 0:
+            return None
         return value
     return None
 
@@ -906,4 +1028,3 @@ def _extract_infix_operator_owner_map(text: str) -> dict[str, int]:
 _DOLO_INFIX_OPERATORS_BY_OWNER = load_dolo_infix_operators()
 def is_dolo_infix_operator(name: str) -> bool:
     return name in _DOLO_INFIX_OPERATORS_BY_OWNER
-

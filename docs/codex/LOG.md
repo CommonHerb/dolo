@@ -8,6 +8,7 @@ Format: `YYYY-MM-DD  <GREEN|RED|PROPOSE|NEEDS-SYNC>  <commit-or-—>  <one line>
 
 ---
 
+2026-06-28  GREEN  —  record_field_index owner rewritten to seed-native count/get/infix search; truth loop ran locally GREEN against ../herbert-pin, oracle GREEN x3, meter 1, unittest 113 OK, manifests green.
 2026-06-28  GREEN  slice/record-field-index  record_field_index owner/evaluator wired; oracle GREEN x3, meter 1, unittest 113 OK, manifests green (native truth blocked: no ../herbert-pin).
 2026-06-26  GREEN  (consolidation)  Orchestrator ACCEPTED + landed batch 2 (two_char_ops + closing_delimiters + infix_operators) -> meter 2 (7 herbert-owned). All 3 oracle-WIRED, no masking, 3 Python literals deleted. NOTE: the 3 PRs each added a near-identical loader to herbert_surface.py so they git-conflicted on the shared insertion point; consolidated by appending each additive loader block onto main (verified syntax + oracle + meter + truth loop). PRs #7 merged; #8/#9 subsumed.
 2026-06-26  ARMED  —  Orchestrator armed BATCH 2: two_char_ops, closing_delimiters, infix_operators (3 held-back referees, each bite-verified). Meter 2->5 (3 new Python authorities registered). NEXT.md queues them for a full-auto run. (lexer_keywords + unsupported_punctuation deferred -- contrived/reject-probe, need framework support; record_field_index + array_mutation are emitter-internal, need referees.)
