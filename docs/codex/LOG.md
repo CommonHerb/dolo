@@ -8,6 +8,7 @@ Format: `YYYY-MM-DD  <GREEN|RED|PROPOSE|NEEDS-SYNC>  <commit-or-—>  <one line>
 
 ---
 
+2026-06-28  GREEN  —  array_mutation owner now seed-executed at compiler import via pinned gen1.seed; local sandbox ran seed at import GREEN; missing/garbage seed fail-closed; oracle GREEN x3, meter 0, truth loop GREEN, unittest 113 OK, manifests green.
 2026-06-28  GREEN  —  array_mutation do-shape wired to experiments/herbert/array_mutation_shape_candidate.herb; oracle GREEN x3, meter 0, truth loop GREEN against ../herbert-pin, unittest 113 OK, manifests green.
 2026-06-28  GREEN  —  record_field_index owner rewritten to seed-native count/get/infix search; truth loop ran locally GREEN against ../herbert-pin, oracle GREEN x3, meter 1, unittest 113 OK, manifests green.
 2026-06-28  GREEN  slice/record-field-index  record_field_index owner/evaluator wired; oracle GREEN x3, meter 1, unittest 113 OK, manifests green (native truth blocked: no ../herbert-pin).

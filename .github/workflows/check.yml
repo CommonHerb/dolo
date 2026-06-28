@@ -12,7 +12,24 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
+      - name: Read Herbert lock
+        id: herbert-lock
+        run: |
+          set -euo pipefail
+          source HERBERT.lock
+          herbert_repository="${HERBERT_REPOSITORY#https://github.com/}"
+          herbert_repository="${herbert_repository%.git}"
+          echo "commit=$HERBERT_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "repository=$herbert_repository" >> "$GITHUB_OUTPUT"
+      - name: Check out pinned Herbert
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ steps.herbert-lock.outputs.repository }}
+          ref: ${{ steps.herbert-lock.outputs.commit }}
+          path: herbert
       - name: Run bootstrap tests
+        env:
+          DOLO_HERBERT_SEED: ${{ github.workspace }}/herbert/bootstrap/seed/gen1.seed
         run: PYTHONPATH=src python3 -m unittest discover -s tests -p "test_*.py"
 
   sovereignty-gate:
@@ -22,10 +39,27 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
+      - name: Read Herbert lock
+        id: herbert-lock
+        run: |
+          set -euo pipefail
+          source HERBERT.lock
+          herbert_repository="${HERBERT_REPOSITORY#https://github.com/}"
+          herbert_repository="${herbert_repository%.git}"
+          echo "commit=$HERBERT_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "repository=$herbert_repository" >> "$GITHUB_OUTPUT"
+      - name: Check out pinned Herbert
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ steps.herbert-lock.outputs.repository }}
+          ref: ${{ steps.herbert-lock.outputs.commit }}
+          path: herbert
       - name: Sovereignty meter + held-back wiring oracle
         # Fails if any ledger status=herbert authority does not pass its held-back wiring oracle
         # (CHECK-1 poison no-op + CHECK-2 load-bearing .herb owner + CHECK-3 content perturbation).
         # A green run means every claimed sovereignty gain is genuinely Herbert-wired, not a mirror.
+        env:
+          DOLO_HERBERT_SEED: ${{ github.workspace }}/herbert/bootstrap/seed/gen1.seed
         run: bash scripts/sovereignty_meter.sh
 
   herbert-execution:
@@ -63,4 +97,6 @@ jobs:
           test "$(git -C herbert rev-parse HEAD)" = "$HERBERT_COMMIT"
 
       - name: Run Dolo through pinned Herbert
+        env:
+          DOLO_HERBERT_SEED: ${{ github.workspace }}/herbert/bootstrap/seed/gen1.seed
         run: scripts/verify_herbert_truth.sh --herbert-dir herbert

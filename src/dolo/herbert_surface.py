@@ -1,7 +1,14 @@
 from __future__ import annotations
 
+import ast
 from dataclasses import dataclass
+import hashlib
+import os
 from pathlib import Path
+import re
+import shutil
+import subprocess
+import tempfile
 
 
 DOLO_BOOLEAN_OPERATOR_OWNER = "experiments/herbert/boolean_operator_candidate.herb"
@@ -759,43 +766,218 @@ def load_array_mutation_shape(
             f"Herbert array-mutation shape owner is unreadable: {ARRAY_MUTATION_SHAPE_OWNER}"
         ) from exc
 
-    program = _parse_herbert_subset(owner_text)
     required = (
         "do_admits_kind",
         "do_statement_call_count",
         "do_statement_keyword",
     )
-    missing = [name for name in required if not program.has_function(name)]
+    missing = [
+        name
+        for name in required
+        if not _herbert_text_declares_function(owner_text, name)
+    ]
     if missing:
         raise RuntimeError(
             "Herbert array-mutation shape owner is missing required function(s): "
             + ", ".join(missing)
         )
 
-    admitted: set[str] = set()
-    for kind in sorted(_VALID_BUILTIN_KINDS):
-        marker = program.call("do_admits_kind", (kind,))
-        if type(marker) is not int or marker not in {0, 1}:
-            raise RuntimeError(
-                "Herbert array-mutation shape owner returned invalid "
-                f"do_admits_kind marker for {kind!r}: {marker!r}"
-            )
-        if marker == 1:
-            admitted.add(kind)
+    stdout = _run_array_mutation_owner_on_seed(repo_root, owner_text)
+    return _parse_array_mutation_shape_stdout(stdout)
 
-    call_count = program.call("do_statement_call_count", ())
+
+def _herbert_text_declares_function(text: str, name: str) -> bool:
+    pattern = rf"(?m)^\s*func\s+{re.escape(name)}\s*\("
+    return re.search(pattern, text) is not None
+
+
+def _run_array_mutation_owner_on_seed(repo_root: Path, owner_text: str) -> str:
+    seed_path = _resolve_verified_herbert_seed(repo_root)
+    try:
+        with tempfile.TemporaryDirectory(
+            prefix="dolo-array-mutation-seed-",
+            dir="/tmp",
+        ) as tmp_name:
+            tmp = Path(tmp_name)
+            compiler = tmp / "herbert-gen1"
+            shutil.copy2(seed_path, compiler)
+            compiler.chmod(compiler.stat().st_mode | 0o111)
+
+            run_dir = tmp / "owner.run"
+            run_dir.mkdir()
+            compile_result = subprocess.run(
+                [str(compiler)],
+                input=owner_text,
+                cwd=run_dir,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            if compile_result.returncode != 0:
+                raise RuntimeError(
+                    "Herbert array-mutation shape owner failed during seed compile: "
+                    f"{_subprocess_summary(compile_result)}"
+                )
+
+            executable = run_dir / "a.out"
+            if not executable.is_file():
+                raise RuntimeError(
+                    "Herbert array-mutation shape owner seed compile produced no "
+                    f"a.out: {_subprocess_summary(compile_result)}"
+                )
+            try:
+                magic = executable.read_bytes()[:4]
+            except OSError as exc:
+                raise RuntimeError(
+                    "Herbert array-mutation shape owner produced unreadable a.out"
+                ) from exc
+            if magic != b"\x7fELF":
+                raise RuntimeError(
+                    "Herbert array-mutation shape owner seed compile produced "
+                    f"non-ELF a.out (magic={magic.hex()})"
+                )
+            executable.chmod(executable.stat().st_mode | 0o111)
+
+            run_result = subprocess.run(
+                [str(executable)],
+                cwd=run_dir,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            if run_result.returncode != 0:
+                raise RuntimeError(
+                    "Herbert array-mutation shape owner executable failed: "
+                    f"{_subprocess_summary(run_result)}"
+                )
+            if run_result.stderr:
+                raise RuntimeError(
+                    "Herbert array-mutation shape owner executable wrote stderr: "
+                    f"{_first_line(run_result.stderr)!r}"
+                )
+            return run_result.stdout
+    except RuntimeError:
+        raise
+    except (OSError, subprocess.SubprocessError, UnicodeError) as exc:
+        raise RuntimeError(
+            "Herbert array-mutation shape owner failed during seed execution"
+        ) from exc
+
+
+def _resolve_verified_herbert_seed(repo_root: Path) -> Path:
+    env_seed = os.environ.get("DOLO_HERBERT_SEED")
+    if env_seed:
+        seed_path = Path(env_seed).expanduser()
+    else:
+        seed_path = (
+            repo_root
+            / ".."
+            / "herbert-pin"
+            / "bootstrap"
+            / "seed"
+            / "gen1.seed"
+        )
+    seed_path = seed_path.resolve()
+    expected = _herbert_lock_value(repo_root, "HERBERT_SEED_SHA256")
+    try:
+        actual = _sha256_file(seed_path)
+    except OSError as exc:
+        raise RuntimeError(f"Herbert seed is missing or unreadable: {seed_path}") from exc
+    if actual != expected:
+        raise RuntimeError(
+            f"Herbert seed sha256 {actual} does not match pin {expected}: {seed_path}"
+        )
+    return seed_path
+
+
+def _herbert_lock_value(repo_root: Path, key: str) -> str:
+    lock_path = repo_root / "HERBERT.lock"
+    try:
+        lines = lock_path.read_text().splitlines()
+    except OSError as exc:
+        raise RuntimeError("Dolo Herbert lock is unreadable: HERBERT.lock") from exc
+    prefix = key + "="
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith(prefix):
+            return stripped[len(prefix) :].strip().strip("\"'")
+    raise RuntimeError(f"Dolo Herbert lock is missing {key}")
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _parse_array_mutation_shape_stdout(stdout: str) -> tuple[frozenset[str], int, str]:
+    try:
+        value = ast.literal_eval(stdout.strip())
+    except (SyntaxError, ValueError) as exc:
+        raise RuntimeError(
+            "Herbert array-mutation shape owner emitted unparsable stdout: "
+            f"{stdout!r}"
+        ) from exc
+    if not isinstance(value, tuple) or len(value) != 5:
+        raise RuntimeError(
+            "Herbert array-mutation shape owner emitted invalid shape tuple: "
+            f"{value!r}"
+        )
+
+    tag, keyword, void_marker, value_marker, call_count = value
+    if tag != "array-mutation-shape-candidate":
+        raise RuntimeError(
+            "Herbert array-mutation shape owner emitted unexpected tag: "
+            f"{tag!r}"
+        )
+    markers = {
+        "void": void_marker,
+        "value": value_marker,
+    }
+    invalid = {
+        kind: marker
+        for kind, marker in markers.items()
+        if type(marker) is not int or marker not in {0, 1}
+    }
+    if invalid:
+        details = ", ".join(
+            f"{kind}={marker!r}" for kind, marker in sorted(invalid.items())
+        )
+        raise RuntimeError(
+            "Herbert array-mutation shape owner returned invalid "
+            f"do_admits_kind marker(s): {details}"
+        )
+    admitted = frozenset(kind for kind, marker in markers.items() if marker == 1)
+    if not admitted <= _VALID_BUILTIN_KINDS:
+        raise RuntimeError(
+            "Herbert array-mutation shape owner returned invalid admit set: "
+            f"{admitted!r}"
+        )
     if type(call_count) is not int:
         raise RuntimeError(
             "Herbert array-mutation shape owner returned non-integer "
             f"do_statement_call_count: {call_count!r}"
         )
-    keyword = program.call("do_statement_keyword", ())
     if type(keyword) is not str or not keyword:
         raise RuntimeError(
             "Herbert array-mutation shape owner returned invalid "
             f"do_statement_keyword: {keyword!r}"
         )
-    return frozenset(admitted), call_count, keyword
+    return admitted, call_count, keyword
+
+
+def _subprocess_summary(result: subprocess.CompletedProcess[str]) -> str:
+    return (
+        f"returncode={result.returncode}, "
+        f"stdout={_first_line(result.stdout)!r}, "
+        f"stderr={_first_line(result.stderr)!r}"
+    )
+
+
+def _first_line(text: str) -> str:
+    return text.splitlines()[0] if text else ""
 
 
 def _parse_herbert_subset(text: str) -> _HerbertSubsetProgram:
