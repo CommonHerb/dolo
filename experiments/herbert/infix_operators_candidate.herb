@@ -54,6 +54,10 @@ func infix_operator(name):
     end
 end
 
+func key_list():
+    return "!=,%,&&,*,+,-,/,<,<=,==,>,>=,||"
+end
+
 func main():
     return (
         "infix-operators-candidate",

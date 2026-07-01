@@ -42,6 +42,10 @@ func builtin_kind(name):
     end
 end
 
+func key_list():
+    return "add,append,count,equal,freeze,get,index,length,new_array,new_buffer"
+end
+
 func main():
     return (
         "builtin-kind-candidate",

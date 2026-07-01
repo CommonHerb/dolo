@@ -18,6 +18,10 @@ func type_name(name):
     end
 end
 
+func key_list():
+    return "bool,buffer,int,string"
+end
+
 func main():
     return (
         "type-name-candidate",

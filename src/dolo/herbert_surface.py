@@ -32,37 +32,14 @@ def load_dolo_boolean_operator_lowerings(root: Path | str | None = None) -> dict
             f"Dolo boolean operator owner is unreadable: {DOLO_BOOLEAN_OPERATOR_OWNER}"
         ) from exc
 
-    lowerings = _extract_boolean_operator_owner_map(owner_text)
+    lowerings = _seed_string_value_map(
+        repo_root, owner_text, "boolean_operator", "Dolo boolean operator owner"
+    )
     if not lowerings:
         raise RuntimeError(
             f"Dolo boolean operator owner declares no lowering data: {DOLO_BOOLEAN_OPERATOR_OWNER}"
         )
     return lowerings
-
-
-def _extract_boolean_operator_owner_map(text: str) -> dict[str, str]:
-    found: dict[str, str] = {}
-    seen_lookup_names: set[str] = set()
-    lines = text.splitlines()
-    prefix = 'if equal(name, "'
-    suffix = '"):'
-    for index, line in enumerate(lines[:-1]):
-        stripped = line.strip()
-        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
-            continue
-        name = stripped[len(prefix) : -len(suffix)]
-        if name in seen_lookup_names:
-            raise RuntimeError(
-                f"Dolo boolean operator owner repeats lookup name {name!r}"
-            )
-        seen_lookup_names.add(name)
-        return_line = lines[index + 1].strip()
-        if not return_line.startswith("return "):
-            continue
-        value_text = return_line.removeprefix("return ").strip()
-        if len(value_text) >= 2 and value_text[0] == '"' and value_text[-1] == '"':
-            found[name] = value_text[1:-1]
-    return dict(sorted(found.items()))
 
 
 def load_dolo_two_char_ops(root: Path | str | None = None) -> frozenset[str]:
@@ -75,54 +52,14 @@ def load_dolo_two_char_ops(root: Path | str | None = None) -> frozenset[str]:
             f"Dolo two-char-op owner is unreadable: {DOLO_TWO_CHAR_OP_OWNER}"
         ) from exc
 
-    markers = _extract_two_char_op_owner_map(owner_text)
-    if not markers:
-        raise RuntimeError(
-            f"Dolo two-char-op owner declares no operator data: {DOLO_TWO_CHAR_OP_OWNER}"
-        )
-    invalid = {
-        name: marker
-        for name, marker in markers.items()
-        if marker not in {0, 1}
-    }
-    if invalid:
-        details = ", ".join(
-            f"{name}={marker!r}" for name, marker in sorted(invalid.items())
-        )
-        raise RuntimeError(
-            f"Dolo two-char-op owner has invalid marker(s): {details}"
-        )
-    ops = frozenset(name for name, marker in markers.items() if marker == 1)
+    ops = _seed_marker_set(
+        repo_root, owner_text, "two_char_op", "Dolo two-char-op owner"
+    )
     if not ops:
         raise RuntimeError(
             f"Dolo two-char-op owner marks no recognized operators: {DOLO_TWO_CHAR_OP_OWNER}"
         )
     return ops
-
-
-def _extract_two_char_op_owner_map(text: str) -> dict[str, int]:
-    found: dict[str, int] = {}
-    seen_lookup_names: set[str] = set()
-    lines = text.splitlines()
-    prefix = 'if equal(name, "'
-    suffix = '"):'
-    for index, line in enumerate(lines[:-1]):
-        stripped = line.strip()
-        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
-            continue
-        name = stripped[len(prefix) : -len(suffix)]
-        if name in seen_lookup_names:
-            raise RuntimeError(
-                f"Dolo two-char-op owner repeats lookup name {name!r}"
-            )
-        seen_lookup_names.add(name)
-        return_line = lines[index + 1].strip()
-        if not return_line.startswith("return "):
-            continue
-        marker_text = return_line.removeprefix("return ").strip()
-        if marker_text.isdigit():
-            found[name] = int(marker_text)
-    return dict(sorted(found.items()))
 
 
 def load_herbert_builtin_arities(root: Path | str | None = None) -> dict[str, int]:
@@ -135,37 +72,14 @@ def load_herbert_builtin_arities(root: Path | str | None = None) -> dict[str, in
             f"Herbert built-in arity owner is unreadable: {HERBERT_BUILTIN_ARITY_OWNER}"
         ) from exc
 
-    arities = _extract_builtin_arity_owner_map(owner_text)
+    arities = _seed_int_value_map(
+        repo_root, owner_text, "builtin_arity", "Herbert built-in arity owner"
+    )
     if not arities:
         raise RuntimeError(
             f"Herbert built-in arity owner declares no arity data: {HERBERT_BUILTIN_ARITY_OWNER}"
         )
     return arities
-
-
-def _extract_builtin_arity_owner_map(text: str) -> dict[str, int]:
-    found: dict[str, int] = {}
-    seen_lookup_names: set[str] = set()
-    lines = text.splitlines()
-    prefix = 'if equal(name, "'
-    suffix = '"):'
-    for index, line in enumerate(lines[:-1]):
-        stripped = line.strip()
-        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
-            continue
-        name = stripped[len(prefix) : -len(suffix)]
-        if name in seen_lookup_names:
-            raise RuntimeError(
-                f"Herbert built-in arity owner repeats lookup name {name!r}"
-            )
-        seen_lookup_names.add(name)
-        return_line = lines[index + 1].strip()
-        if not return_line.startswith("return "):
-            continue
-        arity_text = return_line.removeprefix("return ").strip()
-        if arity_text.isdigit():
-            found[name] = int(arity_text)
-    return dict(sorted(found.items()))
 
 
 def load_herbert_builtin_kinds(root: Path | str | None = None) -> dict[str, str]:
@@ -178,49 +92,18 @@ def load_herbert_builtin_kinds(root: Path | str | None = None) -> dict[str, str]
             f"Herbert built-in kind owner is unreadable: {HERBERT_BUILTIN_KIND_OWNER}"
         ) from exc
 
-    kinds = _extract_builtin_kind_owner_map(owner_text)
+    kinds = _seed_string_value_map(
+        repo_root,
+        owner_text,
+        "builtin_kind",
+        "Herbert built-in kind owner",
+        allowed=_VALID_BUILTIN_KINDS,
+    )
     if not kinds:
         raise RuntimeError(
             f"Herbert built-in kind owner declares no kind data: {HERBERT_BUILTIN_KIND_OWNER}"
         )
-    invalid = {
-        name: kind
-        for name, kind in kinds.items()
-        if kind not in _VALID_BUILTIN_KINDS
-    }
-    if invalid:
-        details = ", ".join(
-            f"{name}={kind!r}" for name, kind in sorted(invalid.items())
-        )
-        raise RuntimeError(
-            f"Herbert built-in kind owner has invalid kind(s): {details}"
-        )
     return kinds
-
-
-def _extract_builtin_kind_owner_map(text: str) -> dict[str, str]:
-    found: dict[str, str] = {}
-    seen_lookup_names: set[str] = set()
-    lines = text.splitlines()
-    prefix = 'if equal(name, "'
-    suffix = '"):'
-    for index, line in enumerate(lines[:-1]):
-        stripped = line.strip()
-        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
-            continue
-        name = stripped[len(prefix) : -len(suffix)]
-        if name in seen_lookup_names:
-            raise RuntimeError(
-                f"Herbert built-in kind owner repeats lookup name {name!r}"
-            )
-        seen_lookup_names.add(name)
-        return_line = lines[index + 1].strip()
-        if not return_line.startswith("return "):
-            continue
-        value_text = return_line.removeprefix("return ").strip()
-        if len(value_text) >= 2 and value_text[0] == '"' and value_text[-1] == '"':
-            found[name] = value_text[1:-1]
-    return dict(sorted(found.items()))
 
 
 def load_herbert_type_names(root: Path | str | None = None) -> frozenset[str]:
@@ -233,54 +116,14 @@ def load_herbert_type_names(root: Path | str | None = None) -> frozenset[str]:
             f"Herbert type-name owner is unreadable: {HERBERT_TYPE_NAME_OWNER}"
         ) from exc
 
-    markers = _extract_type_name_owner_map(owner_text)
-    if not markers:
-        raise RuntimeError(
-            f"Herbert type-name owner declares no type-name data: {HERBERT_TYPE_NAME_OWNER}"
-        )
-    invalid = {
-        name: marker
-        for name, marker in markers.items()
-        if marker not in {0, 1}
-    }
-    if invalid:
-        details = ", ".join(
-            f"{name}={marker!r}" for name, marker in sorted(invalid.items())
-        )
-        raise RuntimeError(
-            f"Herbert type-name owner has invalid marker(s): {details}"
-        )
-    names = frozenset(name for name, marker in markers.items() if marker == 1)
+    names = _seed_marker_set(
+        repo_root, owner_text, "type_name", "Herbert type-name owner"
+    )
     if not names:
         raise RuntimeError(
             f"Herbert type-name owner marks no recognized type names: {HERBERT_TYPE_NAME_OWNER}"
         )
     return names
-
-
-def _extract_type_name_owner_map(text: str) -> dict[str, int]:
-    found: dict[str, int] = {}
-    seen_lookup_names: set[str] = set()
-    lines = text.splitlines()
-    prefix = 'if equal(name, "'
-    suffix = '"):'
-    for index, line in enumerate(lines[:-1]):
-        stripped = line.strip()
-        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
-            continue
-        name = stripped[len(prefix) : -len(suffix)]
-        if name in seen_lookup_names:
-            raise RuntimeError(
-                f"Herbert type-name owner repeats lookup name {name!r}"
-            )
-        seen_lookup_names.add(name)
-        return_line = lines[index + 1].strip()
-        if not return_line.startswith("return "):
-            continue
-        marker_text = return_line.removeprefix("return ").strip()
-        if marker_text.isdigit():
-            found[name] = int(marker_text)
-    return dict(sorted(found.items()))
 
 
 @dataclass(frozen=True)
@@ -782,7 +625,9 @@ def load_array_mutation_shape(
             + ", ".join(missing)
         )
 
-    stdout = _run_array_mutation_owner_on_seed(repo_root, owner_text)
+    stdout = _run_owner_program_on_seed(
+        repo_root, owner_text, "Herbert array-mutation shape owner"
+    )
     return _parse_array_mutation_shape_stdout(stdout)
 
 
@@ -791,11 +636,19 @@ def _herbert_text_declares_function(text: str, name: str) -> bool:
     return re.search(pattern, text) is not None
 
 
-def _run_array_mutation_owner_on_seed(repo_root: Path, owner_text: str) -> str:
+def _run_owner_program_on_seed(
+    repo_root: Path, program_text: str, label: str
+) -> str:
+    """Compile+run a Herbert program through the verified pinned seed; return its stdout.
+
+    Fail-closed: a missing/garbage seed, a compile failure, a non-ELF a.out, a non-zero
+    run, or any stderr raises RuntimeError. There is NO Python fallback -- the seed is the
+    executor. `label` is woven into the error messages for the calling authority.
+    """
     seed_path = _resolve_verified_herbert_seed(repo_root)
     try:
         with tempfile.TemporaryDirectory(
-            prefix="dolo-array-mutation-seed-",
+            prefix="dolo-owner-seed-",
             dir="/tmp",
         ) as tmp_name:
             tmp = Path(tmp_name)
@@ -807,7 +660,7 @@ def _run_array_mutation_owner_on_seed(repo_root: Path, owner_text: str) -> str:
             run_dir.mkdir()
             compile_result = subprocess.run(
                 [str(compiler)],
-                input=owner_text,
+                input=program_text,
                 cwd=run_dir,
                 capture_output=True,
                 text=True,
@@ -815,25 +668,25 @@ def _run_array_mutation_owner_on_seed(repo_root: Path, owner_text: str) -> str:
             )
             if compile_result.returncode != 0:
                 raise RuntimeError(
-                    "Herbert array-mutation shape owner failed during seed compile: "
+                    f"{label} failed during seed compile: "
                     f"{_subprocess_summary(compile_result)}"
                 )
 
             executable = run_dir / "a.out"
             if not executable.is_file():
                 raise RuntimeError(
-                    "Herbert array-mutation shape owner seed compile produced no "
+                    f"{label} seed compile produced no "
                     f"a.out: {_subprocess_summary(compile_result)}"
                 )
             try:
                 magic = executable.read_bytes()[:4]
             except OSError as exc:
                 raise RuntimeError(
-                    "Herbert array-mutation shape owner produced unreadable a.out"
+                    f"{label} produced unreadable a.out"
                 ) from exc
             if magic != b"\x7fELF":
                 raise RuntimeError(
-                    "Herbert array-mutation shape owner seed compile produced "
+                    f"{label} seed compile produced "
                     f"non-ELF a.out (magic={magic.hex()})"
                 )
             executable.chmod(executable.stat().st_mode | 0o111)
@@ -847,12 +700,12 @@ def _run_array_mutation_owner_on_seed(repo_root: Path, owner_text: str) -> str:
             )
             if run_result.returncode != 0:
                 raise RuntimeError(
-                    "Herbert array-mutation shape owner executable failed: "
+                    f"{label} executable failed: "
                     f"{_subprocess_summary(run_result)}"
                 )
             if run_result.stderr:
                 raise RuntimeError(
-                    "Herbert array-mutation shape owner executable wrote stderr: "
+                    f"{label} executable wrote stderr: "
                     f"{_first_line(run_result.stderr)!r}"
                 )
             return run_result.stdout
@@ -860,8 +713,183 @@ def _run_array_mutation_owner_on_seed(repo_root: Path, owner_text: str) -> str:
         raise
     except (OSError, subprocess.SubprocessError, UnicodeError) as exc:
         raise RuntimeError(
-            "Herbert array-mutation shape owner failed during seed execution"
+            f"{label} failed during seed execution"
         ) from exc
+
+
+# <=7 strings render to 14 words and <=7 ints to 7 words -- both under the seed's 15-word
+# main()-return cap (native_compile_fragment nc_type_is_renderable_aggregate). A key the owner
+# does not declare is the sentinel-probe key; it must not collide with a real domain key.
+_SEED_VALUE_CHUNK = 7
+_SEED_ABSENT_KEY = "__dolo_absent_domain_key__"
+
+
+def _herb_string_literal(value: str) -> str:
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+    return f'"{escaped}"'
+
+
+def _seed_owner_prefix(owner_text: str, label: str) -> str:
+    """The owner source up to (not including) its own `func main()` -- the lookup if-chain plus
+    `key_list` plus any helpers. The boundary appends its own query main() to this prefix.
+    Line-anchored on the `func main(` declaration so a comment/string mentioning it cannot truncate
+    the prefix."""
+    match = re.search(r"(?m)^\s*func\s+main\s*\(", owner_text)
+    if match is None:
+        raise RuntimeError(f"{label} declares no func main()")
+    return owner_text[: match.start()]
+
+
+def _seed_eval_main(repo_root: Path, prefix: str, return_expr: str, label: str) -> object:
+    program = prefix + f"func main():\n    return {return_expr}\nend\n"
+    stdout = _run_owner_program_on_seed(repo_root, program, label)
+    try:
+        return ast.literal_eval(stdout.strip())
+    except (SyntaxError, ValueError) as exc:
+        raise RuntimeError(
+            f"{label} emitted unparsable stdout: {stdout!r}"
+        ) from exc
+
+
+def _seed_owner_table(
+    repo_root: Path, owner_text: str, lookup_fn: str, label: str
+) -> dict[str, object]:
+    """Materialize {key: value} for a lookup-table owner BY EXECUTING IT ON THE PINNED SEED.
+
+    KEYS come from the seed running the owner's `key_list()` (the owner's declared domain);
+    VALUES come from the seed running the owner's `lookup_fn(key)` if-chain. Python only splits
+    the CSV and ast.literal_eval's the rendered tuple -- no table decision is Python-computed.
+    Returns the RAW {key: value} for every declared key (no dropping); the shape helpers
+    (int/string value-map, marker-set) apply the fail-closed domain + value validation.
+    Fail-closed throughout (any seed/parse error raises; no Python fallback)."""
+    for required in (lookup_fn, "key_list"):
+        if not _herbert_text_declares_function(owner_text, required):
+            raise RuntimeError(f"{label} declares no {required}")
+    prefix = _seed_owner_prefix(owner_text, label)
+
+    # KEYS -- the owner's declared domain, returned by the seed as a single CSV string.
+    csv = _seed_eval_main(repo_root, prefix, "key_list()", label)
+    if not isinstance(csv, str) or not csv:
+        raise RuntimeError(
+            f"{label} key_list did not return a non-empty string: {csv!r}"
+        )
+    keys = csv.split(",")
+    for key in keys:
+        if not key:
+            raise RuntimeError(f"{label} key_list has an empty key: {csv!r}")
+        if key != key.strip():
+            raise RuntimeError(
+                f"{label} key_list key {key!r} has surrounding whitespace: {csv!r}"
+            )
+    if len(set(keys)) != len(keys):
+        raise RuntimeError(f"{label} key_list repeats a key: {csv!r}")
+
+    # VALUES -- computed by the owner's lookup if-chain, executed by the seed, batched under the
+    # seed's 15-word render cap.
+    values: list[object] = []
+    for start in range(0, len(keys), _SEED_VALUE_CHUNK):
+        group = keys[start : start + _SEED_VALUE_CHUNK]
+        calls = ", ".join(
+            f"{lookup_fn}({_herb_string_literal(key)})" for key in group
+        )
+        expr = calls if len(group) == 1 else f"({calls})"
+        result = _seed_eval_main(repo_root, prefix, expr, label)
+        if len(group) == 1:
+            values.append(result)
+        elif isinstance(result, tuple) and len(result) == len(group):
+            values.extend(result)
+        else:
+            raise RuntimeError(
+                f"{label} value batch returned an unexpected shape: {result!r}"
+            )
+
+    return dict(zip(keys, values))
+
+
+def _seed_owner_out_of_domain_value(
+    repo_root: Path, owner_text: str, lookup_fn: str, label: str
+) -> object:
+    """What the owner returns for a key OUTSIDE its domain -- learned by asking the owner (a
+    guaranteed-absent probe key), never assumed by Python. A value-map key whose lookup returns
+    this is a key_list/if-chain drift (or an entry that fell through to the default) and MUST fail
+    closed -- matching the deleted scraper, which surfaced such an entry for value validation."""
+    prefix = _seed_owner_prefix(owner_text, label)
+    return _seed_eval_main(
+        repo_root, prefix, f"{lookup_fn}({_herb_string_literal(_SEED_ABSENT_KEY)})", label
+    )
+
+
+def _reject_out_of_domain(table: dict[str, object], sentinel: object, label: str) -> None:
+    drifted = sorted(name for name, value in table.items() if value == sentinel)
+    if drifted:
+        raise RuntimeError(
+            f"{label} declares {', '.join(drifted)} in key_list but the lookup returns the "
+            f"out-of-domain value {sentinel!r} for them -- key_list drifted from the if-chain"
+        )
+
+
+def _seed_int_value_map(
+    repo_root: Path, owner_text: str, lookup_fn: str, label: str
+) -> dict[str, int]:
+    """value-map: every declared key maps to its if-chain int. A key whose lookup returns the
+    out-of-domain value fails closed (drift), never silently vanishes."""
+    table = _seed_owner_table(repo_root, owner_text, lookup_fn, label)
+    sentinel = _seed_owner_out_of_domain_value(repo_root, owner_text, lookup_fn, label)
+    _reject_out_of_domain(table, sentinel, label)
+    result: dict[str, int] = {}
+    for name, value in table.items():
+        if type(value) is not int:
+            raise RuntimeError(f"{label} returned a non-integer value for {name!r}: {value!r}")
+        result[name] = value
+    return dict(sorted(result.items()))
+
+
+def _seed_string_value_map(
+    repo_root: Path,
+    owner_text: str,
+    lookup_fn: str,
+    label: str,
+    *,
+    allowed: frozenset[str] | None = None,
+) -> dict[str, str]:
+    """value-map: every declared key maps to a non-empty if-chain string (empty would be shadowed
+    by the emitter's `lowering or value` fallback). Out-of-domain / invalid values fail closed."""
+    table = _seed_owner_table(repo_root, owner_text, lookup_fn, label)
+    sentinel = _seed_owner_out_of_domain_value(repo_root, owner_text, lookup_fn, label)
+    _reject_out_of_domain(table, sentinel, label)
+    result: dict[str, str] = {}
+    invalid: dict[str, object] = {}
+    for name, value in table.items():
+        if type(value) is not str or not value:
+            raise RuntimeError(
+                f"{label} returned a non-string/empty value for {name!r}: {value!r}"
+            )
+        if allowed is not None and value not in allowed:
+            invalid[name] = value
+            continue
+        result[name] = value
+    if invalid:
+        details = ", ".join(f"{n}={v!r}" for n, v in sorted(invalid.items()))
+        raise RuntimeError(f"{label} has invalid value(s): {details}")
+    return dict(sorted(result.items()))
+
+
+def _seed_marker_set(
+    repo_root: Path, owner_text: str, lookup_fn: str, label: str
+) -> frozenset[str]:
+    """marker-set: each declared key carries a 0/1 marker; membership is the marker==1 set. A key
+    whose marker is 0 (a non-member, or a member perturbed off) is simply not in the set -- exactly
+    the deleted scraper's marker==1 filter."""
+    table = _seed_owner_table(repo_root, owner_text, lookup_fn, label)
+    invalid = {
+        name: value
+        for name, value in table.items()
+        if type(value) is not int or value not in {0, 1}
+    }
+    if invalid:
+        details = ", ".join(f"{n}={v!r}" for n, v in sorted(invalid.items()))
+        raise RuntimeError(f"{label} has invalid marker(s): {details}")
+    return frozenset(name for name, value in table.items() if value == 1)
 
 
 def _resolve_verified_herbert_seed(repo_root: Path) -> Path:
@@ -1175,37 +1203,14 @@ def load_dolo_closing_delimiters(root: Path | str | None = None) -> dict[str, st
             f"Dolo closing-delimiter owner is unreadable: {DOLO_CLOSING_DELIMITER_OWNER}"
         ) from exc
 
-    delimiters = _extract_closing_delimiter_owner_map(owner_text)
+    delimiters = _seed_string_value_map(
+        repo_root, owner_text, "closing_delimiter", "Dolo closing-delimiter owner"
+    )
     if not delimiters:
         raise RuntimeError(
             f"Dolo closing-delimiter owner declares no delimiter data: {DOLO_CLOSING_DELIMITER_OWNER}"
         )
     return delimiters
-
-
-def _extract_closing_delimiter_owner_map(text: str) -> dict[str, str]:
-    found: dict[str, str] = {}
-    seen_lookup_names: set[str] = set()
-    lines = text.splitlines()
-    prefix = 'if equal(name, "'
-    suffix = '"):'
-    for index, line in enumerate(lines[:-1]):
-        stripped = line.strip()
-        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
-            continue
-        name = stripped[len(prefix) : -len(suffix)]
-        if name in seen_lookup_names:
-            raise RuntimeError(
-                f"Dolo closing-delimiter owner repeats lookup name {name!r}"
-            )
-        seen_lookup_names.add(name)
-        return_line = lines[index + 1].strip()
-        if not return_line.startswith("return "):
-            continue
-        value_text = return_line.removeprefix("return ").strip()
-        if len(value_text) >= 2 and value_text[0] == '"' and value_text[-1] == '"':
-            found[name] = value_text[1:-1]
-    return dict(sorted(found.items()))
 
 
 _DOLO_CLOSING_DELIMITERS_BY_OWNER = load_dolo_closing_delimiters()
@@ -1226,54 +1231,14 @@ def load_dolo_infix_operators(root: Path | str | None = None) -> frozenset[str]:
             f"Dolo infix-operator owner is unreadable: {DOLO_INFIX_OPERATOR_OWNER}"
         ) from exc
 
-    markers = _extract_infix_operator_owner_map(owner_text)
-    if not markers:
-        raise RuntimeError(
-            f"Dolo infix-operator owner declares no operator data: {DOLO_INFIX_OPERATOR_OWNER}"
-        )
-    invalid = {
-        name: marker
-        for name, marker in markers.items()
-        if marker not in {0, 1}
-    }
-    if invalid:
-        details = ", ".join(
-            f"{name}={marker!r}" for name, marker in sorted(invalid.items())
-        )
-        raise RuntimeError(
-            f"Dolo infix-operator owner has invalid marker(s): {details}"
-        )
-    ops = frozenset(name for name, marker in markers.items() if marker == 1)
+    ops = _seed_marker_set(
+        repo_root, owner_text, "infix_operator", "Dolo infix-operator owner"
+    )
     if not ops:
         raise RuntimeError(
             f"Dolo infix-operator owner marks no recognized operators: {DOLO_INFIX_OPERATOR_OWNER}"
         )
     return ops
-
-
-def _extract_infix_operator_owner_map(text: str) -> dict[str, int]:
-    found: dict[str, int] = {}
-    seen_lookup_names: set[str] = set()
-    lines = text.splitlines()
-    prefix = 'if equal(name, "'
-    suffix = '"):'
-    for index, line in enumerate(lines[:-1]):
-        stripped = line.strip()
-        if not stripped.startswith(prefix) or not stripped.endswith(suffix):
-            continue
-        name = stripped[len(prefix) : -len(suffix)]
-        if name in seen_lookup_names:
-            raise RuntimeError(
-                f"Dolo infix-operator owner repeats lookup name {name!r}"
-            )
-        seen_lookup_names.add(name)
-        return_line = lines[index + 1].strip()
-        if not return_line.startswith("return "):
-            continue
-        marker_text = return_line.removeprefix("return ").strip()
-        if marker_text.isdigit():
-            found[name] = int(marker_text)
-    return dict(sorted(found.items()))
 
 
 _DOLO_INFIX_OPERATORS_BY_OWNER = load_dolo_infix_operators()

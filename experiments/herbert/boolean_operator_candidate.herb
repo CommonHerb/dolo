@@ -14,6 +14,10 @@ func boolean_operator(name):
     end
 end
 
+func key_list():
+    return "!,&&,||"
+end
+
 func main():
     return (
         "boolean-operator-candidate",

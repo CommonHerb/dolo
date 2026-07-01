@@ -3305,6 +3305,47 @@ end
                 self.assertIn("func main()", source_path.read_text())
                 self.assertTrue(stdout_path.read_text().endswith("\n"))
 
+    def test_seed_executed_owner_key_lists_match_if_chains(self):
+        # The 7 seed-executed lookup owners declare their domain twice: the if-chain
+        # (`if equal(name, "X")`) that COMPUTES values, and `key_list()`'s CSV that the compiler
+        # boundary ENUMERATES. They must stay in sync -- an if-chain-only key would silently vanish
+        # from the seed-materialized table (the deleted Python scraper read the if-chain directly and
+        # could not desync). This pins key_list to the if-chain, failing CI on any drift.
+        import re as _re
+
+        owners = (
+            "experiments/herbert/builtin_kind_candidate.herb",
+            "experiments/herbert/builtin_arity_candidate.herb",
+            "experiments/herbert/boolean_operator_candidate.herb",
+            "experiments/herbert/type_name_candidate.herb",
+            "experiments/herbert/two_char_ops_candidate.herb",
+            "experiments/herbert/closing_delimiters_candidate.herb",
+            "experiments/herbert/infix_operators_candidate.herb",
+        )
+        key_pat = _re.compile(r'if equal\(name, "((?:[^"\\]|\\.)*)"\):')
+        list_pat = _re.compile(
+            r'func key_list\(\):\s*\n\s*return "((?:[^"\\]|\\.)*)"\s*\n\s*end'
+        )
+        for owner_rel in owners:
+            with self.subTest(owner=owner_rel):
+                text = (ROOT / owner_rel).read_text()
+                if_chain_keys = key_pat.findall(text)
+                self.assertEqual(
+                    len(if_chain_keys),
+                    len(set(if_chain_keys)),
+                    f"{owner_rel}: if-chain repeats a lookup key",
+                )
+                match = list_pat.search(text)
+                self.assertIsNotNone(
+                    match, f"{owner_rel}: must declare key_list() returning a CSV literal"
+                )
+                key_list_keys = match.group(1).split(",")
+                self.assertEqual(
+                    sorted(key_list_keys),
+                    sorted(if_chain_keys),
+                    f"{owner_rel}: key_list() must exactly match the if-chain domain",
+                )
+
     def test_herbert_truth_harness_runs_migration_candidates(self):
         harness = ROOT / "scripts" / "verify_herbert_truth.sh"
         harness_text = harness.read_text()

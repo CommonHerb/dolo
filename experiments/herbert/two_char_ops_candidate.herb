@@ -26,6 +26,10 @@ func two_char_op(name):
     end
 end
 
+func key_list():
+    return "!=,&&,<=,==,>=,||"
+end
+
 func main():
     return (
         "two-char-ops-candidate",
