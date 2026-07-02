@@ -16,3 +16,7 @@ array_mutation	herbert	src/dolo/emitter.py:array-mutation lowering	experiments/h
 two_char_ops	herbert	src/dolo/tokens.py:TWO_CHAR_OPS	experiments/herbert/two_char_ops_candidate.herb	experiments/herbert/two_char_ops_candidate.herb	oracle_wiring.py two_char_ops	the lexer's greedy two-char operator set (== != <= >= && ||)
 closing_delimiters	herbert	src/dolo/parser.py:CLOSING_DELIMITERS	experiments/herbert/closing_delimiters_candidate.herb	experiments/herbert/closing_delimiters_candidate.herb	oracle_wiring.py closing_delimiters	the parser's closer->opener bracket-matching map
 infix_operators	herbert	src/dolo/emitter.py:INFIX_OPERATORS	experiments/herbert/infix_operators_candidate.herb	experiments/herbert/infix_operators_candidate.herb	oracle_wiring.py infix_operators	the emitter's recognized infix-operator set
+lexer_keywords	python	src/dolo/tokens.py:KEYWORDS	experiments/herbert/lexer_keywords_candidate.herb		oracle_wiring.py lexer_keywords	the dolo keyword set the lexer distinguishes from identifiers (record fn let do return if else true false)
+expression_keywords	python	src/dolo/emitter.py:EXPRESSION_KEYWORDS			(pending)	keywords admitted as expression values (true/false)
+unsupported_expression_punctuation	python	src/dolo/emitter.py:UNSUPPORTED_EXPRESSION_PUNCTUATION			(pending)	punctuation the emitter rejects inside expressions (: { })
+statement_lowering_keywords	python	src/dolo/emitter.py:statement-lowering f-strings			(pending)	the dolo->herbert statement/declaration lowering keyword map (fn->func, let, =, return, if/else/end, ':')

@@ -1,0 +1,11 @@
+record Pair { left, right }
+
+fn main() {
+  let p = Pair(3, 9)
+  let flag = true
+  if flag {
+    return p.left
+  } else {
+    return p.right
+  }
+}

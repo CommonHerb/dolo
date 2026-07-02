@@ -112,6 +112,16 @@ POISON = {
         "    if hasattr(_m,'INFIX_OPERATORS'):\n"
         "        _m.INFIX_OPERATORS=frozenset()\n"
     ),
+    # empty the lexer's keyword set: record/fn/let/if/else/return/true then lex as IDENTs and the
+    # parser rejects the probe. A genuine wiring consults the Herbert-family owner via the boundary
+    # (no Python-owned KEYWORDS name left to poison), so it is unaffected.
+    "lexer_keywords": (
+        "import sys as _s\n"
+        "for _m in list(_s.modules.values()):\n"
+        "    if not getattr(_m,'__name__','').startswith('dolo'): continue\n"
+        "    if hasattr(_m,'KEYWORDS'):\n"
+        "        _m.KEYWORDS=set()\n"
+    ),
 }
 PROBE = {
     "builtin_kind":     ORACLE / "programs" / "kind_probe.dolo",
@@ -121,6 +131,7 @@ PROBE = {
     "two_char_ops":      ORACLE / "programs" / "two_char_probe.dolo",
     "closing_delimiters":ORACLE / "programs" / "closing_delim_probe.dolo",
     "infix_operators":   ORACLE / "programs" / "infix_probe.dolo",
+    "lexer_keywords":    ORACLE / "programs" / "keyword_probe.dolo",
 }
 GOLDEN = {
     "builtin_kind":     ORACLE / "golden" / "kind_probe.herb",
@@ -130,6 +141,7 @@ GOLDEN = {
     "two_char_ops":      ORACLE / "golden" / "two_char_probe.herb",
     "closing_delimiters":ORACLE / "golden" / "closing_delim_probe.herb",
     "infix_operators":   ORACLE / "golden" / "infix_probe.herb",
+    "lexer_keywords":    ORACLE / "golden" / "keyword_probe.herb",
 }
 # CHECK-3 (semantic perturbation): once an authority is wired, perturbing the owner's CONTENT must
 # change the emitted output -- proving the owner's content DRIVES the decision (not just load-bearing).
@@ -142,6 +154,7 @@ PERTURB = {
     "two_char_ops":      ("experiments/herbert/two_char_ops_candidate.herb",  "==",        "return 0"),
     "closing_delimiters":("experiments/herbert/closing_delimiters_candidate.herb", ")",    'return "{"'),
     "infix_operators":   ("experiments/herbert/infix_operators_candidate.herb", "==",      "return 0"),
+    "lexer_keywords":    ("experiments/herbert/lexer_keywords_candidate.herb", "let",      "return 0"),
 }
 
 

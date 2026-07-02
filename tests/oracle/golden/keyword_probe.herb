@@ -1,0 +1,9 @@
+func main():
+  let p = (3, 9)
+  let flag = true
+  if flag:
+    return p.0
+  else:
+    return p.1
+  end
+end
