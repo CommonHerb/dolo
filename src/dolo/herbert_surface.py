@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import ast
-from dataclasses import dataclass
+from functools import lru_cache
 import hashlib
 import os
 from pathlib import Path
@@ -126,459 +126,72 @@ def load_herbert_type_names(root: Path | str | None = None) -> frozenset[str]:
     return names
 
 
-@dataclass(frozen=True)
-class _HerbertToken:
-    kind: str
-    value: object
-    line: int
-    column: int
 
 
-@dataclass(frozen=True)
-class _HerbertFunction:
-    name: str
-    params: tuple[str, ...]
-    body: tuple[object, ...]
+def _seed_owner_prefix_any(owner_text: str, label: str) -> str:
+    """Like _seed_owner_prefix, but tolerates an owner with no main() of its own (the
+    oracle's substituted owners declare only the algorithm). The boundary appends its
+    own query main() either way."""
+    match = re.search(r"(?m)^\s*func\s+main\s*\(", owner_text)
+    if match is None:
+        return owner_text
+    return owner_text[: match.start()]
 
 
-@dataclass(frozen=True)
-class _HerbertReturnStmt:
-    expr: object
+# The seed renders main()'s integer return as UNSIGNED 64-bit (0 - 1 prints as
+# 18446744073709551615); decode two's-complement so an owner's negative not-found
+# convention survives the wire. This is wire-format decoding (the same class as the
+# ast.literal_eval on table stdout), not a Python-owned decision.
+_SEED_UINT64_BOUND = 1 << 64
+_SEED_INT64_MAX = (1 << 63) - 1
 
 
-@dataclass(frozen=True)
-class _HerbertIfStmt:
-    condition: object
-    then_body: tuple[object, ...]
-    else_body: tuple[object, ...]
-
-
-@dataclass(frozen=True)
-class _HerbertLetStmt:
-    name: str
-    expr: object
-
-
-@dataclass(frozen=True)
-class _HerbertDoStmt:
-    expr: object
-
-
-@dataclass(frozen=True)
-class _HerbertIntExpr:
-    value: int
-
-
-@dataclass(frozen=True)
-class _HerbertStringExpr:
-    value: str
-
-
-@dataclass(frozen=True)
-class _HerbertVarExpr:
-    name: str
-
-
-@dataclass(frozen=True)
-class _HerbertCallExpr:
-    name: str
-    args: tuple[object, ...]
-
-
-@dataclass(frozen=True)
-class _HerbertBinaryExpr:
-    operator: str
-    left: object
-    right: object
-
-
-@dataclass(frozen=True)
-class _HerbertTupleExpr:
-    items: tuple[object, ...]
-
-
-class _HerbertReturn(Exception):
-    def __init__(self, value: object):
-        self.value = value
-
-
-class _HerbertSubsetProgram:
-    def __init__(self, functions: dict[str, _HerbertFunction]):
-        self._functions = functions
-
-    def has_function(self, name: str) -> bool:
-        return name in self._functions
-
-    def call(self, name: str, args: tuple[object, ...]) -> object:
-        return self._call(name, args, depth=0)
-
-    def _call(self, name: str, args: tuple[object, ...], *, depth: int) -> object:
-        if depth > 10000:
-            raise RuntimeError(f"Herbert owner recursion limit exceeded in {name}")
-        builtin = _HERBERT_SUBSET_BUILTINS.get(name)
-        if builtin is not None:
-            return builtin(args)
-        function = self._functions.get(name)
-        if function is None:
-            raise RuntimeError(f"Herbert owner calls unknown function {name!r}")
-        if len(args) != len(function.params):
-            raise RuntimeError(
-                f"Herbert owner function {name} expects {len(function.params)} "
-                f"arguments, got {len(args)}"
-            )
-        env = dict(zip(function.params, args))
-        try:
-            self._eval_statements(function.body, env, depth=depth)
-        except _HerbertReturn as result:
-            return result.value
-        raise RuntimeError(f"Herbert owner function {name} returned no value")
-
-    def _eval_statements(
-        self,
-        statements: tuple[object, ...],
-        env: dict[str, object],
-        *,
-        depth: int,
-    ) -> None:
-        for statement in statements:
-            if isinstance(statement, _HerbertReturnStmt):
-                raise _HerbertReturn(self._eval_expr(statement.expr, env, depth=depth))
-            if isinstance(statement, _HerbertLetStmt):
-                env[statement.name] = self._eval_expr(statement.expr, env, depth=depth)
-                continue
-            if isinstance(statement, _HerbertDoStmt):
-                self._eval_expr(statement.expr, env, depth=depth)
-                continue
-            if isinstance(statement, _HerbertIfStmt):
-                branch = (
-                    statement.then_body
-                    if self._truthy(self._eval_expr(statement.condition, env, depth=depth))
-                    else statement.else_body
-                )
-                self._eval_statements(branch, env, depth=depth)
-                continue
-            raise RuntimeError(f"Herbert owner has unknown statement {statement!r}")
-
-    def _eval_expr(
-        self,
-        expr: object,
-        env: dict[str, object],
-        *,
-        depth: int,
-    ) -> object:
-        if isinstance(expr, _HerbertIntExpr):
-            return expr.value
-        if isinstance(expr, _HerbertStringExpr):
-            return expr.value
-        if isinstance(expr, _HerbertTupleExpr):
-            return tuple(self._eval_expr(item, env, depth=depth) for item in expr.items)
-        if isinstance(expr, _HerbertVarExpr):
-            if expr.name in env:
-                return env[expr.name]
-            if expr.name in _HERBERT_TYPE_NAMES:
-                return expr.name
-            raise RuntimeError(f"Herbert owner reads unknown variable {expr.name!r}")
-        if isinstance(expr, _HerbertCallExpr):
-            args = tuple(self._eval_expr(arg, env, depth=depth) for arg in expr.args)
-            return self._call(expr.name, args, depth=depth + 1)
-        if isinstance(expr, _HerbertBinaryExpr):
-            left = self._eval_expr(expr.left, env, depth=depth)
-            right = self._eval_expr(expr.right, env, depth=depth)
-            if expr.operator == "==":
-                return left == right
-            if expr.operator == "+":
-                return _herbert_int_add(left, right)
-            if expr.operator == "-":
-                return _herbert_int_subtract(left, right)
-            raise RuntimeError(
-                f"Herbert owner has unsupported binary operator {expr.operator!r}"
-            )
-        raise RuntimeError(f"Herbert owner has unknown expression {expr!r}")
-
-    @staticmethod
-    def _truthy(value: object) -> bool:
-        return bool(value)
-
-
-def _builtin_equal(args: tuple[object, ...]) -> bool:
-    _require_herbert_builtin_arity("equal", args, 2)
-    return args[0] == args[1]
-
-
-def _builtin_empty(args: tuple[object, ...]) -> bool:
-    _require_herbert_builtin_arity("empty", args, 1)
-    return len(_require_herbert_sequence("empty", args[0])) == 0
-
-
-def _builtin_first(args: tuple[object, ...]) -> object:
-    _require_herbert_builtin_arity("first", args, 1)
-    value = _require_herbert_sequence("first", args[0])
-    if not value:
-        raise RuntimeError("Herbert owner called first on an empty sequence")
-    return value[0]
-
-
-def _builtin_rest(args: tuple[object, ...]) -> tuple[object, ...]:
-    _require_herbert_builtin_arity("rest", args, 1)
-    value = _require_herbert_sequence("rest", args[0])
-    return tuple(value[1:])
-
-
-def _builtin_plus(args: tuple[object, ...]) -> int:
-    _require_herbert_builtin_arity("plus", args, 2)
-    return _herbert_int_add(args[0], args[1])
-
-
-def _builtin_count(args: tuple[object, ...]) -> int:
-    _require_herbert_builtin_arity("count", args, 1)
-    return len(_require_herbert_sequence("count", args[0]))
-
-
-def _builtin_get(args: tuple[object, ...]) -> object:
-    _require_herbert_builtin_arity("get", args, 2)
-    value = _require_herbert_sequence("get", args[0])
-    index = args[1]
-    if type(index) is not int:
-        raise RuntimeError("Herbert owner get expects an integer index")
-    if index < 0 or index >= len(value):
-        raise RuntimeError("Herbert owner get index is out of bounds")
-    return value[index]
-
-
-def _builtin_new_array(args: tuple[object, ...]) -> list[object]:
-    _require_herbert_builtin_arity("new_array", args, 1)
-    return []
-
-
-def _builtin_add(args: tuple[object, ...]) -> None:
-    _require_herbert_builtin_arity("add", args, 2)
-    if not isinstance(args[0], list):
-        raise RuntimeError("Herbert owner add expects an array")
-    args[0].append(args[1])
-    return None
-
-
-def _builtin_array_type(args: tuple[object, ...]) -> tuple[str, object]:
-    _require_herbert_builtin_arity("array", args, 1)
-    return ("array", args[0])
-
-
-def _herbert_int_add(left: object, right: object) -> int:
-    if type(left) is not int or type(right) is not int:
-        raise RuntimeError("Herbert owner + expects integer arguments")
-    return left + right
-
-
-def _herbert_int_subtract(left: object, right: object) -> int:
-    if type(left) is not int or type(right) is not int:
-        raise RuntimeError("Herbert owner - expects integer arguments")
-    return left - right
-
-
-def _require_herbert_builtin_arity(
+def seed_field_index(
+    repo_root: Path,
+    owner_text: str,
+    fields: tuple[str, ...],
     name: str,
-    args: tuple[object, ...],
-    want: int,
-) -> None:
-    if len(args) != want:
+    label: str,
+) -> int:
+    """Compute field_index(fields, name) BY EXECUTING the owner on the pinned seed.
+
+    The boundary embeds the query into a generated main() -- build the fields array,
+    return one int (1 render word, under the seed's 15-word cap) -- then compiles+runs
+    it through the seed and decodes stdout. Fail-closed throughout; no Python fallback."""
+    prefix = _seed_owner_prefix_any(owner_text, label)
+    lines = ["func main():", "    let fields = new_array(string)"]
+    for field in fields:
+        lines.append(f"    do add(fields, {_herb_string_literal(field)})")
+    lines.append(f"    return field_index(fields, {_herb_string_literal(name)})")
+    lines.append("end")
+    program = prefix + "\n".join(lines) + "\n"
+    stdout = _run_owner_program_on_seed(repo_root, program, label)
+    try:
+        value = ast.literal_eval(stdout.strip())
+    except (SyntaxError, ValueError) as exc:
+        raise RuntimeError(f"{label} emitted unparsable stdout: {stdout!r}") from exc
+    if type(value) is not int or value < 0 or value >= _SEED_UINT64_BOUND:
         raise RuntimeError(
-            f"Herbert owner built-in {name} expects {want} arguments, got {len(args)}"
+            f"{label} field_index returned a non-uint64 value: {value!r}"
         )
+    if value > _SEED_INT64_MAX:
+        value -= _SEED_UINT64_BOUND
+    return value
 
 
-def _require_herbert_sequence(name: str, value: object) -> tuple[object, ...] | str:
-    if isinstance(value, tuple):
-        return value
-    if isinstance(value, list):
-        return tuple(value)
-    if isinstance(value, str):
-        return value
-    raise RuntimeError(f"Herbert owner built-in {name} expects a sequence")
+_RFI_SMOKE_FIELDS = ("__dolo_smoke_a", "__dolo_smoke_b")
 
 
-_HERBERT_SUBSET_BUILTINS = {
-    "add": _builtin_add,
-    "array": _builtin_array_type,
-    "count": _builtin_count,
-    "equal": _builtin_equal,
-    "empty": _builtin_empty,
-    "first": _builtin_first,
-    "get": _builtin_get,
-    "new_array": _builtin_new_array,
-    "rest": _builtin_rest,
-    "plus": _builtin_plus,
-}
-
-_HERBERT_TYPE_NAMES = frozenset({"bool", "buffer", "int", "string"})
-
-
-class _HerbertSubsetParser:
-    def __init__(self, tokens: tuple[_HerbertToken, ...]):
-        self._tokens = tokens
-        self._index = 0
-
-    def parse_program(self) -> _HerbertSubsetProgram:
-        functions: dict[str, _HerbertFunction] = {}
-        while not self._at_kind("EOF"):
-            function = self._parse_function()
-            if function.name in functions:
-                self._fail_current(
-                    f"Herbert owner repeats function {function.name!r}"
-                )
-            functions[function.name] = function
-        return _HerbertSubsetProgram(functions)
-
-    def _parse_function(self) -> _HerbertFunction:
-        self._expect_value("func")
-        name = self._expect_ident()
-        self._expect_value("(")
-        params: list[str] = []
-        if not self._match_value(")"):
-            while True:
-                params.append(self._expect_ident())
-                if self._match_value(")"):
-                    break
-                self._expect_value(",")
-        self._expect_value(":")
-        body = self._parse_block(stop_values=frozenset({"end"}))
-        self._expect_value("end")
-        return _HerbertFunction(name=name, params=tuple(params), body=tuple(body))
-
-    def _parse_block(self, *, stop_values: frozenset[str]) -> list[object]:
-        statements: list[object] = []
-        while not self._at_kind("EOF") and not self._at_any(stop_values):
-            statements.append(self._parse_statement())
-        return statements
-
-    def _parse_statement(self) -> object:
-        if self._match_value("return"):
-            return _HerbertReturnStmt(self._parse_expression())
-        if self._match_value("let"):
-            name = self._expect_ident()
-            self._expect_value("=")
-            return _HerbertLetStmt(name=name, expr=self._parse_expression())
-        if self._match_value("do"):
-            return _HerbertDoStmt(self._parse_expression())
-        if self._match_value("if"):
-            condition = self._parse_expression()
-            self._expect_value(":")
-            then_body = self._parse_block(stop_values=frozenset({"else", "end"}))
-            else_body: tuple[object, ...] = ()
-            if self._match_value("else"):
-                self._expect_value(":")
-                else_body = tuple(self._parse_block(stop_values=frozenset({"end"})))
-            self._expect_value("end")
-            return _HerbertIfStmt(
-                condition=condition,
-                then_body=tuple(then_body),
-                else_body=else_body,
-            )
-        self._fail_current("Herbert owner expected return, let, do, or if statement")
-
-    def _parse_expression(self) -> object:
-        return self._parse_equality()
-
-    def _parse_equality(self) -> object:
-        expr = self._parse_addition()
-        while self._match_value("=="):
-            expr = _HerbertBinaryExpr(
-                operator="==",
-                left=expr,
-                right=self._parse_addition(),
-            )
-        return expr
-
-    def _parse_addition(self) -> object:
-        expr = self._parse_primary()
-        while self._peek().value in {"+", "-"}:
-            operator = str(self._advance().value)
-            expr = _HerbertBinaryExpr(
-                operator=operator,
-                left=expr,
-                right=self._parse_primary(),
-            )
-        return expr
-
-    def _parse_primary(self) -> object:
-        token = self._peek()
-        if token.kind == "INT":
-            self._advance()
-            return _HerbertIntExpr(token.value)
-        if token.kind == "STRING":
-            self._advance()
-            return _HerbertStringExpr(token.value)
-        if token.kind == "IDENT":
-            name = str(token.value)
-            self._advance()
-            if self._match_value("("):
-                args: list[object] = []
-                if not self._match_value(")"):
-                    while True:
-                        args.append(self._parse_expression())
-                        if self._match_value(")"):
-                            break
-                        self._expect_value(",")
-                return _HerbertCallExpr(name=name, args=tuple(args))
-            return _HerbertVarExpr(name=name)
-        if self._match_value("("):
-            if self._match_value(")"):
-                return _HerbertTupleExpr(())
-            first = self._parse_expression()
-            if not self._match_value(","):
-                self._expect_value(")")
-                return first
-            items = [first]
-            if self._match_value(")"):
-                return _HerbertTupleExpr(tuple(items))
-            while True:
-                items.append(self._parse_expression())
-                if self._match_value(")"):
-                    break
-                self._expect_value(",")
-            return _HerbertTupleExpr(tuple(items))
-        self._fail_current("Herbert owner expected expression")
-
-    def _peek(self) -> _HerbertToken:
-        return self._tokens[self._index]
-
-    def _advance(self) -> _HerbertToken:
-        token = self._peek()
-        self._index += 1
-        return token
-
-    def _match_value(self, value: str) -> bool:
-        if self._peek().value != value:
-            return False
-        self._advance()
-        return True
-
-    def _expect_value(self, value: str) -> None:
-        if not self._match_value(value):
-            self._fail_current(f"Herbert owner expected {value!r}")
-
-    def _expect_ident(self) -> str:
-        token = self._peek()
-        if token.kind != "IDENT":
-            self._fail_current("Herbert owner expected identifier")
-        self._advance()
-        return str(token.value)
-
-    def _at_kind(self, kind: str) -> bool:
-        return self._peek().kind == kind
-
-    def _at_any(self, values: frozenset[str]) -> bool:
-        return self._peek().value in values
-
-    def _fail_current(self, message: str) -> None:
-        token = self._peek()
-        raise RuntimeError(
-            f"{message} at line {token.line}, column {token.column}"
-        )
-
-
-def load_record_field_index_owner(
+def load_record_field_index_owner_text(
     root: Path | str | None = None,
-) -> _HerbertSubsetProgram:
+    *,
+    smoke: bool = True,
+) -> str:
+    """Read + validate the record-field-index owner, fail-closed: it must declare
+    field_index and (with smoke=True, the compiler's import-time contract) be
+    executable by the pinned seed NOW -- one smoke query, ANY int accepted, since an
+    owner's index semantics are its own. A missing/blank/garbage owner or seed makes
+    the compiler unimportable, matching the other seed-executed authorities."""
     repo_root = Path(root) if root is not None else _REPO_ROOT
     owner_path = repo_root / RECORD_FIELD_INDEX_OWNER
     try:
@@ -587,14 +200,20 @@ def load_record_field_index_owner(
         raise RuntimeError(
             f"Herbert record-field-index owner is unreadable: {RECORD_FIELD_INDEX_OWNER}"
         ) from exc
-
-    program = _parse_herbert_subset(owner_text)
-    if not program.has_function("field_index"):
+    if not _herbert_text_declares_function(owner_text, "field_index"):
         raise RuntimeError(
             f"Herbert record-field-index owner declares no field_index: "
             f"{RECORD_FIELD_INDEX_OWNER}"
         )
-    return program
+    if smoke:
+        seed_field_index(
+            repo_root,
+            owner_text,
+            _RFI_SMOKE_FIELDS,
+            _RFI_SMOKE_FIELDS[-1],
+            "Herbert record-field-index owner",
+        )
+    return owner_text
 
 
 def load_array_mutation_shape(
@@ -1008,123 +627,6 @@ def _first_line(text: str) -> str:
     return text.splitlines()[0] if text else ""
 
 
-def _parse_herbert_subset(text: str) -> _HerbertSubsetProgram:
-    return _HerbertSubsetParser(_tokenize_herbert_subset(text)).parse_program()
-
-
-def _tokenize_herbert_subset(text: str) -> tuple[_HerbertToken, ...]:
-    tokens: list[_HerbertToken] = []
-    index = 0
-    line = 1
-    column = 1
-    while index < len(text):
-        ch = text[index]
-        if ch in " \t\r":
-            index += 1
-            column += 1
-            continue
-        if ch == "\n":
-            index += 1
-            line += 1
-            column = 1
-            continue
-        if ch == "#":
-            while index < len(text) and text[index] != "\n":
-                index += 1
-                column += 1
-            continue
-        if ch.isalpha() or ch == "_":
-            start = index
-            start_column = column
-            while index < len(text) and (
-                text[index].isalnum() or text[index] == "_"
-            ):
-                index += 1
-                column += 1
-            tokens.append(
-                _HerbertToken("IDENT", text[start:index], line, start_column)
-            )
-            continue
-        if ch.isdigit():
-            start = index
-            start_column = column
-            while index < len(text) and text[index].isdigit():
-                index += 1
-                column += 1
-            tokens.append(
-                _HerbertToken("INT", int(text[start:index]), line, start_column)
-            )
-            continue
-        if ch == '"':
-            start_line = line
-            start_column = column
-            index += 1
-            column += 1
-            chars: list[str] = []
-            while index < len(text):
-                current = text[index]
-                if current == '"':
-                    index += 1
-                    column += 1
-                    tokens.append(
-                        _HerbertToken(
-                            "STRING",
-                            "".join(chars),
-                            start_line,
-                            start_column,
-                        )
-                    )
-                    break
-                if current == "\\":
-                    if index + 1 >= len(text):
-                        raise RuntimeError(
-                            "Herbert owner has unterminated escape at "
-                            f"line {line}, column {column}"
-                        )
-                    escaped = text[index + 1]
-                    chars.append(_HERBERT_STRING_ESCAPES.get(escaped, escaped))
-                    index += 2
-                    column += 2
-                    continue
-                if current == "\n":
-                    raise RuntimeError(
-                        "Herbert owner has unterminated string at "
-                        f"line {start_line}, column {start_column}"
-                    )
-                chars.append(current)
-                index += 1
-                column += 1
-            else:
-                raise RuntimeError(
-                    "Herbert owner has unterminated string at "
-                    f"line {start_line}, column {start_column}"
-                )
-            continue
-        if text.startswith("==", index):
-            tokens.append(_HerbertToken("PUNCT", "==", line, column))
-            index += 2
-            column += 2
-            continue
-        if ch in "(),:+-=":
-            tokens.append(_HerbertToken("PUNCT", ch, line, column))
-            index += 1
-            column += 1
-            continue
-        raise RuntimeError(
-            f"Herbert owner has unexpected character {ch!r} "
-            f"at line {line}, column {column}"
-        )
-    tokens.append(_HerbertToken("EOF", "", line, column))
-    return tuple(tokens)
-
-
-_HERBERT_STRING_ESCAPES = {
-    "n": "\n",
-    "r": "\r",
-    "t": "\t",
-    '"': '"',
-    "\\": "\\",
-}
 
 
 _DOLO_BOOLEAN_OPERATOR_LOWERINGS_BY_OWNER = load_dolo_boolean_operator_lowerings()
@@ -1132,7 +634,7 @@ _DOLO_TWO_CHAR_OPS_BY_OWNER = load_dolo_two_char_ops()
 _HERBERT_BUILTIN_ARITIES_BY_OWNER = load_herbert_builtin_arities()
 _HERBERT_BUILTIN_KINDS_BY_OWNER = load_herbert_builtin_kinds()
 _HERBERT_TYPE_NAMES_BY_OWNER = load_herbert_type_names()
-_RECORD_FIELD_INDEX_BY_OWNER = load_record_field_index_owner()
+_RECORD_FIELD_INDEX_OWNER_TEXT = load_record_field_index_owner_text()
 (
     _ARRAY_MUTATION_DO_ADMIT_KINDS,
     _ARRAY_MUTATION_DO_CALL_COUNT,
@@ -1171,13 +673,22 @@ def is_herbert_type_name(name: str) -> bool:
     return name in _HERBERT_TYPE_NAMES_BY_OWNER
 
 
+@lru_cache(maxsize=None)
+def _record_field_index_by_seed(fields: tuple[str, ...], name: str) -> int:
+    return seed_field_index(
+        _REPO_ROOT,
+        _RECORD_FIELD_INDEX_OWNER_TEXT,
+        fields,
+        name,
+        "Herbert record-field-index owner",
+    )
+
+
 def record_field_index(fields: tuple[str, ...], name: str) -> int | None:
-    value = _RECORD_FIELD_INDEX_BY_OWNER.call("field_index", (tuple(fields), name))
-    if type(value) is int:
-        if value < 0:
-            return None
-        return value
-    return None
+    value = _record_field_index_by_seed(tuple(fields), name)
+    if value < 0:
+        return None
+    return value
 
 
 def array_mutation_do_admits(kind: str | None) -> bool:

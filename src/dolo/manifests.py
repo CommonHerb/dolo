@@ -816,10 +816,10 @@ def _require_record_field_index_candidate_matches_dolo_record(
             f"must define record {RECORD_FIELD_INDEX_RECORD}"
         )
 
-    from .herbert_surface import load_record_field_index_owner
+    from .herbert_surface import load_record_field_index_owner_text, seed_field_index
 
     try:
-        owner = load_record_field_index_owner(root)
+        owner_text = load_record_field_index_owner_text(root, smoke=False)
     except RuntimeError as exc:
         raise ManifestError(
             "herbert_migration_manifest.tsv: record field index candidate must "
@@ -829,7 +829,13 @@ def _require_record_field_index_candidate_matches_dolo_record(
     actual: dict[str, object] = {}
     try:
         for field in record.fields:
-            actual[field] = owner.call("field_index", (record.fields, field))
+            actual[field] = seed_field_index(
+                root,
+                owner_text,
+                record.fields,
+                field,
+                "record field index candidate",
+            )
     except RuntimeError as exc:
         raise ManifestError(
             "herbert_migration_manifest.tsv: record field index candidate failed "

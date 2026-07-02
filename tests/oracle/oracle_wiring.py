@@ -359,10 +359,12 @@ def _other_row_owners(auth: str) -> set[str]:
 # ----------------------------------------------------------------------------
 # record_field_index  --  EXECUTION-EQUIVALENCE grader
 # ----------------------------------------------------------------------------
-# GREEN only when the live emitter computes the field index by EVALUATING the
-# on-disk owner's algorithm (a generic Herbert-subset interpreter), so the
-# emitted value tracks owner perturbations -- step!=1 and a content-weighted
-# accumulator -- that no finite-scalar `.index`+offset shim can mimic.
+# GREEN only when the live emitter computes the field index by EXECUTING the
+# on-disk owner's algorithm (the pinned seed compiles+runs the owner per query),
+# so the emitted value tracks owner perturbations -- step!=1 and a content-weighted
+# accumulator -- that no finite-scalar `.index`+offset shim can mimic. The
+# substituted owners below use ONLY the seed-native subset (count/get/infix +
+# recursion) so the pinned seed can execute every one of them.
 RFI_OWNER_DEFAULT = "experiments/herbert/record_field_index_candidate.herb"
 RFI_NOT_FOUND = 9999
 RFI_K = 30
@@ -383,16 +385,16 @@ RFI_FIXED = [
 def _herb_base(b):
     text = (
         "func field_index(fields, name):\n"
-        f"    return search(fields, name, {b})\n"
+        f"    return search(fields, name, 0, {b})\n"
         "end\n\n"
-        "func search(fields, name, acc):\n"
-        "    if empty(fields):\n"
+        "func search(fields, name, i, acc):\n"
+        "    if i == count(fields):\n"
         f"        return {RFI_NOT_FOUND}\n"
         "    else:\n"
-        "        if equal(first(fields), name):\n"
+        "        if equal(get(fields, i), name):\n"
         "            return acc\n"
         "        else:\n"
-        "            return search(rest(fields), name, plus(acc, 1))\n"
+        "            return search(fields, name, i + 1, acc + 1)\n"
         "        end\n"
         "    end\n"
         "end\n"
@@ -403,16 +405,16 @@ def _herb_base(b):
 def _herb_step(b, s):
     text = (
         "func field_index(fields, name):\n"
-        f"    return search(fields, name, {b})\n"
+        f"    return search(fields, name, 0, {b})\n"
         "end\n\n"
-        "func search(fields, name, acc):\n"
-        "    if empty(fields):\n"
+        "func search(fields, name, i, acc):\n"
+        "    if i == count(fields):\n"
         f"        return {RFI_NOT_FOUND}\n"
         "    else:\n"
-        "        if equal(first(fields), name):\n"
+        "        if equal(get(fields, i), name):\n"
         "            return acc\n"
         "        else:\n"
-        f"            return search(rest(fields), name, plus(acc, {s}))\n"
+        f"            return search(fields, name, i + 1, acc + {s})\n"
         "        end\n"
         "    end\n"
         "end\n"
@@ -423,19 +425,19 @@ def _herb_step(b, s):
 def _herb_weighted(b, s, heavy):
     text = (
         "func field_index(fields, name):\n"
-        f'    return search(fields, name, {b}, "{heavy}", {s})\n'
+        f'    return search(fields, name, 0, {b}, "{heavy}", {s})\n'
         "end\n\n"
-        "func search(fields, name, acc, heavy, s):\n"
-        "    if empty(fields):\n"
+        "func search(fields, name, i, acc, heavy, s):\n"
+        "    if i == count(fields):\n"
         f"        return {RFI_NOT_FOUND}\n"
         "    else:\n"
-        "        if equal(first(fields), name):\n"
+        "        if equal(get(fields, i), name):\n"
         "            return acc\n"
         "        else:\n"
-        "            if equal(first(fields), heavy):\n"
-        "                return search(rest(fields), name, plus(acc, s), heavy, s)\n"
+        "            if equal(get(fields, i), heavy):\n"
+        "                return search(fields, name, i + 1, acc + s, heavy, s)\n"
         "            else:\n"
-        "                return search(rest(fields), name, plus(acc, 1), heavy, s)\n"
+        "                return search(fields, name, i + 1, acc + 1, heavy, s)\n"
         "            end\n"
         "        end\n"
         "    end\n"
@@ -458,17 +460,17 @@ def _herb_multiweight(b, wmap):
     # GENERIC evaluator that runs weight() per field tracks it.
     lines = [
         "func field_index(fields, name):",
-        f"    return search(fields, name, {b})",
+        f"    return search(fields, name, 0, {b})",
         "end",
         "",
-        "func search(fields, name, acc):",
-        "    if empty(fields):",
+        "func search(fields, name, i, acc):",
+        "    if i == count(fields):",
         f"        return {RFI_NOT_FOUND}",
         "    else:",
-        "        if equal(first(fields), name):",
+        "        if equal(get(fields, i), name):",
         "            return acc",
         "        else:",
-        "            return search(rest(fields), name, plus(acc, weight(first(fields))))",
+        "            return search(fields, name, i + 1, acc + weight(get(fields, i)))",
         "        end",
         "    end",
         "end",
@@ -690,14 +692,17 @@ def _rfi_forge_leg(rel, rng):
     return a and b and c
 
 
-# RESIDUAL (cross-model audit, Codex gpt-5.5): CHECK-X binds the emitted value to the oracle's
-# closed-form over an owner family {base, step!=1, single-heavy, VARIABLE-STRUCTURE multiweight}.
-# The multiweight member (a random per-field weight table of random length) defeats a finite Python
-# template-matcher that pre-ports base/step/single-heavy formulas -- it cannot pre-port an arbitrary
-# weight table, so it diverges (verified RED). A worker who instead writes a Python program GENERAL
-# enough to evaluate any owner in the subset has, by construction, written the generic evaluator we
-# want (not a forge). The irreducible residual: a behavior-graded oracle binds OUTPUT, so a Python
-# program that genuinely interprets the on-disk owner passes -- which is the intended transfer.
+# RESIDUAL (cross-model audit, Codex gpt-5.5; re-confirmed at the seed-execution reconcile):
+# CHECK-X binds the emitted value to the oracle's closed-form over an owner family {base, step!=1,
+# single-heavy, VARIABLE-STRUCTURE multiweight}. The multiweight member defeats a matcher that
+# pre-ports only the scalar formulas, but the sharpened threat stands: these families are FINITE
+# TEMPLATES, so a forge that regex-parses b/s/heavy AND the weight() if-chain into a dict passes
+# every behavioral check without executing anything -- and no output-graded oracle can catch a
+# perfect simulator, by construction. The genuine wiring now EXECUTES the owner on the PINNED SEED
+# (the transfer this residual always pointed at, completed). The guard against a template-matcher
+# or shadow-evaluator forge is therefore NOT behavioral: it is the reconcile doctrine's semantic
+# source review -- the wiring may contain NO owner-text parsing beyond the sanctioned main()-strip
+# in _seed_owner_prefix_any, and the orchestrator reads the diff before accepting any flip.
 def _grade_record_field_index(rng, bite=False):
     if bite:
         if _rfi_forge_leg(RFI_OWNER_DEFAULT, rng):

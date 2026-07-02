@@ -2504,13 +2504,25 @@ end
                 "tests/fixtures/record_field_index_candidate.stdout\n"
             )
 
-            with self.assertRaisesRegex(
-                ManifestError,
-                r"herbert_migration_manifest.tsv: record field index candidate "
-                r"must compute examples/citizen.dolo Citizen fields "
-                r"\(mismatched coins expected 2 got 0, hunger expected 1 got 0\)",
-            ):
-                validate_repository_manifests(root)
+            # The record-field-index comparison now EXECUTES the candidate on the
+            # pinned seed, so the temp repo needs the real pin (HERBERT.lock) and a
+            # resolvable seed (the temp root has no ../herbert-pin sibling).
+            import os
+            from unittest import mock
+
+            from dolo.herbert_surface import _resolve_verified_herbert_seed
+
+            (root / "HERBERT.lock").write_text((ROOT / "HERBERT.lock").read_text())
+            seed_path = _resolve_verified_herbert_seed(ROOT)
+
+            with mock.patch.dict(os.environ, {"DOLO_HERBERT_SEED": str(seed_path)}):
+                with self.assertRaisesRegex(
+                    ManifestError,
+                    r"herbert_migration_manifest.tsv: record field index candidate "
+                    r"must compute examples/citizen.dolo Citizen fields "
+                    r"\(mismatched coins expected 2 got 0, hunger expected 1 got 0\)",
+                ):
+                    validate_repository_manifests(root)
 
     def test_manifest_validator_requires_array_mutation_candidate_to_mirror_emitted_fixture(self):
         from dolo.manifests import ManifestError, validate_repository_manifests
@@ -3010,8 +3022,8 @@ fn bad(c: Citizen) {
             surface.RECORD_FIELD_INDEX_OWNER,
             "experiments/herbert/record_field_index_candidate.herb",
         )
-        owner = surface.load_record_field_index_owner(ROOT)
-        self.assertTrue(owner.has_function("field_index"))
+        owner_text = surface.load_record_field_index_owner_text(ROOT)
+        self.assertRegex(owner_text, r"(?m)^\s*func\s+field_index\s*\(")
         self.assertEqual(
             surface.record_field_index(("name", "hunger", "coins"), "coins"),
             2,
