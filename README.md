@@ -29,7 +29,8 @@ The current pinned Herbert target is:
 - commit: `e9dff2283113063f60fece453e9ab9eb16e7366a`
 - seed sha256:
   `8a9be3012cd3a132d2da5eb25df0b083671ff352725fdfb10504f1e7a939ce50`
-- checkout observed beside this repo at: `../herbert`
+- checkout observed beside this repo at: `../herbert-pin` (the pinned checkout;
+  `scripts/verify_herbert_truth.sh --herbert-dir ../herbert-pin` and CI both gate on it)
 
 ## Repository Map
 

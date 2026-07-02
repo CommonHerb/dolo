@@ -14,36 +14,39 @@ ledger names the borrowed substrate used by the current repository.
 | `CommonHerb/herbert` gen-1 seed | Production Herbert compiler for the proof loop | Herbert currently treats this seed as the C-free production toolchain | Continue following Herbert's sovereignty roadmap toward textual seed hardening and OS lineage |
 | macOS/Apple Silicon | Local editing and bootstrap tests | Development host only | Never treat as proof of Herbert native execution for this seed |
 
-## Repayment Candidates
+## Paid Debt — the first foundation (WIRED and SEED-EXECUTED)
 
-The `experiments/herbert/` programs are tiny Herbert-family implementation
-candidates. Today they mirror narrow Python bootstrap compiler decisions:
+All 9 first-foundation compiler authorities are Herbert-family OWNERS wired into
+the live compile path, each guarded by a held-back wiring oracle
+(`tests/oracle/oracle_wiring.py`, CI-gated via `scripts/sovereignty_meter.sh`),
+and all 9 are EXECUTED BY THE PINNED SEED — not by Python:
 
-- `record_field_index_candidate.herb` mirrors record-field-index selection.
-  Local manifest validation compares this candidate against the parsed
-  `Citizen` record fields in `examples/citizen.dolo`.
-- `array_mutation_candidate.herb` mirrors the typed array and no-value mutation
-  boundary used by Dolo's emitted Herbert. Local manifest validation compares
-  this candidate against the emitted `tests/fixtures/array_mutation.herb`
-  mutation/read shape.
-- `builtin_arity_candidate.herb` mirrors the observed Herbert built-in arity
-  table used by Dolo before emission. Local manifest validation compares this
-  candidate against Python-owned `HERBERT_BUILTIN_ARITIES`.
-- `builtin_kind_candidate.herb` mirrors the observed Herbert built-in
-  value/no-value split used by Dolo expression and `do` validation. Local
-  manifest validation compares this candidate against Python-owned
-  `HERBERT_BUILTIN_KINDS`; `HERBERT_VALUE_BUILTINS` and
-  `HERBERT_VOID_BUILTINS` are derived from that table.
-- `boolean_operator_candidate.herb` mirrors the Dolo-to-Herbert boolean
-  operator lowering table used by the emitter. Local manifest validation
-  compares this candidate against Python-owned
-  `DOLO_BOOLEAN_OPERATOR_LOWERINGS`.
-- `type_name_candidate.herb` mirrors the observed Herbert type-name set used
-  by typed `new_array(...)` validation. Local manifest validation compares
-  this candidate against Python-owned `HERBERT_TYPE_NAMES`.
+- `builtin_kind`, `builtin_arity`, `boolean_operator`, `type_name`,
+  `two_char_ops`, `closing_delimiters`, `infix_operators`: the seed runs each
+  owner's `key_list()` + lookup if-chain at compiler import to materialize the
+  table (the former `_extract_*_owner_map` Python scrapers are DELETED).
+- `array_mutation`: the seed runs the shape owner's `main()` at import
+  (do-keyword / void-gating / one-call policy).
+- `record_field_index`: the seed compiles+runs the owner PER QUERY at compile
+  time (the `_HerbertSubsetProgram` Python tree-walk interpreter and the
+  Herbert-subset parser/tokenizer are DELETED).
 
-They run through pinned Herbert in CI. They are not yet wired into the Dolo
-compiler, so they are repayment candidates, not paid debt.
+Comparison-era wording ("candidates mirror Python-owned tables") is retired:
+the Python tables no longer exist; the owners are the authority.
+
+## Open Debt — the second generation (tracked, unpaid)
+
+Registered in `docs/sovereignty/ledger.tsv` (status=python) on 2026-07-02:
+
+- `lexer_keywords` — the dolo keyword set (`src/dolo/tokens.py:KEYWORDS`). ARMED.
+- `expression_keywords` — true/false-in-expression set (emitter).
+- `unsupported_expression_punctuation` — expression reject set (emitter).
+- `statement_lowering_keywords` — the dolo→herbert statement lowering keyword
+  map (fn→func, let, =, return, if/else/end, ':') — inline f-strings today.
+
+Beyond the ledger, the LARGE untracked mass remains: the parser and emitter
+ALGORITHMS themselves (~3.4k lines of Python), the manifest validator, the CLI,
+and the bash truth harness. Sovereignty is not done; the meter now says so.
 
 Each migration candidate note must name the current Python/bootstrap owner it
 mirrors, link to a manifested Herbert source/stdout pair, and include a
